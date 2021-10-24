@@ -1,0 +1,10 @@
+includes: -I../libs/include
+lib_path: -L../libs/lib
+libraries: -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lsoundio.2.0.0
+source: ../src/main.c
+
+gxx: clang
+gxxflags: -Wall
+cxxflags: -g -std=c89
+
+out: game
