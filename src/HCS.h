@@ -147,10 +147,6 @@ struct HCS_Data {
     HCS_Entity HCS_Drawable_list[HCS_MAX_DRAWABLES];
     int HCS_Drawable_used;
     
-    HCS_Soundable HCS_Soundables[HCS_MAX_SOUNDABLES];
-    HCS_Entity HCS_Soundable_list[HCS_MAX_SOUNDABLES];
-    int HCS_Soundable_used;
-    
     HCS_Clickable HCS_Clickables[HCS_MAX_CLICKABLES];
     HCS_Entity HCS_Clickable_list[HCS_MAX_CLICKABLES];
     int HCS_Clickable_used;
@@ -377,7 +373,6 @@ void HCS_System_run()
 #include "components/states.h"
 #include "components/body.h"
 #include "components/drawable.h"
-#include "components/soundable.h"
 #include "components/clickable.h"
 #include "components/movement.h"
 #include "components/collision.h"

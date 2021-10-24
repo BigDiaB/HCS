@@ -13,7 +13,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 //#include <soundio/soundio.h>
-#include <SDL2/SDL_mixer.h>
+//#include <SDL2/SDL_mixer.h>
 
 #define START_WIDTH 1920
 #define START_HEIGHT 1080
@@ -188,13 +188,6 @@ void fullscreen_event()
     }
 }
 
-void SFX_event()
-{
-    HCS_State* d = HCS_State_get(HCS_Entity_get_by_name("Player"));
-    if (d->jump && d->on_ground)
-        HCS_Soundable_get(HCS_Entity_get_by_name("Player"))->should_be_playing = true;
-}
-
 void camera_event()
 {
     camera.x -= (camera.x - (HCS_Body_get(HCS_Entity_get_by_name("Player"))->size.x / 2 + HCS_Body_get(HCS_Entity_get_by_name("Player"))->pos.x - (get_screen_size().x * STRETCH_WIDTH) / 2)) * 0.04f;
@@ -213,7 +206,6 @@ void start_event()
     HCS_Jump_add(e,3800,true,0);
     HCS_Input_add(e);
     
-    HCS_Soundable_add(e,"assets/jmp.wav",HCS_Sound_Effect);
     HCS_Drawable_add(e,"Beenden?",300,300,true,HCS_Draw_Sprite);
     HCS_Clickable_add(e,&running,HCS_Click_off);
     HCS_Drawable_add_rect(e,100,100,100,125,true);
@@ -276,16 +268,15 @@ int main(int argc, char* argv[])
     
     HCS_System_add("Clickable",HCS_Clickable_system);
     HCS_System_add("Drawable",HCS_Drawable_system);
-    HCS_System_add("Soundable",HCS_Soundable_system);
     HCS_System_add("Collider",HCS_Collider_system);
     HCS_System_add("Movement",HCS_Movement_system);
     HCS_System_add("Gravity",HCS_Gravity_system);
     HCS_System_add("Jump",HCS_Jump_system);
     HCS_System_add("Input",HCS_Input_system);
     
-    Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640);
-    Mix_Init(MIX_INIT_OGG);
-    printf("%s\n",Mix_GetError());
+//    Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640);
+//    Mix_Init(MIX_INIT_OGG);
+//    printf("%s\n",Mix_GetError());
     while(running)
     {
         HCS_System_run();
@@ -296,7 +287,7 @@ int main(int argc, char* argv[])
     }
     
     HCS_Deinit();
-    Mix_Quit();
+//    Mix_Quit();
     LIB_PLATFORM_DEINIT();
     exit(2);
 }
