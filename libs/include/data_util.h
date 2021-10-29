@@ -4,12 +4,11 @@
 void remove_element_from_array(int arr[], int* max_arr, int* index_to_be_removed)
 {
     int i;
-    for (i = *index_to_be_removed + 1; i < *max_arr + 1; i++)
+    for (i = *index_to_be_removed; i < *max_arr - 1; i++)
     {
-        arr[i - 1] = arr[i];
+        arr[i] = arr[i + 1];
     }
     (*max_arr)--;
-    *index_to_be_removed = -1;
 }
 
 int get_unused_id_from_blacklist(int black_list[], int* black_fill, int max_id)

@@ -1,11 +1,52 @@
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+//#include <soundio/soundio.h>
+#include <SDL2/SDL_mixer.h>
 
-#pragma once
+LIB_PLATFORM_COLOR color = {255,255,255,255};
+LIB_PLATFORM_COLOR std = {125,125,125,255};
+LIB_PLATFORM_RECTANGLE WIN_SIZE;
+LIB_PLATFORM_RECTANGLE OLD_WIN_SIZE;
 
+struct all_keys
+{
+    int A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+    ,NUM_0,NUM_1,NUM_2,NUM_3,NUM_4,NUM_5,NUM_6,NUM_7,NUM_8,NUM_9
+    ,SHIFT,STRG,ALT,ESCAPE,ENTER,SPACE
+    ,M_LEFT,M_RIGHT;
+};
+static struct all_keys k;
 
 SDL_Window* window;
 SDL_Renderer* renderer;
 TTF_Font * font;
+
+bool isDown(int key)
+{
+    if (key == -1000)
+        return mouse_left;
+    else if (key == -2000)
+        return mouse_right;
+    return keys[key];
+}
+bool isPressed(int key)
+{
+    if (key == -1000)
+        return mouse_left && !last_mouse_left;
+    else if (key == -2000)
+        return mouse_right && !last_mouse_right;
+    return keys[key] && !old_keys[key];
+}
+bool isReleased(int key)
+{
+    if (key == -1000)
+        return !mouse_left && last_mouse_left;
+    else if (key == -2000)
+        return !mouse_right && last_mouse_right;
+    return !keys[key] && old_keys[key];
+}
 
 void update_keys()
 {
@@ -52,53 +93,53 @@ void update_keys()
     else
         mouse_right = false;
 }
-void init_keys()
+void init_keys(struct all_keys* k)
 {
     
-    k.A = SDLK_a;
-    k.B = SDLK_b;
-    k.C = SDLK_c;
-    k.D = SDLK_d;
-    k.E = SDLK_e;
-    k.F = SDLK_f;
-    k.G = SDLK_g;
-    k.H = SDLK_h;
-    k.I = SDLK_i;
-    k.J = SDLK_j;
-    k.K = SDLK_k;
-    k.L = SDLK_l;
-    k.M = SDLK_m;
-    k.N = SDLK_n;
-    k.O = SDLK_o;
-    k.P = SDLK_p;
-    k.Q = SDLK_q;
-    k.R = SDLK_r;
-    k.S = SDLK_s;
-    k.T = SDLK_t;
-    k.U = SDLK_u;
-    k.V = SDLK_v;
-    k.W = SDLK_w;
-    k.X = SDLK_x;
-    k.Y = SDLK_y;
-    k.Z = SDLK_z;
-    k.NUM_0 = SDLK_0;
-    k.NUM_1 = SDLK_1;
-    k.NUM_2 = SDLK_2;
-    k.NUM_3 = SDLK_3;
-    k.NUM_4 = SDLK_4;
-    k.NUM_5 = SDLK_5;
-    k.NUM_6 = SDLK_6;
-    k.NUM_7 = SDLK_7;
-    k.NUM_8 = SDLK_8;
-    k.NUM_9 = SDLK_9;
-    k.SHIFT = SDLK_LSHIFT;
-    k.STRG = SDLK_LCTRL;
-    k.ALT = SDLK_LALT;
-    k.ESCAPE = SDLK_ESCAPE;
-    k.ENTER = SDLK_RETURN;
-    k.SPACE = SDLK_SPACE;
-    k.M_LEFT = -1000;
-    k.M_RIGHT = -2000;
+    (*k).A = SDLK_a;
+    (*k).B = SDLK_b;
+    (*k).C = SDLK_c;
+    (*k).D = SDLK_d;
+    (*k).E = SDLK_e;
+    (*k).F = SDLK_f;
+    (*k).G = SDLK_g;
+    (*k).H = SDLK_h;
+    (*k).I = SDLK_i;
+    (*k).J = SDLK_j;
+    (*k).K = SDLK_k;
+    (*k).L = SDLK_l;
+    (*k).M = SDLK_m;
+    (*k).N = SDLK_n;
+    (*k).O = SDLK_o;
+    (*k).P = SDLK_p;
+    (*k).Q = SDLK_q;
+    (*k).R = SDLK_r;
+    (*k).S = SDLK_s;
+    (*k).T = SDLK_t;
+    (*k).U = SDLK_u;
+    (*k).V = SDLK_v;
+    (*k).W = SDLK_w;
+    (*k).X = SDLK_x;
+    (*k).Y = SDLK_y;
+    (*k).Z = SDLK_z;
+    (*k).NUM_0 = SDLK_0;
+    (*k).NUM_1 = SDLK_1;
+    (*k).NUM_2 = SDLK_2;
+    (*k).NUM_3 = SDLK_3;
+    (*k).NUM_4 = SDLK_4;
+    (*k).NUM_5 = SDLK_5;
+    (*k).NUM_6 = SDLK_6;
+    (*k).NUM_7 = SDLK_7;
+    (*k).NUM_8 = SDLK_8;
+    (*k).NUM_9 = SDLK_9;
+    (*k).SHIFT = SDLK_LSHIFT;
+    (*k).STRG = SDLK_LCTRL;
+    (*k).ALT = SDLK_LALT;
+    (*k).ESCAPE = SDLK_ESCAPE;
+    (*k).ENTER = SDLK_RETURN;
+    (*k).SPACE = SDLK_SPACE;
+    (*k).M_LEFT = -1000;
+    (*k).M_RIGHT = -2000;
 }
 
 void change_res(int* hr, int* vr)
@@ -137,34 +178,6 @@ void toggle_fullscreen()
     
     SDL_Delay(500);
     frozen = true;
-}
-
-void draw_black_bars()
-{
-#ifdef BLACK_BARS
-    LIB_PLATFORM_RECTANGLE r;
-    LIB_PLATFORM_RECTANGLE r2;
-    
-    r.x = 0;
-    r.y = 0;
-    r.w = DRAW_OFFSET;
-    r.h = WIN_SIZE.h;
-    
-    r2.x = WIN_SIZE.w - DRAW_OFFSET;
-    r2.y = 0;
-    r2.w = DRAW_OFFSET;
-    r2.h = WIN_SIZE.h;
-    
-    LIB_PLATFORM_SET_DRAW_COLOR(0,0,0,255);
-    
-    LIB_PLATFORM_FILL_RECT(&r);
-    LIB_PLATFORM_FILL_RECT(&r2);
-    
-    LIB_PLATFORM_DRAW_RECT(&r);
-    LIB_PLATFORM_DRAW_RECT(&r2);
-    
-    LIB_PLATFORM_SET_DRAW_COLOR(std.r,std.g,std.b,std.a);
-#endif
 }
 
 void init_SDL()

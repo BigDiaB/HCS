@@ -19,8 +19,13 @@
 
 typedef int HCS_Entity;
 
+void HCS_Void_func()
+{
+    return;
+}
+
 typedef enum {
-    HCS_cName,HCS_cDrawable, HCS_cSoundable, HCS_cBody, HCS_cClickable, HCS_cCollider, HCS_cGravity, HCS_cMovement, HCS_cState, HCS_cJump, HCS_cInput, HCS_NUM_COMPONENTS
+    HCS_cName, HCS_cState, HCS_cBody, HCS_cDrawable, HCS_cClickable, HCS_cMovement, HCS_cCollider, HCS_cGravity, HCS_cJump, HCS_cInput, HCS_NUM_COMPONENTS
 } HCS_Component;
 
 typedef enum {
@@ -34,6 +39,10 @@ typedef enum {
 typedef enum {
     HCS_Draw_Background0, HCS_Draw_Background1, HCS_Draw_Background2, HCS_Draw_Sprite, HCS_Draw_Decal, HCS_Draw_Effect, HCS_Draw_Debug, HCS_Draw_Menu0, HCS_Draw_Menu1, HCS_Draw_Menu2, HCS_Draw_DebugUI, num_draw_types
 } HCS_Drawtype;
+
+typedef enum {
+    HCS_AAdd, HCS_ARemove
+} HCS_Managed_assettype;
 
 typedef enum {
     HCS_Sound_Music, HCS_Sound_Effect
@@ -57,6 +66,7 @@ typedef struct {
     vec2i quad_size;
     HCS_Drawtype type;
     char* path;
+    bool managed;
     bool use_path_as_image_text;
     bool draw;
     bool use_quad;
@@ -65,12 +75,9 @@ typedef struct {
 } HCS_Drawable;
 
 typedef struct {
-    bool should_be_playing;
-    Mix_Chunk* SFX;
-    Mix_Music* music;
     char* path;
-    HCS_Soundtype type;
-} HCS_Soundable;
+    LIB_PLATFORM_TEXTURE tex;
+} HCS_Managed_asset;
 
 typedef struct{
     bool active;
@@ -146,6 +153,10 @@ struct HCS_Data {
     HCS_Drawable HCS_Drawables[HCS_MAX_DRAWABLES];
     HCS_Entity HCS_Drawable_list[HCS_MAX_DRAWABLES];
     int HCS_Drawable_used;
+
+    HCS_Managed_asset HCS_Managed_assets[HCS_MAX_DRAWABLES];
+    HCS_Entity HCS_Managed_asset_list[HCS_MAX_DRAWABLES];
+    int HCS_Managed_asset_used;
     
     HCS_Clickable HCS_Clickables[HCS_MAX_CLICKABLES];
     HCS_Entity HCS_Clickable_list[HCS_MAX_CLICKABLES];
@@ -189,7 +200,53 @@ struct HCS_Data {
 
 struct HCS_Data* runData;
 
+LIB_PLATFORM_TEXTURE HCS_Asset_manager(char* path, HCS_Managed_assettype action)
+{
+    switch (action)
+    {
+        case HCS_AAdd:
+        {
+            int j;
+            for (j = 0; j < runData->HCS_Managed_asset_used; j++)
+            {
+                int i = runData->HCS_Managed_asset_list[j];
+                if (0 == strcmp(runData->HCS_Managed_assets[i].path,path))
+                {
+                    return runData->HCS_Managed_assets[i].tex;
+                }
+            } 
+            {
+                    int id = get_unused_id_from_blacklist(runData->HCS_Managed_asset_list, &runData->HCS_Managed_asset_used, HCS_MAX_DRAWABLES);
+                    runData->HCS_Managed_asset_list[runData->HCS_Managed_asset_used] = id;
+                    runData->HCS_Managed_assets[id].tex = LIB_PLATFORM_SURFACE_TO_TEXTURE(LIB_PLATFORM_LOAD_IMG(path));
+                    runData->HCS_Managed_assets[id].path = path;
+                    return runData->HCS_Managed_assets[id].tex;
+                }
+            break;
+        }
+        case HCS_ARemove:
+        {
+        int j;
+        for (j = 0; j < runData->HCS_Managed_asset_used; j++)
+        {
+            int i = runData->HCS_Managed_asset_list[j];
+            if (0 == strcmp(runData->HCS_Managed_assets[i].path,path))
+            {
+                LIB_PLATFORM_TEXTURE_DESTROY(runData->HCS_Managed_assets[i].tex);
+                remove_element_from_array(runData->HCS_Managed_asset_list,&runData->HCS_Managed_asset_used,&i);
+                return NULL;
+            }
+        }
+        LSD_Log(LSD_ltMESSAGE,path);
+        LSD_Log(LSD_ltERROR,"Asset konnte nicht entfernt werden, weil es nicht nach Namen gefunden wurde!");
+        break;
+        }
 
+        default:
+        break;
+    }
+    return NULL;
+}
 
 
 /*
@@ -209,6 +266,10 @@ void HCS_Deinit()
 }
 
 
+void HCS_Stop()
+{
+    running = false;
+}
 
 
 /*
@@ -316,9 +377,15 @@ void HCS_Event_remove(char* n)
     for (j = 0; j < runData->HCS_Event_used; j++)
     {
         int i = runData->HCS_Event_list[j];
+        printf("%s <- %s\n",runData->HCS_Events[i].name,n);
         if (0 == strcmp(runData->HCS_Events[i].name,n))
         {
-            remove_element_from_array(runData->HCS_Event_list,&runData->HCS_Event_used,&i);
+            printf("Removing Name: %s\n",runData->HCS_Events[i].name);
+            runData->HCS_Events[i].event = HCS_Void_func;
+            remove_element_from_array(runData->HCS_Event_list,&runData->HCS_Event_used,&j);
+            int k;
+            for (k = 0; k < runData->HCS_Event_used; k++)
+                printf("%s\n",runData->HCS_Events[runData->HCS_Event_list[k]].name);
             return;
         }
     }
@@ -350,9 +417,9 @@ void HCS_System_remove(char* n)
     for (j = 0; j < runData->HCS_System_used; j++)
     {
         int i = runData->HCS_System_list[j];
-        if (0 == strcmp(runData->HCS_Systems[i].name,n))
+        if (strcmp(runData->HCS_Systems[i].name,n))
         {
-            remove_element_from_array(runData->HCS_System_list,&runData->HCS_System_used,&i);
+            remove_element_from_array(runData->HCS_System_list,&runData->HCS_System_used,&j);
             return;
         }
     }
@@ -379,3 +446,31 @@ void HCS_System_run()
 #include "components/jump.h"
 #include "components/gravity.h"
 #include "components/input.h"
+
+
+void HCS_Entity_kill(HCS_Entity e)
+{
+    if (HCS_Entity_has_component(e,HCS_cInput))
+        HCS_Input_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cGravity))
+        HCS_Gravity_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cJump))
+        HCS_Jump_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cCollider))
+        HCS_Collider_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cMovement))
+        HCS_Movement_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cClickable))
+        HCS_Clickable_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cDrawable))
+        HCS_Drawable_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cBody))
+        HCS_Body_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cState))
+        HCS_State_remove(e);
+    HCS_Name_remove(e);
+    HCS_Entity_remove(e);
+}
+
+
+

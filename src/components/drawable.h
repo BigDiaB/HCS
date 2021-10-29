@@ -37,6 +37,7 @@ int HCS_Drawable_add(HCS_Entity e, char* n, float x, float y, bool text, HCS_Dra
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_quad = false;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].draw_rect = false;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].fill_rect = false;
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].managed = !text;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text = text;
     
     int i = HCS_Entity_get_component_id(e,HCS_cDrawable);
@@ -50,26 +51,7 @@ int HCS_Drawable_add(HCS_Entity e, char* n, float x, float y, bool text, HCS_Dra
         return HCS_Entity_get_component_id(e,HCS_cDrawable);
     }
     
-    LIB_PLATFORM_SURFACE surf = LIB_PLATFORM_LOAD_IMG(runData->HCS_Drawables[i].path);
-    if (surf != NULL)
-    {
-        runData->HCS_Drawables[i].size.x = surf->w;
-        runData->HCS_Drawables[i].size.y = surf->h;
-        
-        LIB_PLATFORM_TEXTURE tex = LIB_PLATFORM_SURFACE_TO_TEXTURE(surf);
-        if (tex != NULL)
-            runData->HCS_Drawables[i].tex = tex;
-        else
-        {
-            printf("Texture von HCS_Entity %d ist ungültig!",HCS_Entity_get_entity_id(i,HCS_cDrawable));
-            exit(1);
-        }
-    }
-    else
-    {
-        printf("Path von HCS_Entity %d konnte nicht geladen werden!",HCS_Entity_get_entity_id(i,HCS_cDrawable));
-        exit(1);
-    }
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = HCS_Asset_manager(n, HCS_AAdd);
     return HCS_Entity_get_component_id(e,HCS_cDrawable);
 }
 
@@ -92,13 +74,23 @@ void HCS_Drawable_add_rect(HCS_Entity e, int r, int g, int b, int a, bool fill)
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].fill_rect = fill;
 }
 
-void HCS_Drawable_reset(HCS_Entity e, char* text)
+void HCS_Drawable_reset_unmanaged_with_text(HCS_Entity e, char* text)
 {
     LIB_PLATFORM_SURFACE surf = LIB_PLATFORM_TEXT_TO_SURFACE(text);
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.x = surf->w;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.y = surf->h;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = LIB_PLATFORM_SURFACE_TO_TEXTURE(surf);
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].managed = false;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text = true;
+}
+
+void HCS_Drawable_reset_unmanaged(HCS_Entity e, LIB_PLATFORM_SURFACE surf)
+{
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.x = surf->w;
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.y = surf->h;
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = LIB_PLATFORM_SURFACE_TO_TEXTURE(surf);
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].managed = false;
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text = false;
 }
 
 HCS_Drawable* HCS_Drawable_get(HCS_Entity e)
@@ -172,8 +164,8 @@ void HCS_Drawable_system()
                 {
                     LIB_PLATFORM_SET_DRAW_COLOR(depth_buffer[t][i]->color.r,depth_buffer[t][i]->color.g,depth_buffer[t][i]->color.b,depth_buffer[t][i]->color.a);
                     if (depth_buffer[t][i]->fill_rect)
-                        LIB_PLATFORM_FILL_RECT(&r);
-                    LIB_PLATFORM_DRAW_RECT(&r);
+                        LIB_PLATFORM_FILL_RECT(r);
+                    LIB_PLATFORM_DRAW_RECT(r);
                     LIB_PLATFORM_SET_DRAW_COLOR(std.r,std.g,std.b,std.a);
                 }
                 if (!(*depth_buffer[t][i]).use_quad)
@@ -204,8 +196,8 @@ void HCS_Drawable_system()
                 {
                     LIB_PLATFORM_SET_DRAW_COLOR(depth_buffer[t][i]->color.r,depth_buffer[t][i]->color.g,depth_buffer[t][i]->color.b,depth_buffer[t][i]->color.a);
                     if (depth_buffer[t][i]->fill_rect)
-                        LIB_PLATFORM_FILL_RECT(&r);
-                    LIB_PLATFORM_DRAW_RECT(&r);
+                        LIB_PLATFORM_FILL_RECT(r);
+                    LIB_PLATFORM_DRAW_RECT(r);
                     LIB_PLATFORM_SET_DRAW_COLOR(std.r,std.g,std.b,std.a);
                 }
                 if (!(*depth_buffer[t][i]).use_quad)

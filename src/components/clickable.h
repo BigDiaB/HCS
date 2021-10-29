@@ -43,15 +43,16 @@ void HCS_Clickable_system()
         vec2f temp_pos;
         if (HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > 6)
         {
-            temp_pos.x = bod.pos.x ;
+            temp_pos.x = bod.pos.x * STRETCH_WIDTH ;
             temp_pos.y = bod.pos.y ;
+            temp_bod_size.x *= STRETCH_WIDTH;
         }
         else
         {
             temp_pos.x = (bod.pos.x - camera.x) ;
             temp_pos.y = (bod.pos.y - camera.y) ;
         }
-        
+
 //        temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,w);
 //        temp_pos.y = map_number_in_range_to_new_range(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,h);
 //        temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,w);
@@ -66,11 +67,11 @@ void HCS_Clickable_system()
         temp_bod_size.y = map_number_in_range_to_new_range(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
         
 //        if (fullscreen)
-        {
+//        {
 //            temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
 //            temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
 //            temp_pos.x += DRAW_OFFSET;
-        }
+//        }
 //        else
 //        {
             temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
@@ -83,7 +84,6 @@ void HCS_Clickable_system()
 //        temp_pos.y = map_number_in_range_to_new_range(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,h);
 //        temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X,0,w);
 //        temp_bod_size.y = map_number_in_range_to_new_range(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,h);
-
 
         hot = false;
         if (cAABB(mouse_pos,temp_pos,temp_size,temp_bod_size))
