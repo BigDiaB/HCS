@@ -1,23 +1,15 @@
 
 #pragma once
 
+#define HCS_Drawable_Drawtype_UI 8
+
 void HCS_Drawable_translate_rect(LIB_PLATFORM_RECTANGLE* r)
 {
     
     r->y = map_number_in_range_to_new_range(r->y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
     r->h = map_number_in_range_to_new_range(r->h,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
-    
-    //    if (!fullscreen)
-    //    {
     r->x = map_number_in_range_to_new_range(r->x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
     r->w = map_number_in_range_to_new_range(r->w,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
-    //        r->x += DRAW_OFFSET;
-    //    }
-    //    else
-    {
-        //        r->x = map_number_in_range_to_new_range(r->x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
-        //        r->w = map_number_in_range_to_new_range(r->w,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
-    }
 }
 
 
@@ -149,7 +141,7 @@ void HCS_Drawable_system()
     int t;
     for (t = 0; t < num_draw_types; t++)
     {
-        if (t > 6)
+        if (t > HCS_Drawable_Drawtype_UI)
         {
             int i;
             for (i = 0; i < used_buffer[t]; i++)

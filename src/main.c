@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include <sys/time.h>
 
 #include "data_util.h"
@@ -52,10 +53,11 @@
  -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!                        NICHT WIRKLICH... -> Es funktioniert zwar, es muss aber nochmal kräftig überarbeitet werden!
  -"Black-Bars" sind broken...                                                   GEFIXT!           -> if(fullscreen) hat gefehlt
  -Asset-Manager, der die Paths überprüft und so                                 FERTIG!           -> HCS_Asset_Manager() + HCS_Managed_assets in HCS.h
+ -LSD_Log überarbeiten mit Format-String wie in printf()!                       FERTIG!           -> In LSD.h, greift aber immernoch auf LSD_Log_old() zurück!
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -Sound überarbeiten!
  -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird
- -LSD_Log überarbeiten mit Format-String wie in printf()!
+ -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
  -Das runData-Struct serialisieren und wieder deserialisieren!                  FÜRS ERSTE AUF EIS GELEGT! (Evtl. später mit Data Desk arbeiten!)
  */
 
@@ -111,10 +113,6 @@ void start_event()
     HCS_Body_add(e,200,50,300,800);
     HCS_Drawable_add(e,"assets/tree.png",0,0,false,HCS_Draw_Background1);
 
-    e = HCS_Entity_create("UI-Test");
-
-    HCS_Body_add(e,100, get_screen_size().y - 300, get_screen_size().x - 200, 200);
-    HCS_Drawable_add(e,"assets/MC_Block.jpg",0,0,false,HCS_Draw_Menu0);
     
     HCS_Event_add("Camera",camera_event);
     HCS_Event_remove("Start");
@@ -134,8 +132,6 @@ void menu_event()
 
 int main(int argc, char* argv[])
 {   
-    prepare_path(argv);
-    gettimeofday(&begin, 0); 
     LIB_PLATFORM_INIT();
     HCS_Init();
     
@@ -167,10 +163,6 @@ int main(int argc, char* argv[])
     HCS_Clickable_add(e,&running,HCS_Click_off);
     HCS_Drawable_add_rect(e,100,100,100,125,true);
 
-    
-//    Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640);
-//    Mix_Init(MIX_INIT_OGG);
-//    printf("%s\n",Mix_GetError());
     while(running)
     {
         HCS_System_run();

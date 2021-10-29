@@ -10,7 +10,7 @@
 #define LIB_PLATFORM_TEXT_TO_SURFACE(X)         TTF_RenderText_Solid(font,X,color)
 #define LIB_PLATFORM_TEXT_TO_TEXTURE(X)         SDL_CreateTextureFromSurface(renderer,TTF_RenderText_Solid(font,X,color))
 
-#define LIB_PLATFORM_INIT()                     init_SDL(); init_keys(&k)
+#define LIB_PLATFORM_INIT()                     prepare_path(argv); gettimeofday(&begin, 0); init_SDL(); init_keys(&k)
 #define LIB_PLATFORM_DEINIT()                   quit_SDL()
 #define LIB_PLATFORM_UPDATE()                   update_keys(); draw_black_bars(); SDL_RenderPresent(renderer); SDL_RenderClear(renderer)
 

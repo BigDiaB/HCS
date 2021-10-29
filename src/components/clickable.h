@@ -35,13 +35,12 @@ void HCS_Clickable_system()
     int j;
     for (j = 0; j < runData->HCS_Clickable_used; j++)
     {
-//        printf("I am alive!\n");
         int i = runData->HCS_Clickable_list[j];
         HCS_Body bod = *HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable));
         vec2i temp_size = {10,10};
         vec2i temp_bod_size = {HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.x ,HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.y };
         vec2f temp_pos;
-        if (HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > 6)
+        if (HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > HCS_Drawable_Drawtype_UI)
         {
             temp_pos.x = bod.pos.x * STRETCH_WIDTH ;
             temp_pos.y = bod.pos.y ;
@@ -52,48 +51,15 @@ void HCS_Clickable_system()
             temp_pos.x = (bod.pos.x - camera.x) ;
             temp_pos.y = (bod.pos.y - camera.y) ;
         }
-
-//        temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,w);
-//        temp_pos.y = map_number_in_range_to_new_range(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,h);
-//        temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,w);
-//        temp_bod_size.y = map_number_in_range_to_new_range(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,h);
-        
-//        temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,w);
-//        temp_pos.y = map_number_in_range_to_new_range(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,h);
-//        temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,w);
-//        temp_bod_size.y = map_number_in_range_to_new_range(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,h);
-        
         temp_pos.y = map_number_in_range_to_new_range(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
         temp_bod_size.y = map_number_in_range_to_new_range(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
-        
-//        if (fullscreen)
-//        {
-//            temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
-//            temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
-//            temp_pos.x += DRAW_OFFSET;
-//        }
-//        else
-//        {
-            temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
-            temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
-//        }
-        
-        
-        
-//        temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X,0,w);
-//        temp_pos.y = map_number_in_range_to_new_range(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,h);
-//        temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X,0,w);
-//        temp_bod_size.y = map_number_in_range_to_new_range(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,h);
-
+        temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
+        temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
         hot = false;
         if (cAABB(mouse_pos,temp_pos,temp_size,temp_bod_size))
         {
-//            printf("hovering!\n");
             if (isDown(k.M_LEFT))
-            {
                 runData->HCS_Clickables[i].down = true;
-//                printf("clicked!\nd");
-            }
             hot = true;
             if (runData->HCS_Clickables[i].old_down && !isDown(k.M_LEFT))
             {
@@ -126,7 +92,6 @@ void HCS_Clickable_system()
                     break;
             }
         }
-        
         if (runData->HCS_Clickables[i].down && hot)
             LIB_PLATFORM_COLOR_MOD(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,75, 75, 75);
         else if (hot && !runData->HCS_Clickables[i].down)
