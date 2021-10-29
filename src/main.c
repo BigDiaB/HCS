@@ -51,10 +51,10 @@
  -"Black-Bars" für Oben und Unten implementieren!                               NICHT NOTWENDIG!  -> Windowed-Mode wird immer slimmer als Fullscreen sein!
  -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!                        NICHT WIRKLICH... -> Es funktioniert zwar, es muss aber nochmal kräftig überarbeitet werden!
  -"Black-Bars" sind broken...                                                   GEFIXT!           -> if(fullscreen) hat gefehlt
+ -Asset-Manager, der die Paths überprüft und so                                 FERTIG!           -> HCS_Asset_Manager() + HCS_Managed_assets in HCS.h
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -Sound überarbeiten!
  -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird
- -Asset-Manager, der die Paths überprüft und so
  -LSD_Log überarbeiten mit Format-String wie in printf()!
  -Das runData-Struct serialisieren und wieder deserialisieren!                  FÜRS ERSTE AUF EIS GELEGT! (Evtl. später mit Data Desk arbeiten!)
  */
@@ -98,7 +98,7 @@ void start_event()
     
     HCS_Body_add(e,800,500,525,100);
     HCS_Collider_add(e);
-    HCS_Drawable_add(e,"assets/test.png",0,0,false,HCS_Draw_Decal);
+    HCS_Drawable_add(e,"assets/MC_Block.jpg",0,0,false,HCS_Draw_Decal);
     
     e = HCS_Entity_create("Ground");
     
@@ -114,7 +114,7 @@ void start_event()
     e = HCS_Entity_create("UI-Test");
 
     HCS_Body_add(e,100, get_screen_size().y - 300, get_screen_size().x - 200, 200);
-    HCS_Drawable_add(e,"assets/test.png",0,0,false,HCS_Draw_Menu0);
+    HCS_Drawable_add(e,"assets/MC_Block.jpg",0,0,false,HCS_Draw_Menu0);
     
     HCS_Event_add("Camera",camera_event);
     HCS_Event_remove("Start");
@@ -126,13 +126,16 @@ void menu_event()
 {
     if (!started)
         return;
-    HCS_Entity_kill(HCS_Entity_get_by_name("Button"));
+    HCS_Entity_kill(HCS_Entity_get_by_name("Start_Button"));
+    HCS_Entity_kill(HCS_Entity_get_by_name("Quit_Button"));
     HCS_Event_add("Start",start_event);
     HCS_Event_remove("Menu");
 }
 
 int main(int argc, char* argv[])
 {   
+    prepare_path(argv);
+    gettimeofday(&begin, 0); 
     LIB_PLATFORM_INIT();
     HCS_Init();
     
@@ -150,11 +153,18 @@ int main(int argc, char* argv[])
     HCS_System_add("Input",HCS_Input_system);
 
 
-    HCS_Entity e = HCS_Entity_create("Button");
+    HCS_Entity e = HCS_Entity_create("Quit_Button");
 
-    HCS_Body_add(e,get_screen_size().x / 2 - 300,get_screen_size().y / 2 - 150,600,300);
+    HCS_Body_add(e,get_screen_size().x / 2 - 300,get_screen_size().y / 2 - 300,600,300);
     HCS_Drawable_add(e,"Start",0,0,true,HCS_Draw_Menu1);
     HCS_Clickable_add(e,&started,HCS_Click_on);
+    HCS_Drawable_add_rect(e,100,100,100,125,true);
+
+    e = HCS_Entity_create("Start_Button");
+
+    HCS_Body_add(e,get_screen_size().x / 2 - 300,get_screen_size().y / 2 + 100,600,300);
+    HCS_Drawable_add(e,"Beenden",0,0,true,HCS_Draw_Menu1);
+    HCS_Clickable_add(e,&running,HCS_Click_off);
     HCS_Drawable_add_rect(e,100,100,100,125,true);
 
     

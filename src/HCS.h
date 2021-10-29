@@ -377,15 +377,10 @@ void HCS_Event_remove(char* n)
     for (j = 0; j < runData->HCS_Event_used; j++)
     {
         int i = runData->HCS_Event_list[j];
-        printf("%s <- %s\n",runData->HCS_Events[i].name,n);
         if (0 == strcmp(runData->HCS_Events[i].name,n))
         {
-            printf("Removing Name: %s\n",runData->HCS_Events[i].name);
             runData->HCS_Events[i].event = HCS_Void_func;
             remove_element_from_array(runData->HCS_Event_list,&runData->HCS_Event_used,&j);
-            int k;
-            for (k = 0; k < runData->HCS_Event_used; k++)
-                printf("%s\n",runData->HCS_Events[runData->HCS_Event_list[k]].name);
             return;
         }
     }

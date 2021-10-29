@@ -210,7 +210,8 @@ void init_SDL()
     font = TTF_OpenFont("assets/font.ttf", 25);
     if (font == NULL)
     {
-        printf("TTF konnte die Font-Datei nicht öffnen!\n");
+        char buf[1024];
+        printf("TTF konnte die Font-Datei nicht öffnen!:\n%s\n",getcwd(buf,1024));
         exit(1);
     }
     running = true;
