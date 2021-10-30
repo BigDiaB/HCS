@@ -54,11 +54,11 @@ void HCS_Movement_system()
         
         (*HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cMovement))).pos.x += runData->HCS_Movements[i].vel.x * delta;
         
-        runData->HCS_Movements[i].vel.x *= pow(0.002,delta);
+        runData->HCS_Movements[i].vel.x *= pow(0.5f,delta * 10);
         
         (*HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cMovement))).pos.y += runData->HCS_Movements[i].vel.y * delta;
         
         
-        runData->HCS_Movements[i].vel.y *= pow(0.002,delta);
+        runData->HCS_Movements[i].vel.y *= pow(0.5f,delta * 10);
     }
 }

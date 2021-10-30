@@ -12,6 +12,8 @@ int HCS_Jump_add(HCS_Entity e, double n, bool m, double l)
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].jump_time = l;
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].jump_timer = l;
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].active = true;
+    runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].can_jump = true;
+    runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].jump_ground_timer = 0.0f;
     
     return HCS_Entity_get_component_id(e,HCS_cJump);
 }
@@ -34,31 +36,28 @@ void HCS_Jump_system()
         int i = runData->HCS_Jump_list[j];
         HCS_Movement* mov = HCS_Movement_get(HCS_Entity_get_entity_id(i,HCS_cJump));
         HCS_State d = *HCS_State_get(HCS_Entity_get_entity_id(i,HCS_cJump));
-        
+        runData->HCS_Jumps[i].jump_ground_timer -= delta;
         if (d.jump)
         {
             if (runData->HCS_Jumps[i].needs_ground)
             {
-                if (d.on_ground)
-                    mov->vel.y -= runData->HCS_Jumps[i].strength;
+                if (runData->HCS_Jumps[i].jump_ground_timer > 0.0f)
+                {
+                    mov->vel.y = -runData->HCS_Jumps[i].strength;
+                    runData->HCS_Jumps[i].jump_ground_timer = 0.0f;
+                }
             }
             else
-            {
                 if (runData->HCS_Jumps[i].jump_timer >= runData->HCS_Jumps[i].jump_time)
                 {
                     mov->vel.y -= runData->HCS_Jumps[i].strength;
                     runData->HCS_Jumps[i].jump_timer = 0;
                 }
-                else
-                    runData->HCS_Jumps[i].jump_timer += delta;
-            }
         }
-        else if (!d.on_ground && !d.jump)
-        {
+        else if (!d.on_ground)
             if (mov->vel.y < 0)
-            {
                 mov->vel.y *= 0.5f;
-            }
-        }
+        if (d.on_ground)
+            runData->HCS_Jumps[i].jump_ground_timer = 0.2f;
     }
 }

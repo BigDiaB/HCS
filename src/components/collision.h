@@ -73,7 +73,7 @@ void HCS_Collider_system()
                                     
                                     if (fabsf(overlap.y) < fabsf(overlap.x))
                                     {
-#define MOE 0 //Wiggle-Room
+#define MOE -1 //Wiggle-Room
 //#define CRF 0 //Bounce
                                         // TOP:
                                         if ((s1.x + w1.x > s2.x || s1.x < s2.x + w2.x) && (s1.y + w1.y > s2.y && s1.y + w1.y < s2.y + w2.x/2) && move->vel.y > 0)
@@ -108,7 +108,7 @@ void HCS_Collider_system()
                                             move->vel.x = 0;
                                         }
                                     }
-                                }
+                                } 
                             }
                         }
                     }

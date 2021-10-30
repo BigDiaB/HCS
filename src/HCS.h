@@ -89,9 +89,11 @@ typedef struct{
 } HCS_Input;
 
 typedef struct{
+    double jump_ground_timer;
     double jump_time;
     double jump_timer;
     double strength;
+    bool can_jump;
     bool active;
     bool needs_ground;
 } HCS_Jump;
