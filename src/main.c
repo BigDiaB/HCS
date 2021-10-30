@@ -21,7 +21,6 @@
 //Meine Tools:
 #include "LSD.h"            //<- Logging System
 #include "HCS.h"            //<- Entity Component System
-
 /*
  TODO:
  -Endlich die verdammten Error-Messages einfügen!!                              DONE!             -> Siehe source
@@ -57,6 +56,7 @@
  -LSD_Log überarbeiten mit Format-String wie in printf()!                       FERTIG!           -> In LSD.h, greift aber immernoch auf LSD_Log_old() zurück!
  -LSD_Log mit LSD_Log_old mergen!                                               FERTIG!           -> In LSD.h, greift jetzt nicht mehr auf LSD_Log_old zurück!
  -Jump-Timer hinzufügen!                                                        FERTIG!           -> In jump.h
+ -Collisions checken mit zu wenig overhead!                                     FERTIG!           -> In collision.h
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -Sound überarbeiten!
  -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird
