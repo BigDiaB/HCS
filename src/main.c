@@ -54,11 +54,16 @@
  -"Black-Bars" sind broken...                                                   GEFIXT!           -> if(fullscreen) hat gefehlt
  -Asset-Manager, der die Paths überprüft und so                                 FERTIG!           -> HCS_Asset_Manager() + HCS_Managed_assets in HCS.h
  -LSD_Log überarbeiten mit Format-String wie in printf()!                       FERTIG!           -> In LSD.h, greift aber immernoch auf LSD_Log_old() zurück!
+ -LSD_Log mit LSD_Log_old mergen!                                               FERTIG!           -> In LSD.h, greift jetzt nicht mehr auf LSD_Log_old zurück!
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -Sound überarbeiten!
  -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
  -Das runData-Struct serialisieren und wieder deserialisieren!                  FÜRS ERSTE AUF EIS GELEGT! (Evtl. später mit Data Desk arbeiten!)
+
+
+Very Nice To Haves™:
+-Handy per QR-Code verbinden und als Controller benutzen
  */
 
 void fullscreen_event()
@@ -80,14 +85,14 @@ void start_event()
     HCS_Entity e = HCS_Entity_create("Player");
     
     HCS_State_add(e);
-    HCS_Body_add(e,get_screen_size().x / 2 - 300,get_screen_size().y / 2 - 150,300,150);
+    HCS_Body_add(e,get_screen_size().x / 2 - 300,get_screen_size().y / 2 - 150,250,150);
     HCS_Movement_add(e,3000,0);
     HCS_Collider_add(e);
     HCS_Gravity_add(e,0,1500);
     HCS_Jump_add(e,3800,true,0);
     HCS_Input_add(e);
     
-    HCS_Drawable_add(e,"Beenden?",300,300,true,HCS_Draw_Sprite);
+    HCS_Drawable_add(e,"Beenden",300,300,true,HCS_Draw_Sprite);
     HCS_Clickable_add(e,&running,HCS_Click_off);
     HCS_Drawable_add_rect(e,100,100,100,125,true);
     

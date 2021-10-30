@@ -41,7 +41,7 @@ double STRETCH_WIDTH = 1;
 double STRETCH_HEIGHT = 1;
 
 double delta = 0.0f;
-bool frozen = false;
+bool frozen = true;
 
 struct timeval begin, end;
 

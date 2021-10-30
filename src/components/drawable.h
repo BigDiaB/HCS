@@ -85,6 +85,7 @@ void HCS_Drawable_reset_unmanaged(HCS_Entity e, LIB_PLATFORM_SURFACE surf)
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text = false;
 }
 
+
 HCS_Drawable* HCS_Drawable_get(HCS_Entity e)
 {
     if (!HCS_Entity_has_component(e, HCS_cDrawable))
@@ -101,10 +102,10 @@ void HCS_Drawable_remove(HCS_Entity e)
 }
 
 
-//bool dAABB(vec2f pos1, vec2f pos2, vec2i size1, vec2i size2)
-//{
+// bool dAABB(vec2f pos1, vec2f pos2, vec2i size1, vec2i size2)
+// {
 //    return (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y);
-//}
+// }
 
 void HCS_Drawable_system()
 {
@@ -120,13 +121,11 @@ void HCS_Drawable_system()
         
         if (runData->HCS_Drawables[i].draw)
         {
-            //            vec2f screen_pos = {0 - camera.x,0 - camera.y};
-            //            vec2i screen_size = {WIN_SIZE.w + camera.x,WIN_SIZE.h + camera.x};
-            //            if (dAABB(runData->HCS_Drawables[i].pos, screen_pos,runData->HCS_Drawables[i].size, screen_size))
-            {
+            // if (dAABB(runData->HCS_Drawables[i].pos,vec_new_float(0,0),runData->HCS_Drawables[i].size, vec_new_int(get_screen_size().x - camera.x,get_screen_size().y - camera.y)))
+            // {
                 depth_buffer[runData->HCS_Drawables[i].type][used_buffer[runData->HCS_Drawables[i].type]] = &runData->HCS_Drawables[i];
                 used_buffer[runData->HCS_Drawables[i].type]++;
-            }
+            // }
         }
         
         if (HCS_Entity_has_component(HCS_Entity_get_entity_id(i,HCS_cDrawable),HCS_cBody))
