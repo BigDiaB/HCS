@@ -14,7 +14,7 @@
 #define START_WIDTH 1920
 #define START_HEIGHT 1080
 // #define BLACK_BARS
-
+#define NUM_LOGIC_CYCLES 1
 //Platform-"Wrapper"
 #include "no_platform.h"    //<- Platformunabhängig
 #include "platform.h"       //<- Platformabhängig
