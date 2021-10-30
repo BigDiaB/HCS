@@ -21,21 +21,24 @@ void LSD_Log_level_set(LSD_Log_level level)
     LSD_Log_level_now = level;
 }
 
-void LSD_Log_old(LSD_Log_type type, char* text)
+void LSD_Log(LSD_Log_type type, char* format, ...)
 {
+    char* string;
+    va_list args;
+    va_start(args, format);
+    if(0 > vasprintf(&string, format, args)) string = NULL;
+    va_end(args);
     switch (type) {
         case LSD_ltMESSAGE:
             if (LSD_Log_level_now == LSD_llALL)
-            printf("Nachricht: %s\n",text);
+            printf("Nachricht: %s\n",string);
             break;
         case LSD_ltWARNING:
             if (LSD_Log_level_now != LSD_llERROR)
-            printf("WARNUNG!: %s\n",text);
+            printf("WARNUNG!: %s\n",string);
             break;
         case LSD_ltERROR:
-            printf("####################\n");
-            printf("ERROR!: %s\n\n",text);
-            printf("####################\n");
+            printf("\n####################\nERROR!:\n%s\n\n####################\n",string);
 #ifdef ERRORS_EXIT
             exit(1);
 #endif
@@ -44,16 +47,5 @@ void LSD_Log_old(LSD_Log_type type, char* text)
         default:
             break;
     }
-}
-
-void LSD_Log(LSD_Log_type type, char* format, ...)
-{
-    char* string;
-    va_list args;
-
-    va_start(args, format);
-    if(0 > vasprintf(&string, format, args)) string = NULL;
-    va_end(args);
-    LSD_Log_old(type,string);
     free(string);
 }
