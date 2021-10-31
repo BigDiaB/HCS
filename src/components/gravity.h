@@ -28,19 +28,17 @@ void HCS_Gravity_system()
     int j;
     for (j = 0; j < runData->HCS_Gravity_used; j++)
     {
-//        bool go_on = true;
         int i = runData->HCS_Gravity_list[j];
         if (runData->HCS_Gravities[i].active)
         {
-//            if (HCS_Entity_has_component(HCS_Entity_get_entity_id(i,HCS_cGravity),HCS_cCollider))
-//                if ((HCS_Collider_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->on_ground))
-//                    go_on = false;
-//            if (!go_on)
-//                break;
-            if (HCS_Movement_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->vel.y > 0)
-                HCS_Movement_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->vel.y += (runData->HCS_Gravities[i].force.y  * 10) * delta;
-            else
-                HCS_Movement_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->vel.y += ((runData->HCS_Gravities[i].force.y  * 10) / 3) * delta;
+            if (!HCS_Collider_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->on_ground)
+            {
+                if (HCS_Movement_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->vel.y > 0)
+
+                    HCS_Movement_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->vel.y += (runData->HCS_Gravities[i].force.y  * 10) * delta;
+                else
+                    HCS_Movement_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->vel.y += ((runData->HCS_Gravities[i].force.y  * 10) / 3) * delta;
+            }
             HCS_Movement_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->vel.x += (runData->HCS_Gravities[i].force.x  * 10) * delta;
         }
     }

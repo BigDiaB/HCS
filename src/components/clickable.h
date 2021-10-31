@@ -48,8 +48,8 @@ void HCS_Clickable_system()
         }
         else
         {
-            temp_pos.x = (bod.pos.x - camera.x) ;
-            temp_pos.y = (bod.pos.y - camera.y) ;
+            temp_pos.x = (bod.pos.x - runData->camera.x) ;
+            temp_pos.y = (bod.pos.y - runData->camera.y) ;
         }
         temp_pos.y = map_number_in_range_to_new_range(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
         temp_bod_size.y = map_number_in_range_to_new_range(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);

@@ -1,5 +1,114 @@
 #pragma once
 
+//Variablen, die auf jeder Platform benötigt werden
+double WORLD_TO_SCREEN_X = 1000;
+double WORLD_TO_SCREEN_Y = 1000;
+double DRAW_OFFSET = 0;
+double STRETCH_WIDTH = 1;
+double STRETCH_HEIGHT = 1;
+
+double delta = 0.0f;
+bool frozen = true;
+
+struct timeval begin, end;
+
+bool keys[322] = {0};
+bool old_keys[322] = {0};
+vec2i mouse_pos;
+bool mouse_left;
+bool mouse_right;
+bool last_mouse_left;
+bool last_mouse_right;
+bool show_sys_cursor = true;
+bool fullscreen = false;
+bool running;
+
+#include "platform.h"
+
+//Funktionen, die auf jeder Platform benötigt werden
+
+void prepare_path(char* argv[])
+{
+    #define CHARS_TIL_ROOT_OF_PROJ 6
+    char path_save[1024];
+    char cwd[1024];
+    char* p;
+    if(!(p = strrchr(argv[0], '/')))
+        getcwd(cwd, sizeof(cwd));
+    else
+    {
+        *p = '\0';
+        getcwd(path_save, sizeof(path_save));
+        chdir(argv[0]);
+        getcwd(cwd, sizeof(cwd));
+        chdir(path_save);
+    }
+    cwd[strlen(cwd)- CHARS_TIL_ROOT_OF_PROJ] = '\0';
+    chdir(cwd);
+}
+
+void draw_black_bars()
+{
+#ifdef BLACK_BARS
+    if (!fullscreen)
+        return;
+    LIB_PLATFORM_RECTANGLE r;
+    LIB_PLATFORM_RECTANGLE r2;
+    
+    r.x = 0;
+    r.y = 0;
+    r.w = DRAW_OFFSET;
+    r.h = WIN_SIZE.h;
+    
+    r2.x = WIN_SIZE.w - DRAW_OFFSET;
+    r2.y = 0;
+    r2.w = DRAW_OFFSET;
+    r2.h = WIN_SIZE.h;
+    
+    LIB_PLATFORM_SET_DRAW_COLOR(0,0,0,255);
+    
+    LIB_PLATFORM_FILL_RECT(&r);
+    LIB_PLATFORM_FILL_RECT(&r2);
+    
+    LIB_PLATFORM_DRAW_RECT(&r);
+    LIB_PLATFORM_DRAW_RECT(&r2);
+    
+    LIB_PLATFORM_SET_DRAW_COLOR(std.r,std.g,std.b,std.a);
+#endif
+}
+
+/* !!!NUR FÜR UI-ELEMENTE!!! */
+vec2i get_screen_size()
+{
+    vec2i size = {WORLD_TO_SCREEN_X,WORLD_TO_SCREEN_Y};
+    return size;
+}
+
+void tick()
+{
+    gettimeofday(&end, 0);
+    long seconds = end.tv_sec - begin.tv_sec;
+    long microseconds = end.tv_usec - begin.tv_usec;
+    delta = seconds + microseconds*1e-6;
+    gettimeofday(&begin, 0);
+    if (frozen)
+    {
+        frozen = false;
+        delta = 0.0f;
+    }
+}
+
+// Diese Funktionen müssen von den jeweiligen Wrappern vervollständigt werden!
+void update_keys();
+void init_keys();
+void change_res(int* vr, int* hr);
+void toggle_fullscreen();
+void draw_black_bars(); //Das hier ist je nach Platform möglicherweise unnötig, wenn sie nur ein Bildschirm-Format unterstützen sollte
+
+bool isDown(int key);
+bool isPressed(int key);
+bool isReleased(int key);
+
 #define HCS_MAX_NAMES 256
 #define HCS_MAX_ENTITIES 256
 
@@ -21,6 +130,7 @@ typedef int HCS_Entity;
 
 void HCS_Void_func()
 {
+    LSD_Log(LSD_ltERROR,"Du solltest das hier niemals sehen können!");
     return;
 }
 
@@ -114,6 +224,7 @@ typedef struct{
 typedef struct{
     HCS_Collisiontype type;
     bool on_ground;
+    bool last_on_ground;
     bool active;
 } HCS_Collider;
 
@@ -139,7 +250,118 @@ typedef struct {
     void (*system)(void);
 } HCS_System;
 
+typedef struct {
+    vec2f pos;
+    vec2i size;
+    bool active;
+} HCS_Camera_trigger;
+
+typedef struct
+{
+    float x, y;
+    char* following;
+    bool follow_ent;
+    bool follow_trigger;
+} HCS_Camera;
+
+
+
+LIB_PLATFORM_TEXTURE HCS_Asset_manager(char* path, HCS_Managed_assettype action);
+
+void HCS_Init();
+void HCS_Deinit();
+void HCS_Stop();
+
+HCS_Entity HCS_Entity_create(char* n);
+void HCS_Entity_remove(HCS_Entity ent);
+void HCS_Entity_kill(HCS_Entity e);
+
+bool HCS_Entity_has_component(HCS_Entity ent, HCS_Component comp);
+int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp);
+HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component component);
+HCS_Entity HCS_Entity_get_by_name(char* n);
+
+void HCS_Event_add(char* n,void (*sys));
+void HCS_Event_remove(char* n);
+void HCS_Event_run();
+
+void HCS_System_add(char* n,void (*sys));
+void HCS_System_remove(char* n);
+void HCS_System_run();
+
+void HCS_Camera_follow_ent(char* name);
+void HCS_Camera_follow_trigger(char* num);
+void HCS_Camera_system();
+
+void HCS_Name_add(HCS_Entity ent, char* n);
+HCS_Name* HCS_Name_get(HCS_Entity ent);
+void HCS_Name_remove(HCS_Entity ent);
+
+int HCS_State_add(HCS_Entity e);
+HCS_State* HCS_State_get(HCS_Entity e);
+void HCS_State_remove(HCS_Entity e);
+
+int HCS_Input_add(HCS_Entity e);
+HCS_Input* HCS_Input_get(HCS_Entity e);
+void HCS_Input_remove(HCS_Entity e);
+void HCS_Input_system();
+
+int HCS_Jump_add(HCS_Entity e, double n, bool m, double l);
+HCS_Jump* HCS_Jump_get(HCS_Entity e);
+void HCS_Jump_remove(HCS_Entity e);
+void HCS_Jump_system();
+
+int HCS_Gravity_add(HCS_Entity e, double n, double m);
+HCS_Gravity* HCS_Gravity_get(HCS_Entity e);
+void HCS_Gravity_remove(HCS_Entity e);
+void HCS_Gravity_system();
+
+int HCS_Body_add(HCS_Entity e, float x, float y, int w, int h);
+HCS_Body* HCS_Body_get(HCS_Entity e);
+void HCS_Body_remove(HCS_Entity e);
+
+int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type);
+HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
+void HCS_Clickable_remove(HCS_Entity e);
+void HCS_Clickable_system();
+
+void HCS_Drawable_translate_rect(LIB_PLATFORM_RECTANGLE* r);
+int HCS_Drawable_add(HCS_Entity e, char* n, float x, float y, bool text, HCS_Drawtype t);
+void HCS_Drawable_add_quad(HCS_Entity e, int quad_x, int quad_y, int quad_w, int quad_h);
+void HCS_Drawable_add_rect(HCS_Entity e, int r, int g, int b, int a, bool fill);
+void HCS_Drawable_reset_unmanaged_with_text(HCS_Entity e, char* text);
+void HCS_Drawable_reset_unmanaged(HCS_Entity e, LIB_PLATFORM_SURFACE surf);
+HCS_Drawable* HCS_Drawable_get(HCS_Entity e);
+void HCS_Drawable_remove(HCS_Entity e);
+void HCS_Drawable_system();
+
+int HCS_Movement_add(HCS_Entity e, float sx, float sy);
+HCS_Movement* HCS_Movement_get(HCS_Entity e);
+void HCS_Movement_remove(HCS_Entity e);
+void HCS_Movement_system();
+
+int HCS_Collider_add(HCS_Entity e);
+HCS_Collider* HCS_Collider_get(HCS_Entity e);
+void HCS_Collider_remove(HCS_Entity e);
+void HCS_Collider_system();
+bool AABB(vec2f pos1, vec2f pos2, vec2i size1, vec2i size2);
+
+
 struct HCS_Data {
+
+    HCS_Camera camera;
+
+    HCS_Event HCS_Events[HCS_MAX_EVENTS];
+    HCS_Entity HCS_Event_list[HCS_MAX_EVENTS];
+    int HCS_Event_used;
+    
+    HCS_System HCS_Systems[HCS_MAX_SYSTEMS];
+    HCS_Entity HCS_System_list[HCS_MAX_SYSTEMS];
+    int HCS_System_used;
+
+
+
+
     HCS_Entity HCS_Entities[HCS_MAX_ENTITIES][HCS_NUM_COMPONENTS];
     HCS_Entity HCS_Entity_list[HCS_MAX_ENTITIES];
     int HCS_Entity_used;
@@ -187,17 +409,6 @@ struct HCS_Data {
     HCS_Input HCS_Inputs[HCS_MAX_INPUTS];
     HCS_Entity HCS_Input_list[HCS_MAX_INPUTS];
     int HCS_Input_used;
-    
-    
-    
-    
-    HCS_Event HCS_Events[HCS_MAX_EVENTS];
-    HCS_Entity HCS_Event_list[HCS_MAX_EVENTS];
-    int HCS_Event_used;
-    
-    HCS_System HCS_Systems[HCS_MAX_SYSTEMS];
-    HCS_Entity HCS_System_list[HCS_MAX_SYSTEMS];
-    int HCS_System_used;
 };
 
 struct HCS_Data* runData;
@@ -260,7 +471,14 @@ void HCS_Init()
     runData = malloc(sizeof(struct HCS_Data));
     struct HCS_Data zero = {0};
     *runData = zero;
+
+    runData->camera.x = 0;
+    runData->camera.y = 0;
+    runData->camera.follow_ent = false;
+    runData->camera.follow_trigger = false;
+
 }
+
 
 void HCS_Deinit()
 {
@@ -315,51 +533,29 @@ HCS_Entity HCS_Entity_get_by_name(char* n)
     return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
 }
 
-
-
-
-/*
- Namen-Funktionen, für das Hinzufügen, Suchen und Entfernen von Namen
- */
-
-void HCS_Name_add(HCS_Entity ent, char* n)
+void HCS_Entity_kill(HCS_Entity e)
 {
-    int index = get_unused_id_from_blacklist(runData->HCS_Name_list,&runData->HCS_Name_used, HCS_MAX_NAMES);
-    runData->HCS_Entities[ent][HCS_cName] = index;
-    runData->HCS_Names[index].name = n;
+    if (HCS_Entity_has_component(e,HCS_cInput))
+        HCS_Input_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cGravity))
+        HCS_Gravity_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cJump))
+        HCS_Jump_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cCollider))
+        HCS_Collider_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cMovement))
+        HCS_Movement_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cClickable))
+        HCS_Clickable_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cDrawable))
+        HCS_Drawable_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cBody))
+        HCS_Body_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cState))
+        HCS_State_remove(e);
+    HCS_Name_remove(e);
+    HCS_Entity_remove(e);
 }
-
-HCS_Name* HCS_Name_get(HCS_Entity ent)
-{
-    return &runData->HCS_Names[HCS_Entity_get_component_id(ent,HCS_cName)];
-}
-
-void HCS_Name_remove(HCS_Entity ent)
-{
-    remove_element_from_array(runData->HCS_Name_list, &runData->HCS_Name_used, &runData->HCS_Entities[ent][HCS_cName]);
-}
-
-HCS_Entity HCS_Entity_create(char* n)
-{
-    HCS_Entity ent = get_unused_id_from_blacklist(runData->HCS_Entity_list, &runData->HCS_Entity_used, HCS_MAX_ENTITIES);
-    int i;
-    for (i = 0; i < HCS_NUM_COMPONENTS; i++)
-        runData->HCS_Entities[ent][i] = -1;
-    HCS_Name_add(ent,n);
-    return ent;
-}
-
-void HCS_Entity_remove(HCS_Entity ent)
-{
-    int index;
-    int i;
-    for (i = 0; i < runData->HCS_Entity_used; i++)
-        if (runData->HCS_Entity_list[i] == ent)
-            index = i;
-    remove_element_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, &index);
-}
-
-
 /*
  Events und Systeme:
     Gekoppelt mit Namen, für leichtes Hinzufügen und Entfernen
@@ -434,6 +630,68 @@ void HCS_System_run()
     }
 }
 
+void HCS_Camera_follow_ent(char* name)
+{
+    runData->camera.follow_trigger = false;
+    runData->camera.follow_ent = true;
+    runData->camera.following = name;
+}
+
+void HCS_Camera_follow_trigger(char* num)
+{
+    runData->camera.follow_trigger = true;
+    runData->camera.follow_ent = false;
+    runData->camera.following = num;
+}
+
+void HCS_Camera_system()
+{
+    runData->camera.x -= (runData->camera.x - (HCS_Body_get(HCS_Entity_get_by_name(runData->camera.following))->size.x / 2 + HCS_Body_get(HCS_Entity_get_by_name(runData->camera.following))->pos.x - (get_screen_size().x * STRETCH_WIDTH) / 2)) * 0.04f;
+    runData->camera.y -= (runData->camera.y - (HCS_Body_get(HCS_Entity_get_by_name(runData->camera.following))->size.y / 2 + HCS_Body_get(HCS_Entity_get_by_name(runData->camera.following))->pos.y - get_screen_size().y / 2)) * 0.04f;
+}
+
+
+/*
+ Namen-Funktionen, für das Hinzufügen, Suchen und Entfernen von Namen
+ */
+
+void HCS_Name_add(HCS_Entity ent, char* n)
+{
+    int index = get_unused_id_from_blacklist(runData->HCS_Name_list,&runData->HCS_Name_used, HCS_MAX_NAMES);
+    runData->HCS_Entities[ent][HCS_cName] = index;
+    runData->HCS_Names[index].name = n;
+}
+
+HCS_Name* HCS_Name_get(HCS_Entity ent)
+{
+    return &runData->HCS_Names[HCS_Entity_get_component_id(ent,HCS_cName)];
+}
+
+void HCS_Name_remove(HCS_Entity ent)
+{
+    remove_element_from_array(runData->HCS_Name_list, &runData->HCS_Name_used, &runData->HCS_Entities[ent][HCS_cName]);
+}
+
+HCS_Entity HCS_Entity_create(char* n)
+{
+    HCS_Entity ent = get_unused_id_from_blacklist(runData->HCS_Entity_list, &runData->HCS_Entity_used, HCS_MAX_ENTITIES);
+    int i;
+    for (i = 0; i < HCS_NUM_COMPONENTS; i++)
+        runData->HCS_Entities[ent][i] = -1;
+    HCS_Name_add(ent,n);
+    return ent;
+}
+
+void HCS_Entity_remove(HCS_Entity ent)
+{
+    int index;
+    int i;
+    for (i = 0; i < runData->HCS_Entity_used; i++)
+        if (runData->HCS_Entity_list[i] == ent)
+            index = i;
+    remove_element_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, &index);
+}
+
 #include "components/states.h"
 #include "components/body.h"
 #include "components/drawable.h"
@@ -443,31 +701,4 @@ void HCS_System_run()
 #include "components/jump.h"
 #include "components/gravity.h"
 #include "components/input.h"
-
-
-void HCS_Entity_kill(HCS_Entity e)
-{
-    if (HCS_Entity_has_component(e,HCS_cInput))
-        HCS_Input_remove(e);
-    if (HCS_Entity_has_component(e,HCS_cGravity))
-        HCS_Gravity_remove(e);
-    if (HCS_Entity_has_component(e,HCS_cJump))
-        HCS_Jump_remove(e);
-    if (HCS_Entity_has_component(e,HCS_cCollider))
-        HCS_Collider_remove(e);
-    if (HCS_Entity_has_component(e,HCS_cMovement))
-        HCS_Movement_remove(e);
-    if (HCS_Entity_has_component(e,HCS_cClickable))
-        HCS_Clickable_remove(e);
-    if (HCS_Entity_has_component(e,HCS_cDrawable))
-        HCS_Drawable_remove(e);
-    if (HCS_Entity_has_component(e,HCS_cBody))
-        HCS_Body_remove(e);
-    if (HCS_Entity_has_component(e,HCS_cState))
-        HCS_State_remove(e);
-    HCS_Name_remove(e);
-    HCS_Entity_remove(e);
-}
-
-
 

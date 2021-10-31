@@ -50,7 +50,7 @@ void HCS_Jump_system()
             else
                 if (runData->HCS_Jumps[i].jump_timer >= runData->HCS_Jumps[i].jump_time)
                 {
-                    mov->vel.y -= runData->HCS_Jumps[i].strength;
+                    mov->vel.y = -runData->HCS_Jumps[i].strength;
                     runData->HCS_Jumps[i].jump_timer = 0;
                 }
         }

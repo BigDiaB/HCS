@@ -13,11 +13,6 @@
 
 #define START_WIDTH 1920
 #define START_HEIGHT 1080
-// #define BLACK_BARS
-#define NUM_LOGIC_CYCLES 1
-//Platform-"Wrapper"
-#include "no_platform.h"    //<- Platformunabhängig
-#include "platform.h"       //<- Platformabhängig
 //Meine Tools:
 #include "LSD.h"            //<- Logging System
 #include "HCS.h"            //<- Entity Component System
@@ -76,12 +71,6 @@ void fullscreen_event()
     }
 }
 
-void camera_event()
-{
-    camera.x -= (camera.x - (HCS_Body_get(HCS_Entity_get_by_name("Player"))->size.x / 2 + HCS_Body_get(HCS_Entity_get_by_name("Player"))->pos.x - (get_screen_size().x * STRETCH_WIDTH) / 2)) * 0.04f;
-    camera.y -= (camera.y - (HCS_Body_get(HCS_Entity_get_by_name("Player"))->size.y / 2 + HCS_Body_get(HCS_Entity_get_by_name("Player"))->pos.y - get_screen_size().y / 2)) * 0.04f;
-}
-
 void start_event()
 {
     HCS_Entity e = HCS_Entity_create("Player");
@@ -120,8 +109,7 @@ void start_event()
     HCS_Body_add(e,200,50,300,800);
     HCS_Drawable_add(e,"assets/tree.png",0,0,false,HCS_Draw_Background1);
 
-    
-    HCS_Event_add("Camera",camera_event);
+    HCS_System_add("Camera",HCS_Camera_system);
     HCS_Event_remove("Start");
 }
 
@@ -142,12 +130,14 @@ int main(int argc, char* argv[])
 {   
     LIB_PLATFORM_INIT();
     HCS_Init();
+
+    HCS_Camera_follow_ent("Player");
     
     LSD_Log_level_set(LSD_llALL);
     
     HCS_Event_add("Fullscreen",fullscreen_event);
     HCS_Event_add("Menu",menu_event);
-    
+
     HCS_System_add("Input",HCS_Input_system);
     HCS_System_add("Clickable",HCS_Clickable_system);
     HCS_System_add("Drawable",HCS_Drawable_system);
@@ -180,7 +170,6 @@ int main(int argc, char* argv[])
     }
     
     HCS_Deinit();
-//    Mix_Quit();
     LIB_PLATFORM_DEINIT();
-    exit(2);
+    exit(0);
 }

@@ -41,6 +41,7 @@ void HCS_Collider_system()
         int i = runData->HCS_Collider_list[r];
         if (runData->HCS_Colliders[i].type == HCS_Col_Dynamic)
         {
+            runData->HCS_Colliders[i].last_on_ground = runData->HCS_Colliders[i].on_ground;
             runData->HCS_Colliders[i].on_ground = false;
             int s;
             for (s = 0; s < runData->HCS_Collider_used; s++)
@@ -56,16 +57,16 @@ void HCS_Collider_system()
                             if (AABB(
                                      one->pos,
                                      two->pos,
-                                     vec_new_int(one->size.x + 5, one->size.y + 5),
+                                     vec_new_int(one->size.x, one->size.y),
                                      two->size))
                             {
                                 
                                 if (runData->HCS_Colliders[j].type == HCS_Col_Static)
                                 {
-                                    vec2f s1 = (*HCS_Body_get(HCS_Entity_get_entity_id(i, HCS_cCollider))).pos;
-                                    vec2f s2 = (*HCS_Body_get(HCS_Entity_get_entity_id(j, HCS_cCollider))).pos;
-                                    vec2i w1 = (*HCS_Body_get(HCS_Entity_get_entity_id(i, HCS_cCollider))).size;
-                                    vec2i w2 = (*HCS_Body_get(HCS_Entity_get_entity_id(j, HCS_cCollider))).size;
+                                    vec2f dynamic_pos = (*HCS_Body_get(HCS_Entity_get_entity_id(i, HCS_cCollider))).pos;
+                                    vec2f static_pos = (*HCS_Body_get(HCS_Entity_get_entity_id(j, HCS_cCollider))).pos;
+                                    vec2i dynamic_size = (*HCS_Body_get(HCS_Entity_get_entity_id(i, HCS_cCollider))).size;
+                                    vec2i static_size = (*HCS_Body_get(HCS_Entity_get_entity_id(j, HCS_cCollider))).size;
                                     HCS_Movement* move = HCS_Movement_get(HCS_Entity_get_entity_id(i, HCS_cCollider));
                                     vec2f overlap;
                                     overlap.x = (one->pos.x + one->size.x > two->pos.x + two->size.x ? two->pos.x + two->size.x - one->pos.x : one->pos.x + one->size.x - two->pos.x);
@@ -74,37 +75,32 @@ void HCS_Collider_system()
                                     if (fabsf(overlap.y) < fabsf(overlap.x))
                                     {
 #define MOE 0 //Wiggle-Room
-//#define CRF 0 //Bounce
-                                        // TOP:
-                                        if ((s1.x + w1.x > s2.x || s1.x < s2.x + w2.x) && (s1.y + w1.y > s2.y && s1.y + w1.y < s2.y + w2.x/2) && move->vel.y > 0)
+                                        // ON TOP OF STATIC:
+                                        if ((dynamic_pos.x + dynamic_size.x > static_pos.x || dynamic_pos.x < static_pos.x + static_size.x) && (dynamic_pos.y + dynamic_size.y > static_pos.y && dynamic_pos.y + dynamic_size.y < static_pos.y + static_size.x/2) && move->vel.y > 0)
                                         {
                                             one->pos.y = two->pos.y - one->size.y - MOE;
-                                            //move->vel.y *= -CRF;
                                             move->vel.y = 0;
                                             runData->HCS_Colliders[i].on_ground = true;
                                         }
-                                        // BOTTOM:
-                                        else if ((s1.x + w1.x > s2.x + 5 && s1.x < s2.x + w2.x - 5) && (s1.y < s2.y + w2.y && s1.y > s2.y + w2.y/2))
+                                        // AT BOTTOM OF STATIC:
+                                        else if ((dynamic_pos.x + dynamic_size.x > static_pos.x + 5 && dynamic_pos.x < static_pos.x + static_size.x - 5) && (dynamic_pos.y < static_pos.y + static_size.y && dynamic_pos.y > static_pos.y + static_size.y/2))
                                         {
                                             one->pos.y = two->pos.y + two->size.y + MOE;
-                                            //move->vel.y *= -CRF;
                                             move->vel.y = 0;
                                         }
                                     }
                                     else
                                     {
-                                        // RIGHT:
-                                        if ((s1.y + w1.y > s2.y || s1.y < s2.y + w2.y) && (s1.x + w1.x > s2.x && s1.x + w1.y < s2.x + w2.x/2))
+                                        // TO THE RIGHT OF STATIC:
+                                        if ((dynamic_pos.y + dynamic_size.y > static_pos.y || dynamic_pos.y < static_pos.y + static_size.y) && (dynamic_pos.x + dynamic_size.x > static_pos.x && dynamic_pos.x + dynamic_size.y < static_pos.x + static_size.x/2))
                                         {
                                             one->pos.x = two->pos.x - one->size.x - MOE;
-                                            //move->vel.x *= -CRF;
                                             move->vel.x = 0;
                                         }
-                                        // LEFT:
-                                        else if ((s1.y + w1.y > s2.y || s1.y < s2.y + w2.y) && (s1.x < s2.x + w2.x && s1.x > s2.x + w2.x/2))
+                                        // TO THE LEFT OF STATIC:
+                                        else if ((dynamic_pos.y + dynamic_size.y > static_pos.y || dynamic_pos.y < static_pos.y + static_size.y) && (dynamic_pos.x < static_pos.x + static_size.x && dynamic_pos.x > static_pos.x + static_size.x/2))
                                         {
                                             one->pos.x = two->pos.x + two->size.x + MOE;
-                                            //move->vel.x *= -CRF;
                                             move->vel.x = 0;
                                         }
                                     }

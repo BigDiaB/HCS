@@ -121,7 +121,7 @@ void HCS_Drawable_system()
         
         if (runData->HCS_Drawables[i].draw)
         {
-            // if (dAABB(runData->HCS_Drawables[i].pos,vec_new_float(0,0),runData->HCS_Drawables[i].size, vec_new_int(get_screen_size().x - camera.x,get_screen_size().y - camera.y)))
+            // if (dAABB(runData->HCS_Drawables[i].pos,vec_new_float(0,0),runData->HCS_Drawables[i].size, vec_new_int(get_screen_size().x - runData->camera.x,get_screen_size().y - runData->camera.y)))
             // {
                 depth_buffer[runData->HCS_Drawables[i].type][used_buffer[runData->HCS_Drawables[i].type]] = &runData->HCS_Drawables[i];
                 used_buffer[runData->HCS_Drawables[i].type]++;
@@ -178,8 +178,8 @@ void HCS_Drawable_system()
             for (i = 0; i < used_buffer[t]; i++)
             {
                 LIB_PLATFORM_RECTANGLE r;
-                r.x = (float)((depth_buffer[t][i]->pos.x - camera.x) );
-                r.y = (float)((depth_buffer[t][i]->pos.y - camera.y) );
+                r.x = (float)((depth_buffer[t][i]->pos.x - runData->camera.x) );
+                r.y = (float)((depth_buffer[t][i]->pos.y - runData->camera.y) );
                 r.w = (*depth_buffer[t][i]).size.x ;
                 r.h = (*depth_buffer[t][i]).size.y ;
                 HCS_Drawable_translate_rect(&r);

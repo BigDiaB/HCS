@@ -2,8 +2,43 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-//#include <soundio/soundio.h>
 #include <SDL2/SDL_mixer.h>
+
+// #define BLACK_BARS
+
+#define INPUT_UP                                k.W
+#define INPUT_DOWN                              k.S
+#define INPUT_LEFT                              k.A
+#define INPUT_RIGHT                             k.D
+#define INPUT_JUMP                              k.SPACE
+#define INPUT_ACTION_1                          k.O
+#define INPUT_ACTION_2                          k.P
+
+#define LIB_PLATFORM_TEXT_TO_SURFACE(X)         TTF_RenderText_Solid(font,X,color)
+#define LIB_PLATFORM_TEXT_TO_TEXTURE(X)         SDL_CreateTextureFromSurface(renderer,TTF_RenderText_Solid(font,X,color))
+
+#define LIB_PLATFORM_INIT()                     prepare_path(argv); gettimeofday(&begin, 0); init_SDL(); init_keys(&k)
+#define LIB_PLATFORM_DEINIT()                   quit_SDL()
+#define LIB_PLATFORM_UPDATE()                   update_keys(); draw_black_bars(); SDL_RenderPresent(renderer); SDL_RenderClear(renderer)
+
+#define LIB_PLATFORM_COLOR_MOD(X,R,G,B)         SDL_SetTextureColorMod(X,R,G,B)
+#define LIB_PLATFORM_ALPHA_MOD(X,Y)             SDL_SetTextureAlphaMod(X,Y)
+#define LIB_PLATFORM_DRAW_TEXTURE(X,Y,Z)        SDL_RenderCopy(renderer,X,Y,Z)
+#define LIB_PLATFORM_FILL_RECT(X)               SDL_RenderFillRect(renderer,&X)
+#define LIB_PLATFORM_DRAW_RECT(X)               SDL_RenderDrawRect(renderer,&X)
+#define LIB_PLATFORM_SET_DRAW_COLOR(R,G,B,A)    SDL_SetRenderDrawColor(renderer,R,G,B,A)
+
+#define LIB_PLATFORM_LOAD_IMG(X)                IMG_Load(X)
+#define LIB_PLATFORM_SURFACE_TO_TEXTURE(X)      SDL_CreateTextureFromSurface(renderer,X)
+#define LIB_PLATFORM_TEXTURE_DESTROY(X)         SDL_DestroyTexture(X)
+
+
+#define LIB_PLATFORM_SFX                        Mix_Chunk*
+#define LIB_PLATFROM_MUSIC                      Mix_Music*
+#define LIB_PLATFORM_COLOR                      SDL_Color
+#define LIB_PLATFORM_RECTANGLE                  SDL_Rect
+#define LIB_PLATFORM_SURFACE                    SDL_Surface*
+#define LIB_PLATFORM_TEXTURE                    SDL_Texture*
 
 LIB_PLATFORM_COLOR color = {255,255,255,255};
 LIB_PLATFORM_COLOR std = {125,125,125,255};
