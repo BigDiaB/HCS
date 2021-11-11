@@ -1,81 +1,61 @@
 #pragma once
 
-//Variablen, die auf jeder Platform benötigt werden
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+
+#define HCS_Gfx_Text_to_surface(X)                  TTF_RenderText_Solid(font,X,color)
+#define HCS_Gfx_Text_to_texture(X)                  SDL_CreateTextureFromSurface(renderer,TTF_RenderText_Solid(font,X,color))
+
+#define HCS_Gfx_Texture_color_mod(X,R,G,B)          SDL_SetTextureColorMod(X,R,G,B)
+#define HCS_Gfx_Texture_alpha_mod(X,A)              SDL_SetTextureAlphaMod(X,Y)
+
+#define HCS_Gfx_Texture_draw(X,Y,Z)                 SDL_RenderCopy(renderer,X,Y,Z)
+#define HCS_Gfx_Rectangle_fill(X)                   SDL_RenderFillRect(renderer,&X)
+#define HCS_Gfx_Rectangle_draw(X)                   SDL_RenderDrawRect(renderer,&X)
+#define HCS_Gfx_DrawColor_set(R,G,B,A)              SDL_SetRenderDrawColor(renderer,R,G,B,A)
+
+#define HCS_Gfx_Image_load(X)                       IMG_Load(X)
+#define HCS_Gfx_Surface_to_texture(X)               SDL_CreateTextureFromSurface(renderer,X)
+#define HCS_Gfx_Texture_destroy(X)                  SDL_DestroyTexture(X)
+
+#define HCS_INPUT_UP                                SDLK_w
+#define HCS_INPUT_DOWN                              SDLK_s
+#define HCS_INPUT_LEFT                              SDLK_a
+#define HCS_INPUT_RIGHT                             SDLK_d
+#define HCS_INPUT_A                                 SDLK_c
+#define HCS_INPUT_B                                 SDLK_SPACE
+
+typedef SDL_Texture* HCS_Gfx_Texture;
+typedef SDL_Surface* HCS_Gfx_Surface;
+typedef SDL_Rect     HCS_Gfx_Rectangle;
+typedef SDL_Color    HCS_Gfx_Color;
+
+SDL_Window* window;
+SDL_Renderer* renderer;
+TTF_Font * font;
+
+bool HCS_Gfx_Input_up;
+bool HCS_Gfx_Input_down;
+bool HCS_Gfx_Input_left;
+bool HCS_Gfx_Input_right;
+bool HCS_Gfx_Input_A;
+bool HCS_Gfx_Input_B;
+bool HCS_Gfx_Mouse_clicked;
+
+bool HCS_Gfx_Input_last_up;
+bool HCS_Gfx_Input_last_down;
+bool HCS_Gfx_Input_last_left;
+bool HCS_Gfx_Input_last_right;
+bool HCS_Gfx_Input_last_A;
+bool HCS_Gfx_Input_last_B;
+bool HCS_Gfx_Mouse_last_clicked;
+
+vec2f HCS_Gfx_Camera;
+vec2i HCS_Gfx_Mouse_pos;
+
 double WORLD_TO_SCREEN_X = 1000;
 double WORLD_TO_SCREEN_Y = 1000;
-double DRAW_OFFSET = 0;
-double STRETCH_WIDTH = 1;
-double STRETCH_HEIGHT = 1;
-
-double delta = 0.0f;
-bool frozen = true;
-
-struct timeval begin, end;
-
-bool keys[322] = {0};
-bool old_keys[322] = {0};
-vec2i mouse_pos;
-bool mouse_left;
-bool mouse_right;
-bool last_mouse_left;
-bool last_mouse_right;
-bool show_sys_cursor = true;
-bool fullscreen = false;
-bool running;
-
-#include "platform.h"
-
-//Funktionen, die auf jeder Platform benötigt werden
-
-void prepare_path(char* argv[])
-{
-    #define CHARS_TIL_ROOT_OF_PROJ 6
-    char path_save[1024];
-    char cwd[1024];
-    char* p;
-    if(!(p = strrchr(argv[0], '/')))
-        getcwd(cwd, sizeof(cwd));
-    else
-    {
-        *p = '\0';
-        getcwd(path_save, sizeof(path_save));
-        chdir(argv[0]);
-        getcwd(cwd, sizeof(cwd));
-        chdir(path_save);
-    }
-    cwd[strlen(cwd)- CHARS_TIL_ROOT_OF_PROJ] = '\0';
-    chdir(cwd);
-}
-
-void draw_black_bars()
-{
-#ifdef BLACK_BARS
-    if (!fullscreen)
-        return;
-    LIB_PLATFORM_RECTANGLE r;
-    LIB_PLATFORM_RECTANGLE r2;
-    
-    r.x = 0;
-    r.y = 0;
-    r.w = DRAW_OFFSET;
-    r.h = WIN_SIZE.h;
-    
-    r2.x = WIN_SIZE.w - DRAW_OFFSET;
-    r2.y = 0;
-    r2.w = DRAW_OFFSET;
-    r2.h = WIN_SIZE.h;
-    
-    LIB_PLATFORM_SET_DRAW_COLOR(0,0,0,255);
-    
-    LIB_PLATFORM_FILL_RECT(&r);
-    LIB_PLATFORM_FILL_RECT(&r2);
-    
-    LIB_PLATFORM_DRAW_RECT(&r);
-    LIB_PLATFORM_DRAW_RECT(&r2);
-    
-    LIB_PLATFORM_SET_DRAW_COLOR(std.r,std.g,std.b,std.a);
-#endif
-}
 
 /* !!!NUR FÜR UI-ELEMENTE!!! */
 vec2i get_screen_size()
@@ -84,37 +64,23 @@ vec2i get_screen_size()
     return size;
 }
 
-void tick()
-{
-    gettimeofday(&end, 0);
-    long seconds = end.tv_sec - begin.tv_sec;
-    long microseconds = end.tv_usec - begin.tv_usec;
-    delta = seconds + microseconds*1e-6;
-    gettimeofday(&begin, 0);
-    if (frozen)
-    {
-        frozen = false;
-        delta = 0.0f;
-    }
-}
+double DRAW_OFFSET = 0;
+double STRETCH_WIDTH = 1;
+double STRETCH_HEIGHT = 1;
 
-// Diese Funktionen müssen von den jeweiligen Wrappern vervollständigt werden!
-void update_keys();
-void init_keys();
-void change_res(int* vr, int* hr);
-void toggle_fullscreen();
-void draw_black_bars(); //Das hier ist je nach Platform möglicherweise unnötig, wenn sie nur ein Bildschirm-Format unterstützen sollte
+bool fullscreen = false;
+bool running;
 
-bool isDown(int key);
-bool isPressed(int key);
-bool isReleased(int key);
+HCS_Gfx_Color color = {255,255,255,255};
+HCS_Gfx_Color std = {125,125,125,255};
+HCS_Gfx_Rectangle WIN_SIZE;
+HCS_Gfx_Rectangle OLD_WIN_SIZE;
 
 #define HCS_MAX_NAMES 256
 #define HCS_MAX_ENTITIES 256
 
 #define HCS_MAX_BODIES 200
 #define HCS_MAX_DRAWABLES 200
-#define HCS_MAX_SOUNDABLES 200
 #define HCS_MAX_CLICKABLES 200
 #define HCS_MAX_COLLIDERS 200
 #define HCS_MAX_MOVEMENTS 200
@@ -185,8 +151,9 @@ typedef struct {
 } HCS_Drawable;
 
 typedef struct {
+    int used;
     char* path;
-    LIB_PLATFORM_TEXTURE tex;
+    HCS_Gfx_Texture tex;
 } HCS_Managed_asset;
 
 typedef struct{
@@ -234,10 +201,8 @@ typedef struct{
     bool down;
     bool left;
     bool right;
-    bool jump;
-    bool sprint;
-    bool action1;
-    bool action2;
+    bool A;
+    bool B;
 } HCS_State;
 
 typedef struct {
@@ -250,23 +215,10 @@ typedef struct {
     void (*system)(void);
 } HCS_System;
 
-typedef struct {
-    vec2f pos;
-    vec2i size;
-    bool active;
-} HCS_Camera_trigger;
-
-typedef struct
-{
-    float x, y;
-    char* following;
-    bool follow_ent;
-    bool follow_trigger;
-} HCS_Camera;
 
 
 
-LIB_PLATFORM_TEXTURE HCS_Asset_manager(char* path, HCS_Managed_assettype action);
+HCS_Gfx_Texture HCS_Asset_manager(char* path, HCS_Managed_assettype action);
 
 void HCS_Init();
 void HCS_Deinit();
@@ -281,6 +233,7 @@ int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp);
 HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component component);
 HCS_Entity HCS_Entity_get_by_name(char* n);
 
+void HCS_Event_init();
 void HCS_Event_add(char* n,void (*sys));
 void HCS_Event_remove(char* n);
 void HCS_Event_run();
@@ -288,10 +241,6 @@ void HCS_Event_run();
 void HCS_System_add(char* n,void (*sys));
 void HCS_System_remove(char* n);
 void HCS_System_run();
-
-void HCS_Camera_follow_ent(char* name);
-void HCS_Camera_follow_trigger(char* num);
-void HCS_Camera_system();
 
 void HCS_Name_add(HCS_Entity ent, char* n);
 HCS_Name* HCS_Name_get(HCS_Entity ent);
@@ -325,12 +274,12 @@ HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
 void HCS_Clickable_system();
 
-void HCS_Drawable_translate_rect(LIB_PLATFORM_RECTANGLE* r);
+void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r);
 int HCS_Drawable_add(HCS_Entity e, char* n, float x, float y, bool text, HCS_Drawtype t);
 void HCS_Drawable_add_quad(HCS_Entity e, int quad_x, int quad_y, int quad_w, int quad_h);
 void HCS_Drawable_add_rect(HCS_Entity e, int r, int g, int b, int a, bool fill);
 void HCS_Drawable_reset_unmanaged_with_text(HCS_Entity e, char* text);
-void HCS_Drawable_reset_unmanaged(HCS_Entity e, LIB_PLATFORM_SURFACE surf);
+void HCS_Drawable_reset_unmanaged(HCS_Entity e, HCS_Gfx_Surface surf);
 HCS_Drawable* HCS_Drawable_get(HCS_Entity e);
 void HCS_Drawable_remove(HCS_Entity e);
 void HCS_Drawable_system();
@@ -344,12 +293,20 @@ int HCS_Collider_add(HCS_Entity e);
 HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();
-bool AABB(vec2f pos1, vec2f pos2, vec2i size1, vec2i size2);
+
+void HCS_Gfx_Fullscreen_toggle();
+void HCS_Gfx_Draw_black_bars();
+
+bool isPressed(char* key);
+bool isReleased(char* key);
+bool isDown(char* key);
+
+bool HCS_Gfx_Init();
+bool HCS_Gfx_Update();
+bool HCS_Gfx_Deinit();
 
 
 struct HCS_Data {
-
-    HCS_Camera camera;
 
     HCS_Event HCS_Events[HCS_MAX_EVENTS];
     HCS_Entity HCS_Event_list[HCS_MAX_EVENTS];
@@ -413,7 +370,199 @@ struct HCS_Data {
 
 struct HCS_Data* runData;
 
-LIB_PLATFORM_TEXTURE HCS_Asset_manager(char* path, HCS_Managed_assettype action)
+void HCS_Gfx_Fullscreen_toggle()
+{
+    SDL_SetRenderDrawColor(renderer,0,0,0,255);
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
+    SDL_SetRenderDrawColor(renderer,std.r,std.g,std.b,std.a);
+    
+    fullscreen = !fullscreen;
+    
+    SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : fullscreen);
+    SDL_GetWindowSize(window,&WIN_SIZE.w,&WIN_SIZE.h);
+    
+    if (!fullscreen)
+    {
+        WIN_SIZE.w = OLD_WIN_SIZE.w;
+        WIN_SIZE.h = OLD_WIN_SIZE.h;
+    }
+    else
+        DRAW_OFFSET = (WIN_SIZE.w - OLD_WIN_SIZE.w * ((double)WIN_SIZE.h / (double)OLD_WIN_SIZE.h)) / 2;
+    
+    STRETCH_WIDTH = (double)WIN_SIZE.w / (double)WIN_SIZE.h;
+    STRETCH_HEIGHT = (double)WIN_SIZE.h / (double)WIN_SIZE.w;
+    SDL_SetWindowSize(window, WIN_SIZE.w  / 2,WIN_SIZE.h  / 2);
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_SetWindowSize(window, WIN_SIZE.w ,WIN_SIZE.h );
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    
+    SDL_Delay(500);
+    frozen = true;
+}
+#ifdef BLACK_BARS
+void HCS_Gfx_Draw_black_bars()
+{
+    if (!fullscreen)
+        return;
+    HCS_Gfx_Rectangle r;
+    HCS_Gfx_Rectangle r2;
+    
+    r.x = 0;
+    r.y = 0;
+    r.w = DRAW_OFFSET;
+    r.h = WIN_SIZE.h;
+    
+    r2.x = WIN_SIZE.w - DRAW_OFFSET;
+    r2.y = 0;
+    r2.w = DRAW_OFFSET;
+    r2.h = WIN_SIZE.h;
+    
+    LIB_PLATFORM_SET_DRAW_COLOR(0,0,0,255);
+    
+    LIB_PLATFORM_FILL_RECT(&r);
+    LIB_PLATFORM_FILL_RECT(&r2);
+    
+    LIB_PLATFORM_DRAW_RECT(&r);
+    LIB_PLATFORM_DRAW_RECT(&r2);
+    
+    LIB_PLATFORM_SET_DRAW_COLOR(std.r,std.g,std.b,std.a);
+}
+#endif
+
+bool isPressed(char* key)
+{
+    if (0 == strcmp("up",key))
+        return HCS_Gfx_Input_up && !HCS_Gfx_Input_last_up;
+    if (0 == strcmp("down",key))
+        return HCS_Gfx_Input_down && !HCS_Gfx_Input_last_down;
+    if (0 == strcmp("left",key))
+        return HCS_Gfx_Input_left && !HCS_Gfx_Input_last_left;
+    if (0 == strcmp("right",key))
+        return HCS_Gfx_Input_right && !HCS_Gfx_Input_last_right;
+    if (0 == strcmp("A",key))
+        return HCS_Gfx_Input_A && !HCS_Gfx_Input_last_A;
+    if (0 == strcmp("B",key))
+        return HCS_Gfx_Input_B && !HCS_Gfx_Input_last_B;
+    if (0 == strcmp("mouse",key))
+        return HCS_Gfx_Mouse_clicked && !HCS_Gfx_Mouse_last_clicked;
+    LSD_Log(LSD_ltERROR,"Key: %s stimmt mit keinem der Vorgegebenen überein!",key);
+    return false;
+}
+bool isReleased(char* key)
+{
+    if (0 == strcmp("up",key))
+        return !HCS_Gfx_Input_up && HCS_Gfx_Input_last_up;
+    if (0 == strcmp("down",key))
+        return !HCS_Gfx_Input_down && HCS_Gfx_Input_last_down;
+    if (0 == strcmp("left",key))
+        return !HCS_Gfx_Input_left && HCS_Gfx_Input_last_left;
+    if (0 == strcmp("right",key))
+        return !HCS_Gfx_Input_right && HCS_Gfx_Input_last_right;
+    if (0 == strcmp("A",key))
+        return !HCS_Gfx_Input_A && HCS_Gfx_Input_last_A;
+    if (0 == strcmp("B",key))
+        return !HCS_Gfx_Input_B && HCS_Gfx_Input_last_B;
+    if (0 == strcmp("mouse",key))
+        return !HCS_Gfx_Mouse_clicked && HCS_Gfx_Mouse_last_clicked;
+    LSD_Log(LSD_ltERROR,"Key: %s stimmt mit keinem der Vorgegebenen überein!",key);
+    return false;
+}
+bool isDown(char* key)
+{
+    if (0 == strcmp("up",key))
+        return HCS_Gfx_Input_up;
+    if (0 == strcmp("down",key))
+        return HCS_Gfx_Input_down;
+    if (0 == strcmp("left",key))
+        return HCS_Gfx_Input_left;
+    if (0 == strcmp("right",key))
+        return HCS_Gfx_Input_right;
+    if (0 == strcmp("A",key))
+        return HCS_Gfx_Input_A;
+    if (0 == strcmp("B",key))
+        return HCS_Gfx_Input_B;
+    if (0 == strcmp("mouse",key))
+        return HCS_Gfx_Mouse_clicked;
+    LSD_Log(LSD_ltERROR,"Key: %s stimmt mit keinem der Vorgegebenen überein!",key);
+    return false;
+}
+
+bool HCS_Gfx_update()
+{
+    SDL_Event event;
+    while( SDL_PollEvent(&event))
+        switch(event.type)
+        {
+            case SDL_QUIT:
+                running = false;
+                break;
+            case SDL_KEYDOWN:
+            switch(event.key.keysym.sym)
+            {
+                case HCS_INPUT_UP:
+                HCS_Gfx_Input_up = true;
+                break;
+                case HCS_INPUT_DOWN:
+                HCS_Gfx_Input_down = true;
+                break;
+                case HCS_INPUT_LEFT:
+                HCS_Gfx_Input_left = true;
+                break;
+                case HCS_INPUT_RIGHT:
+                HCS_Gfx_Input_right = true;
+                break;
+                case HCS_INPUT_A:
+                HCS_Gfx_Input_A = true;
+                break;
+                case HCS_INPUT_B:
+                HCS_Gfx_Input_B = true;
+                break;
+            }
+            break;
+            case SDL_KEYUP:
+            switch(event.key.keysym.sym)
+            {
+                case HCS_INPUT_UP:
+                HCS_Gfx_Input_up = false;
+                break;
+                case HCS_INPUT_DOWN:
+                HCS_Gfx_Input_down = false;
+                break;
+                case HCS_INPUT_LEFT:
+                HCS_Gfx_Input_left = false;
+                break;
+                case HCS_INPUT_RIGHT:
+                HCS_Gfx_Input_right = false;
+                break;
+                case HCS_INPUT_A:
+                HCS_Gfx_Input_A = false;
+                break;
+                case HCS_INPUT_B:
+                HCS_Gfx_Input_B = false;
+                break;
+            }
+            break;
+        }
+    
+    HCS_Gfx_Mouse_last_clicked = HCS_Gfx_Mouse_clicked;
+    
+    if (SDL_GetMouseState(&HCS_Gfx_Mouse_pos.x,&HCS_Gfx_Mouse_pos.y) & SDL_BUTTON_LMASK)
+        HCS_Gfx_Mouse_clicked = true;
+    else
+        HCS_Gfx_Mouse_clicked = false;
+
+#ifdef BLACK_BARS
+    HCS_Gfx_Draw_black_bars();
+#endif
+    SDL_RenderPresent(renderer);
+    SDL_RenderClear(renderer);
+
+    return true;
+}
+
+
+HCS_Gfx_Texture HCS_Asset_manager(char* path, HCS_Managed_assettype action)
 {
     switch (action)
     {
@@ -425,14 +574,16 @@ LIB_PLATFORM_TEXTURE HCS_Asset_manager(char* path, HCS_Managed_assettype action)
                 int i = runData->HCS_Managed_asset_list[j];
                 if (0 == strcmp(runData->HCS_Managed_assets[i].path,path))
                 {
+                    runData->HCS_Managed_assets[i].used++;
                     return runData->HCS_Managed_assets[i].tex;
                 }
             } 
             {
                     int id = get_unused_id_from_blacklist(runData->HCS_Managed_asset_list, &runData->HCS_Managed_asset_used, HCS_MAX_DRAWABLES);
                     runData->HCS_Managed_asset_list[runData->HCS_Managed_asset_used] = id;
-                    runData->HCS_Managed_assets[id].tex = LIB_PLATFORM_SURFACE_TO_TEXTURE(LIB_PLATFORM_LOAD_IMG(path));
+                    runData->HCS_Managed_assets[id].tex = HCS_Gfx_Surface_to_texture(HCS_Gfx_Image_load(path));
                     runData->HCS_Managed_assets[id].path = path;
+                    runData->HCS_Managed_assets[id].used = 1;
                     return runData->HCS_Managed_assets[id].tex;
                 }
             break;
@@ -445,13 +596,16 @@ LIB_PLATFORM_TEXTURE HCS_Asset_manager(char* path, HCS_Managed_assettype action)
             int i = runData->HCS_Managed_asset_list[j];
             if (0 == strcmp(runData->HCS_Managed_assets[i].path,path))
             {
-                LIB_PLATFORM_TEXTURE_DESTROY(runData->HCS_Managed_assets[i].tex);
-                remove_element_from_array(runData->HCS_Managed_asset_list,&runData->HCS_Managed_asset_used,&i);
+                runData->HCS_Managed_assets[i].used--;
+                if (runData->HCS_Managed_assets[i].used <= 0)
+                {
+                    HCS_Gfx_Texture_destroy(runData->HCS_Managed_assets[i].tex);
+                    remove_element_from_array(runData->HCS_Managed_asset_list,&runData->HCS_Managed_asset_used,&j);
+                }
                 return NULL;
             }
         }
-        LSD_Log(LSD_ltMESSAGE,path);
-        LSD_Log(LSD_ltERROR,"Asset konnte nicht entfernt werden, weil es nicht nach Namen gefunden wurde!");
+        LSD_Log(LSD_ltERROR,"Asset konnte nicht entfernt werden, weil es nicht nach Namen gefunden wurde!: %s",path);
         break;
         }
 
@@ -466,22 +620,63 @@ LIB_PLATFORM_TEXTURE HCS_Asset_manager(char* path, HCS_Managed_assettype action)
  HCS-Funktionen für das Laden / Entladen und Initialisieren / Deinitialisieren
  */
 
-void HCS_Init()
+void HCS_Init(char* argv[])
 {
+    prepare_path(argv);
+    gettimeofday(&begin, 0);
+    
     runData = malloc(sizeof(struct HCS_Data));
     struct HCS_Data zero = {0};
     *runData = zero;
-
-    runData->camera.x = 0;
-    runData->camera.y = 0;
-    runData->camera.follow_ent = false;
-    runData->camera.follow_trigger = false;
+    
+    if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
+    {
+        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+        exit(1);
+    }
+    
+    SDL_GetDisplayBounds(0,&WIN_SIZE);
+    
+    WIN_SIZE.w *= 0.75;
+    WIN_SIZE.h *= 0.75;
+    
+    window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,WIN_SIZE.w ,WIN_SIZE.h ,SDL_WINDOW_METAL);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_SetRenderDrawColor(renderer,std.r,std.g,std.b,std.a);
+    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    
+    STRETCH_WIDTH = (double)WIN_SIZE.w / (double)WIN_SIZE.h;
+    STRETCH_HEIGHT = (double)WIN_SIZE.h / (double)WIN_SIZE.w;
+    SDL_SetWindowSize(window, WIN_SIZE.w,WIN_SIZE.h);
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    
+    IMG_Init(IMG_INIT_JPG);
+    TTF_Init();
+    font = TTF_OpenFont("assets/font.ttf", 25);
+    if (font == NULL)
+    {
+        char buf[1024];
+        printf("TTF konnte die Font-Datei nicht öffnen!:\n%s\n",getcwd(buf,1024));
+        exit(1);
+    }
+    running = true;
+    
+    HCS_System_add("SYS_Delta_timer",tick);
+    HCS_System_add("SYS_Graphics_Update",HCS_Gfx_update);
+    HCS_Event_init();
 
 }
 
 
 void HCS_Deinit()
 {
+    TTF_CloseFont(font);
+    TTF_Quit();
+    IMG_Quit();
+    SDL_Quit();
     free(runData);
 }
 
@@ -556,6 +751,12 @@ void HCS_Entity_kill(HCS_Entity e)
     HCS_Name_remove(e);
     HCS_Entity_remove(e);
 }
+
+void HCS_Entity_clear()
+{
+    while(runData->HCS_Entity_used)
+        HCS_Entity_kill(runData->HCS_Entity_list[0]);
+}
 /*
  Events und Systeme:
     Gekoppelt mit Namen, für leichtes Hinzufügen und Entfernen
@@ -567,6 +768,7 @@ void HCS_Event_add(char* n,void (*sys))
     runData->HCS_Event_list[runData->HCS_Event_used] = id;
     runData->HCS_Events[id].event = sys;
     runData->HCS_Events[id].name = n;
+    LSD_Log(LSD_ltMESSAGE,"Event %s erfolgreich hinzugefügt!",n);
 }
 
 void HCS_Event_remove(char* n)
@@ -579,6 +781,7 @@ void HCS_Event_remove(char* n)
         {
             runData->HCS_Events[i].event = HCS_Void_func;
             remove_element_from_array(runData->HCS_Event_list,&runData->HCS_Event_used,&j);
+            LSD_Log(LSD_ltMESSAGE,"Event %s erfolgreich entfernt!",n);
             return;
         }
     }
@@ -602,6 +805,7 @@ void HCS_System_add(char* n,void (*sys))
     runData->HCS_System_list[runData->HCS_System_used] = id;
     runData->HCS_Systems[id].system = sys;
     runData->HCS_Systems[id].name = n;
+    LSD_Log(LSD_ltMESSAGE,"System %s erfolgreich hinzugefügt!",n);
 }
 
 void HCS_System_remove(char* n)
@@ -612,7 +816,9 @@ void HCS_System_remove(char* n)
         int i = runData->HCS_System_list[j];
         if (strcmp(runData->HCS_Systems[i].name,n))
         {
+            runData->HCS_Systems[i].system = HCS_Void_func;
             remove_element_from_array(runData->HCS_System_list,&runData->HCS_System_used,&j);
+            LSD_Log(LSD_ltMESSAGE,"System %s erfolgreich entfernt!",n);
             return;
         }
     }
@@ -629,27 +835,6 @@ void HCS_System_run()
         runData->HCS_Systems[i].system();
     }
 }
-
-void HCS_Camera_follow_ent(char* name)
-{
-    runData->camera.follow_trigger = false;
-    runData->camera.follow_ent = true;
-    runData->camera.following = name;
-}
-
-void HCS_Camera_follow_trigger(char* num)
-{
-    runData->camera.follow_trigger = true;
-    runData->camera.follow_ent = false;
-    runData->camera.following = num;
-}
-
-void HCS_Camera_system()
-{
-    runData->camera.x -= (runData->camera.x - (HCS_Body_get(HCS_Entity_get_by_name(runData->camera.following))->size.x / 2 + HCS_Body_get(HCS_Entity_get_by_name(runData->camera.following))->pos.x - (get_screen_size().x * STRETCH_WIDTH) / 2)) * 0.04f;
-    runData->camera.y -= (runData->camera.y - (HCS_Body_get(HCS_Entity_get_by_name(runData->camera.following))->size.y / 2 + HCS_Body_get(HCS_Entity_get_by_name(runData->camera.following))->pos.y - get_screen_size().y / 2)) * 0.04f;
-}
-
 
 /*
  Namen-Funktionen, für das Hinzufügen, Suchen und Entfernen von Namen
@@ -679,6 +864,7 @@ HCS_Entity HCS_Entity_create(char* n)
     for (i = 0; i < HCS_NUM_COMPONENTS; i++)
         runData->HCS_Entities[ent][i] = -1;
     HCS_Name_add(ent,n);
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s erfolgreicht erstellt!",ent,n);
     return ent;
 }
 
@@ -690,15 +876,18 @@ void HCS_Entity_remove(HCS_Entity ent)
         if (runData->HCS_Entity_list[i] == ent)
             index = i;
     remove_element_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, &index);
+    LSD_Log(LSD_ltMESSAGE,"Entity %d erfolgreicht entfernt!",ent);
 }
+
+#include "components/drawable.h"
+#include "components/clickable.h"
+
+#include "components/input.h"
 
 #include "components/states.h"
 #include "components/body.h"
-#include "components/drawable.h"
-#include "components/clickable.h"
+
 #include "components/movement.h"
 #include "components/collision.h"
 #include "components/jump.h"
 #include "components/gravity.h"
-#include "components/input.h"
-

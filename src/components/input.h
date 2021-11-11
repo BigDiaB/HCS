@@ -5,6 +5,7 @@ int HCS_Input_add(HCS_Entity e)
 {
     runData->HCS_Entities[e][HCS_cInput] = get_unused_id_from_blacklist(runData->HCS_Input_list, &runData->HCS_Input_used, HCS_MAX_INPUTS);
     runData->HCS_Inputs[HCS_Entity_get_component_id(e,HCS_cInput)].active = true;
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Input hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
     
     return HCS_Entity_get_component_id(e,HCS_cInput);
 }
@@ -17,6 +18,7 @@ HCS_Input* HCS_Input_get(HCS_Entity e)
 void HCS_Input_remove(HCS_Entity e)
 {
     remove_element_from_array(runData->HCS_Input_list, &runData->HCS_Input_used, &runData->HCS_Entities[e][HCS_cInput]);
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Input entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
 void HCS_Input_system()
@@ -29,14 +31,13 @@ void HCS_Input_system()
         if (runData->HCS_Inputs[i].active)
         {
             HCS_State* d = HCS_State_get(HCS_Entity_get_entity_id(i,HCS_cInput));
-            d->up = isDown(INPUT_UP);
-            d->down = isDown(INPUT_DOWN);
-            d->left = isDown(INPUT_LEFT);
-            d->right = isDown(INPUT_RIGHT);
-            d->jump = isDown(INPUT_JUMP);
-            d->action1 = isDown(INPUT_ACTION_1);
-            d->action2 = isDown(INPUT_ACTION_2);
-            
+            d->up = isDown("up");
+            d->down = isDown("down");
+            d->left = isDown("left");
+            d->right = isDown("right");
+            d->A = isDown("A");
+            d->B = isDown("B");
+
             if (HCS_Entity_has_component(HCS_Entity_get_entity_id(i,HCS_cInput),HCS_cCollider))
                 d->on_ground = HCS_Collider_get(HCS_Entity_get_entity_id(i,HCS_cInput))->on_ground;
             else

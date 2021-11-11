@@ -10,6 +10,8 @@ int HCS_Gravity_add(HCS_Entity e, double n, double m)
     runData->HCS_Gravities[HCS_Entity_get_component_id(e,HCS_cGravity)].force.y = m;
     runData->HCS_Gravities[HCS_Entity_get_component_id(e,HCS_cGravity)].active = true;
     
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Gravity hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    
     return HCS_Entity_get_component_id(e,HCS_cGravity);
 }
 
@@ -21,6 +23,7 @@ HCS_Gravity* HCS_Gravity_get(HCS_Entity e)
 void HCS_Gravity_remove(HCS_Entity e)
 {
     remove_element_from_array(runData->HCS_Gravity_list,&runData->HCS_Gravity_used,&runData->HCS_Entities[e][HCS_cGravity]);
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Gravity entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
 void HCS_Gravity_system()

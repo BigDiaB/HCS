@@ -3,7 +3,7 @@
 
 #define HCS_Drawable_Drawtype_UI 8
 
-void HCS_Drawable_translate_rect(LIB_PLATFORM_RECTANGLE* r)
+void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)
 {
     
     r->y = map_number_in_range_to_new_range(r->y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
@@ -34,12 +34,14 @@ int HCS_Drawable_add(HCS_Entity e, char* n, float x, float y, bool text, HCS_Dra
     
     int i = HCS_Entity_get_component_id(e,HCS_cDrawable);
     
-    if (runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text)
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Drawable hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    
+    if (text)
     {
-        LIB_PLATFORM_SURFACE surf = LIB_PLATFORM_TEXT_TO_SURFACE(n);
+        HCS_Gfx_Surface surf = HCS_Gfx_Text_to_surface(n);
         runData->HCS_Drawables[i].size.x = surf->w;
         runData->HCS_Drawables[i].size.y = surf->h;
-        runData->HCS_Drawables[i].tex = LIB_PLATFORM_SURFACE_TO_TEXTURE(surf);
+        runData->HCS_Drawables[i].tex = HCS_Gfx_Surface_to_texture(surf);
         return HCS_Entity_get_component_id(e,HCS_cDrawable);
     }
     
@@ -68,19 +70,19 @@ void HCS_Drawable_add_rect(HCS_Entity e, int r, int g, int b, int a, bool fill)
 
 void HCS_Drawable_reset_unmanaged_with_text(HCS_Entity e, char* text)
 {
-    LIB_PLATFORM_SURFACE surf = LIB_PLATFORM_TEXT_TO_SURFACE(text);
+    HCS_Gfx_Surface surf = HCS_Gfx_Text_to_surface(text);
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.x = surf->w;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.y = surf->h;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = LIB_PLATFORM_SURFACE_TO_TEXTURE(surf);
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = HCS_Gfx_Surface_to_texture(surf);
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].managed = false;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text = true;
 }
 
-void HCS_Drawable_reset_unmanaged(HCS_Entity e, LIB_PLATFORM_SURFACE surf)
+void HCS_Drawable_reset_unmanaged(HCS_Entity e, HCS_Gfx_Surface surf)
 {
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.x = surf->w;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.y = surf->h;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = LIB_PLATFORM_SURFACE_TO_TEXTURE(surf);
+    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = HCS_Gfx_Surface_to_texture(surf);
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].managed = false;
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text = false;
 }
@@ -97,8 +99,12 @@ HCS_Drawable* HCS_Drawable_get(HCS_Entity e)
 }
 void HCS_Drawable_remove(HCS_Entity e)
 {
-    LIB_PLATFORM_TEXTURE_DESTROY(runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex);
+    if (runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].managed)
+        HCS_Asset_manager(runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].path, HCS_ARemove);
+    else
+    HCS_Gfx_Texture_destroy(runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex);
     remove_element_from_array(runData->HCS_Drawable_list,&runData->HCS_Drawable_used,&runData->HCS_Entities[e][HCS_cDrawable]);
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Drawable entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
 
@@ -111,10 +117,9 @@ void HCS_Drawable_system()
 {
     HCS_Drawable* depth_buffer[num_draw_types][HCS_MAX_DRAWABLES];
     int used_buffer[num_draw_types];
-    int g;
-    for (g = 0; g < num_draw_types; g++)
-        used_buffer[g] = 0;
     int j;
+    for (j = 0; j < num_draw_types; j++)
+        used_buffer[j] = 0;
     for (j = 0; j < runData->HCS_Drawable_used; j++)
     {
         int i = runData->HCS_Drawable_list[j];
@@ -145,7 +150,7 @@ void HCS_Drawable_system()
             int i;
             for (i = 0; i < used_buffer[t]; i++)
             {
-                LIB_PLATFORM_RECTANGLE r;
+                HCS_Gfx_Rectangle r;
                 r.x = (float)((depth_buffer[t][i]->pos.x) ) * STRETCH_WIDTH;
                 r.y = (float)((depth_buffer[t][i]->pos.y) );
                 r.w = (*depth_buffer[t][i]).size.x  * STRETCH_WIDTH;
@@ -153,22 +158,22 @@ void HCS_Drawable_system()
                 HCS_Drawable_translate_rect(&r);
                 if (depth_buffer[t][i]->draw_rect)
                 {
-                    LIB_PLATFORM_SET_DRAW_COLOR(depth_buffer[t][i]->color.r,depth_buffer[t][i]->color.g,depth_buffer[t][i]->color.b,depth_buffer[t][i]->color.a);
+                    HCS_Gfx_DrawColor_set(depth_buffer[t][i]->color.r,depth_buffer[t][i]->color.g,depth_buffer[t][i]->color.b,depth_buffer[t][i]->color.a);
                     if (depth_buffer[t][i]->fill_rect)
-                        LIB_PLATFORM_FILL_RECT(r);
-                    LIB_PLATFORM_DRAW_RECT(r);
-                    LIB_PLATFORM_SET_DRAW_COLOR(std.r,std.g,std.b,std.a);
+                        HCS_Gfx_Rectangle_fill(r);
+                    HCS_Gfx_Rectangle_draw(r);
+                    HCS_Gfx_DrawColor_set(std.r,std.g,std.b,std.a);
                 }
                 if (!(*depth_buffer[t][i]).use_quad)
-                    LIB_PLATFORM_DRAW_TEXTURE(depth_buffer[t][i]->tex, NULL, &r);
+                    HCS_Gfx_Texture_draw(depth_buffer[t][i]->tex, NULL, &r);
                 else
                 {
-                    LIB_PLATFORM_RECTANGLE q;
+                    HCS_Gfx_Rectangle q;
                     q.x = (*depth_buffer[t][i]).quad_pos.x;
                     q.y = (*depth_buffer[t][i]).quad_pos.y;
                     q.w = (*depth_buffer[t][i]).quad_size.x;
                     q.h = ((*depth_buffer[t][i])).quad_size.y;
-                    LIB_PLATFORM_DRAW_TEXTURE((*depth_buffer[t][i]).tex, &q, &r);
+                    HCS_Gfx_Texture_draw((*depth_buffer[t][i]).tex, &q, &r);
                 }
             }
         }
@@ -177,30 +182,30 @@ void HCS_Drawable_system()
             int i;
             for (i = 0; i < used_buffer[t]; i++)
             {
-                LIB_PLATFORM_RECTANGLE r;
-                r.x = (float)((depth_buffer[t][i]->pos.x - runData->camera.x) );
-                r.y = (float)((depth_buffer[t][i]->pos.y - runData->camera.y) );
+                HCS_Gfx_Rectangle r;
+                r.x = (float)((depth_buffer[t][i]->pos.x - HCS_Gfx_Camera.x) );
+                r.y = (float)((depth_buffer[t][i]->pos.y - HCS_Gfx_Camera.y) );
                 r.w = (*depth_buffer[t][i]).size.x ;
                 r.h = (*depth_buffer[t][i]).size.y ;
                 HCS_Drawable_translate_rect(&r);
                 if (depth_buffer[t][i]->draw_rect)
                 {
-                    LIB_PLATFORM_SET_DRAW_COLOR(depth_buffer[t][i]->color.r,depth_buffer[t][i]->color.g,depth_buffer[t][i]->color.b,depth_buffer[t][i]->color.a);
+                    HCS_Gfx_DrawColor_set(depth_buffer[t][i]->color.r,depth_buffer[t][i]->color.g,depth_buffer[t][i]->color.b,depth_buffer[t][i]->color.a);
                     if (depth_buffer[t][i]->fill_rect)
-                        LIB_PLATFORM_FILL_RECT(r);
-                    LIB_PLATFORM_DRAW_RECT(r);
-                    LIB_PLATFORM_SET_DRAW_COLOR(std.r,std.g,std.b,std.a);
+                        HCS_Gfx_Rectangle_fill(r);
+                    HCS_Gfx_Rectangle_draw(r);
+                    HCS_Gfx_DrawColor_set(std.r,std.g,std.b,std.a);
                 }
                 if (!(*depth_buffer[t][i]).use_quad)
-                    LIB_PLATFORM_DRAW_TEXTURE(depth_buffer[t][i]->tex, NULL, &r);
+                    HCS_Gfx_Texture_draw(depth_buffer[t][i]->tex, NULL, &r);
                 else
                 {
-                    LIB_PLATFORM_RECTANGLE q;
+                    HCS_Gfx_Rectangle q;
                     q.x = (*depth_buffer[t][i]).quad_pos.x;
                     q.y = (*depth_buffer[t][i]).quad_pos.y;
                     q.w = (*depth_buffer[t][i]).quad_size.x;
                     q.h = ((*depth_buffer[t][i])).quad_size.y;
-                    LIB_PLATFORM_DRAW_TEXTURE((*depth_buffer[t][i]).tex, &q, &r);
+                    HCS_Gfx_Texture_draw((*depth_buffer[t][i]).tex, &q, &r);
                 }
             }
         }

@@ -1,19 +1,12 @@
 
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <stdarg.h>
-#include <sys/time.h>
 
 
-#include "data_util.h"
-#include "vec.h"
-
-#define START_WIDTH 1920
-#define START_HEIGHT 1080
 //Meine Tools:
+#include "data_util.h"
+
 #include "LSD.h"            //<- Logging System
 #include "HCS.h"            //<- Entity Component System
 /*
@@ -26,11 +19,7 @@
  -"Event-Queue": Function-Pointer Liste für "Event-Listeners"                   DONE!             -> check_events() und Source in ECS.h
  -"System-Liste": Function-Pointer Liste für "System-Functions"                 DONE!             -> run_systems() und Source in ECS.h
  -Layering für "drawable"                                                       DONE!             -> draw_type in Source in drawable.h
- -Ein Debug-Fenster (PiP) mit Daten zu den Entities                             NICHT NOTWENDIG   -> F.U.
- -Output-Log beim Exit generieren                                               NICHT NOTWENDIG   -> F.U.  <- Wäre eventuell schon Cool...
  -Das "SDL2-Zeug" vom Rest trennen, evtl. eigene Header-File                    DONE!             -> Source in SDL.h
- -Szenen hinzufügen                                                             DILLIGAF?         -> Nein.
- -Systems und Events mit Namen Linken, nicht mit Enums!                         Will ich das?     -> Zu viel aufwand, bräuchte 2x Name- s, _list und _fill!
  -Events doch mit Namen linken...                                               DONE!             -> War überrschend easy! Siehe Source in ECS.h
  -Clickables sind gerade broken! Maybe cAABB()                                  DONE!             -> WINDOW_SCALE vergessen...
  -rem_event() scheint auch broken zu sein...                                    GEFIXT!           -> event_list[e] und so...
@@ -44,31 +33,43 @@
  -WINDOW_SCALE entfernen!                                                       FERTIG!           -> Was erwartest du jetzt eigentlich? Es ist nicht mehr da!
  -SDL2 Funktionen mehr abstrackt machen mit Wrappern und defines!               FERTIG!           -> LIB_PLATFORM ist jetzt überall
  -mouseDown mit isDown usw. mergen!                                             FERTIG!           -> Siehe in isDown, isPressed und isReleased
- -"Black-Bars" für Oben und Unten implementieren!                               NICHT NOTWENDIG!  -> Windowed-Mode wird immer slimmer als Fullscreen sein!
- -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!                        NICHT WIRKLICH... -> Es funktioniert zwar, es muss aber nochmal kräftig überarbeitet werden!
  -"Black-Bars" sind broken...                                                   GEFIXT!           -> if(fullscreen) hat gefehlt
  -Asset-Manager, der die Paths überprüft und so                                 FERTIG!           -> HCS_Asset_Manager() + HCS_Managed_assets in HCS.h
  -LSD_Log überarbeiten mit Format-String wie in printf()!                       FERTIG!           -> In LSD.h, greift aber immernoch auf LSD_Log_old() zurück!
  -LSD_Log mit LSD_Log_old mergen!                                               FERTIG!           -> In LSD.h, greift jetzt nicht mehr auf LSD_Log_old zurück!
  -Jump-Timer hinzufügen!                                                        FERTIG!           -> In jump.h
  -Collisions checken mit zu wenig overhead!                                     FERTIG!           -> In collision.h
+ -Input überarbeiten, sodass nur noch UP,DOWN,LEFT,RIGHT,A,B,C,D existieren!    FERTIG!           -> in HCS.h
+ -GFX fertig stellen, d.h. alles was mit Grafik und SDL2 zu tun hat wrappen!    FERTIG!           -> in HCS.h
+ -Platform.h effektiv mit GFX ersetzen!                                         FERTIG!           -> HCS.h
+ -Anständige Messages für LSD_Log() in den HCS Funktionen!                      FERTIG!           -> in HCS.h + Komponenten
+ 
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
- -Sound überarbeiten!
  -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
+ 
+ -World-Map nicht als Entities interpretieren!
+ -"Spatial-Hashing" für Terrain-Collisions!
+ 
+ -UI-Elemente überarbeiten (Snapping-Ecken?)
+
+ -Sound überarbeiten!                                                           FÜRS ERSTE AUF EIS GELEGT!
  -Das runData-Struct serialisieren und wieder deserialisieren!                  FÜRS ERSTE AUF EIS GELEGT! (Evtl. später mit Data Desk arbeiten!)
-
-
+ -"Black-Bars" für Oben und Unten implementieren!                               NICHT NOTWENDIG!  -> Windowed-Mode wird immer slimmer als Fullscreen sein!
+ -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!                        NICHT WIRKLICH... -> Es funktioniert zwar, es muss aber nochmal kräftig überarbeitet werden!
 Very Nice To Haves™:
--Handy per QR-Code verbinden und als Controller benutzen
+-Handy per QR-Code oder ID-Nummer verbinden und als Controller benutzen
  */
 
-void fullscreen_event()
+
+//Event-Variablen:
+bool started = false;
+
+//Event-Funktionen:
+void camera_event()
 {
-    if (isPressed(k.F))
-    {
-        toggle_fullscreen();
-    }
+    HCS_Gfx_Camera.x -= (HCS_Gfx_Camera.x - (HCS_Body_get(HCS_Entity_get_by_name("Player"))->size.x / 2 + HCS_Body_get(HCS_Entity_get_by_name("Player"))->pos.x - (get_screen_size().x * STRETCH_WIDTH) / 2)) * 0.04f;
+    HCS_Gfx_Camera.y -= (HCS_Gfx_Camera.y - (HCS_Body_get(HCS_Entity_get_by_name("Player"))->size.y / 2 + HCS_Body_get(HCS_Entity_get_by_name("Player"))->pos.y - get_screen_size().y / 2)) * 0.04f;
 }
 
 void start_event()
@@ -109,11 +110,9 @@ void start_event()
     HCS_Body_add(e,200,50,300,800);
     HCS_Drawable_add(e,"assets/tree.png",0,0,false,HCS_Draw_Background1);
 
-    HCS_System_add("Camera",HCS_Camera_system);
+    HCS_Event_add("Camera",camera_event);
     HCS_Event_remove("Start");
 }
-
-bool started = false;
 
 void menu_event()
 {
@@ -125,17 +124,8 @@ void menu_event()
     HCS_Event_remove("Menu");
 }
 
-
-int main(int argc, char* argv[])
-{   
-    LIB_PLATFORM_INIT();
-    HCS_Init();
-
-    HCS_Camera_follow_ent("Player");
-    
-    LSD_Log_level_set(LSD_llALL);
-    
-    HCS_Event_add("Fullscreen",fullscreen_event);
+void HCS_Event_init()
+{
     HCS_Event_add("Menu",menu_event);
 
     HCS_System_add("Input",HCS_Input_system);
@@ -146,30 +136,36 @@ int main(int argc, char* argv[])
     HCS_System_add("Jump",HCS_Jump_system);
     HCS_System_add("Gravity",HCS_Gravity_system);
 
-
     HCS_Entity e = HCS_Entity_create("Quit_Button");
-
     HCS_Body_add(e,get_screen_size().x / 2 - 300,get_screen_size().y / 2 - 300,600,300);
     HCS_Drawable_add(e,"Start",0,0,true,HCS_Draw_Menu1);
     HCS_Clickable_add(e,&started,HCS_Click_on);
     HCS_Drawable_add_rect(e,100,100,100,125,true);
 
     e = HCS_Entity_create("Start_Button");
-
     HCS_Body_add(e,get_screen_size().x / 2 - 300,get_screen_size().y / 2 + 100,600,300);
     HCS_Drawable_add(e,"Beenden",0,0,true,HCS_Draw_Menu1);
     HCS_Clickable_add(e,&running,HCS_Click_off);
     HCS_Drawable_add_rect(e,100,100,100,125,true);
+}
 
+//Main-Loop mit Game-Loop:
+int main(int argc, char* argv[])
+{
+    //Library-Initialisierung
+    LSD_Log_level_set(LSD_llALL);
+    HCS_Init(argv);
+
+    //Game-Loop
     while(running)
     {
         HCS_System_run();
         HCS_Event_run();
-        LIB_PLATFORM_UPDATE();
-        tick();
     }
     
+    HCS_Entity_clear();
+    
+    //Library-Deinitialisierung
     HCS_Deinit();
-    LIB_PLATFORM_DEINIT();
     exit(0);
 }

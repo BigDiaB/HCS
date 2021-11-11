@@ -10,6 +10,7 @@ int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type)
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].old_down = false;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].down = false;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].type = type;
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
     return HCS_Entity_get_component_id(e,HCS_cClickable);
 }
 
@@ -22,6 +23,7 @@ HCS_Clickable* HCS_Clickable_get(HCS_Entity e)
 void HCS_Clickable_remove(HCS_Entity e)
 {
     remove_element_from_array(runData->HCS_Clickable_list,&runData->HCS_Clickable_used,&runData->HCS_Entities[e][HCS_cClickable]);
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
 bool cAABB(vec2i pos1, vec2f pos2, vec2i size1, vec2i size2)
@@ -48,20 +50,20 @@ void HCS_Clickable_system()
         }
         else
         {
-            temp_pos.x = (bod.pos.x - runData->camera.x) ;
-            temp_pos.y = (bod.pos.y - runData->camera.y) ;
+            temp_pos.x = (bod.pos.x - HCS_Gfx_Camera.x) ;
+            temp_pos.y = (bod.pos.y - HCS_Gfx_Camera.y) ;
         }
         temp_pos.y = map_number_in_range_to_new_range(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
         temp_bod_size.y = map_number_in_range_to_new_range(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
         temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
         temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
         hot = false;
-        if (cAABB(mouse_pos,temp_pos,temp_size,temp_bod_size))
+        if (cAABB(HCS_Gfx_Mouse_pos,temp_pos,temp_size,temp_bod_size))
         {
-            if (isDown(k.M_LEFT))
+            if (isDown("mouse"))     //TODO:Maus-Koordinaten und Maus-Knöpfe irgendwie ersetzen!
                 runData->HCS_Clickables[i].down = true;
             hot = true;
-            if (runData->HCS_Clickables[i].old_down && !isDown(k.M_LEFT))
+            if (runData->HCS_Clickables[i].old_down && !isDown("mouse"))
             {
                 switch (runData->HCS_Clickables[i].type) {
                     case HCS_Click_toggle:
@@ -93,11 +95,11 @@ void HCS_Clickable_system()
             }
         }
         if (runData->HCS_Clickables[i].down && hot)
-            LIB_PLATFORM_COLOR_MOD(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,75, 75, 75);
+            HCS_Gfx_Texture_color_mod(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,75, 75, 75);
         else if (hot && !runData->HCS_Clickables[i].down)
-            LIB_PLATFORM_COLOR_MOD(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,150, 150, 150);
+            HCS_Gfx_Texture_color_mod(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,150, 150, 150);
         else if (!hot && !runData->HCS_Clickables[i].down)
-            LIB_PLATFORM_COLOR_MOD(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,200, 200, 200);
+            HCS_Gfx_Texture_color_mod(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,200, 200, 200);
         runData->HCS_Clickables[i].old_down = runData->HCS_Clickables[i].down;
         
     }

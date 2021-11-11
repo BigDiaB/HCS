@@ -13,6 +13,7 @@ int HCS_Collider_add(HCS_Entity e)
         runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].type = HCS_Col_Dynamic;
     else
         runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].type = HCS_Col_Static;
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Collider hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
     return HCS_Entity_get_component_id(e,HCS_cCollider);
     
 }
@@ -26,12 +27,9 @@ HCS_Collider* HCS_Collider_get(HCS_Entity e)
 void HCS_Collider_remove(HCS_Entity e)
 {
     remove_element_from_array(runData->HCS_Collider_list, &runData->HCS_Collider_used, &runData->HCS_Entities[e][HCS_cCollider]);
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Collider entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
-bool AABB(vec2f pos1, vec2f pos2, vec2i size1, vec2i size2)
-{
-    return (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y);
-}
 
 void HCS_Collider_system()
 {
