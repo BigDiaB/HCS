@@ -233,7 +233,6 @@ int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp);
 HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component component);
 HCS_Entity HCS_Entity_get_by_name(char* n);
 
-void HCS_Event_init();
 void HCS_Event_add(char* n,void (*sys));
 void HCS_Event_remove(char* n);
 void HCS_Event_run();
@@ -666,7 +665,6 @@ void HCS_Init(char* argv[])
     
     HCS_System_add("SYS_Delta_timer",tick);
     HCS_System_add("SYS_Graphics_Update",HCS_Gfx_update);
-    HCS_Event_init();
 
 }
 

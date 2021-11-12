@@ -90,9 +90,9 @@ float map_number_in_range_to_new_range(float num, float min1, float max1, float 
     return (num - min1) * (max2 - min2) / (max1 - min1) + min2;
 }
 
+#define CHARS_TIL_ROOT_OF_PROJ 6
 void prepare_path(char* argv[])
 {
-    #define CHARS_TIL_ROOT_OF_PROJ 6
     char path_save[1024];
     char cwd[1024];
     char* p;
