@@ -3,7 +3,7 @@
 
 int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type)
 {
-    if (!HCS_Entity_has_component(e,HCS_cBody) || !HCS_Entity_has_component(e,HCS_cDrawable))
+    if (!HCS_Entity_has_component(e,HCS_cBody) || !HCS_Entity_has_component(e,HCS_cSprite))
         LSD_Log(LSD_ltERROR,"Entity fehlen vorausgesetzte Komponente für Clickable!");
     runData->HCS_Entities[e][HCS_cClickable] = get_unused_id_from_blacklist(runData->HCS_Clickable_list, &runData->HCS_Clickable_used, HCS_MAX_CLICKABLES);
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].action = action;
@@ -40,15 +40,15 @@ void HCS_Clickable_system()
         int i = runData->HCS_Clickable_list[j];
         HCS_Body bod = *HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable));
         vec2i temp_size = {10,10};
-        vec2i temp_bod_size = {HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.x ,HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.y };
+        vec2i temp_bod_size = HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size;
         vec2f temp_pos;
-        if (HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > HCS_Drawable_Drawtype_UI)
-        {
-            temp_pos.x = bod.pos.x * STRETCH_WIDTH ;
-            temp_pos.y = bod.pos.y ;
-            temp_bod_size.x *= STRETCH_WIDTH;
-        }
-        else
+//        if (HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > HCS_Sprite_Drawtype_UI)
+//        {
+//            temp_pos.x = bod.pos.x * STRETCH_WIDTH ;
+//            temp_pos.y = bod.pos.y ;
+//            temp_bod_size.x *= STRETCH_WIDTH;
+//        }
+//        else
         {
             temp_pos.x = (bod.pos.x - HCS_Gfx_Camera.x) ;
             temp_pos.y = (bod.pos.y - HCS_Gfx_Camera.y) ;
@@ -95,11 +95,11 @@ void HCS_Clickable_system()
             }
         }
         if (runData->HCS_Clickables[i].down && hot)
-            HCS_Gfx_Texture_color_mod(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,75, 75, 75);
+            HCS_Gfx_Texture_color_mod(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,75, 75, 75);
         else if (hot && !runData->HCS_Clickables[i].down)
-            HCS_Gfx_Texture_color_mod(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,150, 150, 150);
+            HCS_Gfx_Texture_color_mod(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,150, 150, 150);
         else if (!hot && !runData->HCS_Clickables[i].down)
-            HCS_Gfx_Texture_color_mod(HCS_Drawable_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,200, 200, 200);
+            HCS_Gfx_Texture_color_mod(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,200, 200, 200);
         runData->HCS_Clickables[i].old_down = runData->HCS_Clickables[i].down;
         
     }

@@ -90,7 +90,8 @@ void init_event()
     HCS_Body_add(e,1000,100,500,500);
     HCS_Sprite_add(e,"box.txt");
     HCS_Collider_add(e,vec_new_int(0,0));
-
+    HCS_Clickable_add(e,&running,HCS_Click_off);
+    
     HCS_Event_remove("init");
 }
 
@@ -139,9 +140,13 @@ int main(int argc, char* argv[])
     while(running || LSD_Thread_used > 0)
     {
         LSD_Thread_system();
-        HCS_Sprite_system(LSD_Delta_none);
-        HCS_Update(LSD_Delta_none);
-        HCS_Event_run();
+        if (running)
+        {
+            HCS_Sprite_system(LSD_Delta_none);
+            HCS_Clickable_system();
+            HCS_Update(LSD_Delta_none);
+            HCS_Event_run();
+        }
     }
     
     HCS_Entity_clear();

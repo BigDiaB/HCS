@@ -74,8 +74,7 @@ bool running;
 
 #define HCS_MAX_BODIES 200
 #define HCS_MAX_SPRITES 200
-//#define HCS_MAX_DRAWABLES 200
-//#define HCS_MAX_CLICKABLES 200
+#define HCS_MAX_CLICKABLES 200
 #define HCS_MAX_COLLIDERS 200
 #define HCS_MAX_MOVEMENTS 200
 #define HCS_MAX_GRAVITIES 200
@@ -94,12 +93,16 @@ void HCS_Void_func()
 }
 
 typedef enum {
-    HCS_cName, HCS_cState, HCS_cBody, HCS_cMovement,HCS_cDrawable, HCS_cSprite, HCS_cCollider, HCS_cGravity, HCS_cJump, HCS_cInput, HCS_NUM_COMPONENTS
+    HCS_cName, HCS_cState, HCS_cBody, HCS_cMovement,HCS_cClickable, HCS_cSprite, HCS_cCollider, HCS_cGravity, HCS_cJump, HCS_cInput, HCS_NUM_COMPONENTS
 } HCS_Component;
 
 typedef enum {
     HCS_Draw_Background0, HCS_Draw_Background1, HCS_Draw_Background2, HCS_Draw_Sprite, HCS_Draw_Decal, HCS_Draw_Effect, HCS_Draw_Debug, HCS_Draw_Menu0, HCS_Draw_Menu1, HCS_Draw_Menu2, HCS_Draw_DebugUI, num_draw_types
 } HCS_Drawtype;
+
+typedef enum {
+    HCS_Click_on, HCS_Click_off, HCS_Click_toggle
+} HCS_Clicktype;
 
 typedef struct
 {
@@ -151,6 +154,14 @@ typedef struct{
 typedef struct{
     bool active;
 } HCS_Input;
+
+typedef struct{
+    HCS_Clicktype type;
+    bool down;
+    bool old_down;
+    bool* action;
+} HCS_Clickable;
+
 
 typedef struct{
     double jump_ground_timer;
@@ -257,6 +268,10 @@ HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
 void HCS_Sprite_remove(HCS_Entity e);
 void HCS_Sprite_system();
 
+int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type);
+HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
+void HCS_Clickable_remove(HCS_Entity e);
+
 int HCS_Collider_add(HCS_Entity e, vec2i size_mod);
 HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
@@ -291,6 +306,10 @@ struct HCS_Data {
     HCS_Sprite HCS_Sprites[HCS_MAX_SPRITES];
     HCS_Entity HCS_Sprite_list[HCS_MAX_SPRITES];
     int HCS_Sprite_used;
+    
+    HCS_Clickable HCS_Clickables[HCS_MAX_CLICKABLES];
+    HCS_Entity HCS_Clickable_list[HCS_MAX_CLICKABLES];
+    int HCS_Clickable_used;
     
     HCS_Collider HCS_Colliders[HCS_MAX_COLLIDERS];
     HCS_Entity HCS_Collider_list[HCS_MAX_COLLIDERS];
@@ -618,8 +637,8 @@ void HCS_Entity_kill(HCS_Entity e)
         HCS_Collider_remove(e);
     if (HCS_Entity_has_component(e,HCS_cMovement))
         HCS_Movement_remove(e);
-//    if (HCS_Entity_has_component(e,HCS_cClickable))
-//        HCS_Clickable_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cClickable))
+        HCS_Clickable_remove(e);
 //    if (HCS_Entity_has_component(e,HCS_cDrawable))
 //        HCS_Drawable_remove(e);
     if (HCS_Entity_has_component(e,HCS_cBody))
@@ -732,7 +751,7 @@ void HCS_Entity_remove(HCS_Entity ent)
 
 #include "components/sprite.h"
 //#include "components/drawable.h"
-//#include "components/clickable.h"
+#include "components/clickable.h"
 
 void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)
 {
