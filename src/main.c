@@ -46,7 +46,8 @@
  -Anständige Messages für LSD_Log() in den HCS Funktionen!                      FERTIG!           -> in HCS.h + Komponenten
  -Seperate Deltas für die einzelnen Threads!                                    FERTIG!           -> LSD_Delta in LSD
  -Seperate threads für System-Gruppen!                                          FERTIG!           -> HCS_System is no more!
- 
+ -Optional extra Collider-rect für Collider anstelle von Body                   FERTIG!           -> Collider-Offset in HCS_Collider-Struct
+ -Clickables wieder hinzufügen!                                                 FERTIG!           -> HCS_Clickable und Clickable.h
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
@@ -55,7 +56,6 @@
  -"Spatial-Hashing" für Terrain-Collisions!
  -Managed Asset für Sprites... Ughh...
  
- -Optional extra Collider-rect für Collider anstelle von Body
  -Cap für Threads
  
  
@@ -87,7 +87,7 @@ void init_event()
     HCS_Collider_add(e,vec_new_int(8,0));
     
     e = HCS_Entity_create("Box");
-    HCS_Body_add(e,1000,100,500,500);
+    HCS_Body_add(e,1000,100,100,600);
     HCS_Sprite_add(e,"box.txt");
     HCS_Collider_add(e,vec_new_int(0,0));
     HCS_Clickable_add(e,&running,HCS_Click_off);

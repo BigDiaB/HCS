@@ -40,7 +40,7 @@ void HCS_Clickable_system()
         int i = runData->HCS_Clickable_list[j];
         HCS_Body bod = *HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable));
         vec2i temp_size = {10,10};
-        vec2i temp_bod_size = HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size;
+        vec2i temp_bod_size = { HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.x,HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.y};
         vec2f temp_pos;
 //        if (HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > HCS_Sprite_Drawtype_UI)
 //        {

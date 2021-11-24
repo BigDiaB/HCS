@@ -58,10 +58,12 @@ void HCS_Sprite_system(double delta)
     {
         i = runData->HCS_Sprite_list[j];
         HCS_Body* bod = HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cSprite));
-        r.x = bod->pos.x;
-        r.y = bod->pos.y;
+        r.x = bod->pos.x - HCS_Gfx_Camera.x;
+        r.y = bod->pos.y - HCS_Gfx_Camera.y;
         r.w = bod->size.x;
         r.h = bod->size.y;
+        
+        HCS_Drawable_translate_rect(&r);
         
         SDL_RenderCopy(renderer,runData->HCS_Sprites[i].tex,NULL,&r);
     }

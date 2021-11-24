@@ -49,7 +49,7 @@ bool HCS_Gfx_Input_last_A;
 bool HCS_Gfx_Input_last_B;
 bool HCS_Gfx_Mouse_last_clicked;
 
-vec2f HCS_Gfx_Camera;
+vec2f HCS_Gfx_Camera = {0,0};
 vec2i HCS_Gfx_Mouse_pos;
 
 double WORLD_TO_SCREEN_X = 1000;
@@ -104,6 +104,10 @@ typedef enum {
     HCS_Click_on, HCS_Click_off, HCS_Click_toggle
 } HCS_Clicktype;
 
+typedef enum {
+    HCS_Col_Static, HCS_Col_Dynamic
+} HCS_Collisiontype;
+
 typedef struct
 {
     HCS_Gfx_Rectangle body;
@@ -113,29 +117,6 @@ typedef struct
     unsigned char GRN[8][8];
     unsigned char BLU[8][8];
 } HCS_Sprite;
-
-//typedef struct {
-//    SDL_Texture* tex;
-//    SDL_Color color;
-//    vec2i size;
-//    vec2f pos;
-//    vec2i quad_pos;
-//    vec2i quad_size;
-//    HCS_Drawtype type;
-//    char* path;
-//    bool managed;
-//    bool use_path_as_image_text;
-//    bool draw;
-//    bool use_quad;
-//    bool draw_rect;
-//    bool fill_rect;
-//} HCS_Drawable;
-
-
-typedef enum {
-    HCS_Col_Static, HCS_Col_Dynamic
-} HCS_Collisiontype;
-
 
 typedef struct {
     char* name;
