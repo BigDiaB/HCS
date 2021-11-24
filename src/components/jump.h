@@ -31,7 +31,7 @@ void HCS_Jump_remove(HCS_Entity e)
     LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Jump entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
-void HCS_Jump_system()
+void HCS_Jump_system(double delta)
 {
     int j;
     for (j = 0; j < runData->HCS_Jump_used; j++)

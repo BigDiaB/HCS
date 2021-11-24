@@ -27,7 +27,7 @@ void HCS_Movement_remove(HCS_Entity e)
 
 
 
-void HCS_Movement_system()
+void HCS_Movement_system(double delta)
 {
     int j;
     for (j = 0; j < runData->HCS_Movement_used; j++)
@@ -56,11 +56,11 @@ void HCS_Movement_system()
         
         (*HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cMovement))).pos.x += runData->HCS_Movements[i].vel.x * delta;
         
-        runData->HCS_Movements[i].vel.x *= pow(0.5f,delta * 10);
+        runData->HCS_Movements[i].vel.x *= pow(0.002f,delta);
         
         (*HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cMovement))).pos.y += runData->HCS_Movements[i].vel.y * delta;
         
         
-        runData->HCS_Movements[i].vel.y *= pow(0.5f,delta * 10);
+        runData->HCS_Movements[i].vel.y *= pow(0.002,delta);
     }
 }

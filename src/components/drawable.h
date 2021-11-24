@@ -12,79 +12,23 @@ void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)
     r->w = map_number_in_range_to_new_range(r->w,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
 }
 
-
-int HCS_Drawable_add(HCS_Entity e, char* n, float x, float y, bool text, HCS_Drawtype t)
+int HCS_Drawable_add(HCS_Entity e, char* n)
+//int HCS_Drawable_add(HCS_Entity e, char* n, float x, float y, bool text, HCS_Drawtype t)
 {
     runData->HCS_Entities[e][HCS_cDrawable] = get_unused_id_from_blacklist(runData->HCS_Drawable_list, &runData->HCS_Drawable_used, HCS_MAX_DRAWABLES);
     
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].path = n;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].pos.x = x;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].pos.y = y;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].draw = true;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].type = t;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].quad_pos.x = 0;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].quad_pos.y = 0;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].quad_size.x = 0;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].quad_size.y = 0;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_quad = false;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].draw_rect = false;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].fill_rect = false;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].managed = !text;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text = text;
+//    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].path = n;
+//    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].pos.x = x;
+//    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].pos.y = y;
+//    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].draw = true;
+//    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].type = t;
     
     int i = HCS_Entity_get_component_id(e,HCS_cDrawable);
     
     LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Drawable hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
     
-    if (text)
-    {
-        HCS_Gfx_Surface surf = HCS_Gfx_Text_to_surface(n);
-        runData->HCS_Drawables[i].size.x = surf->w;
-        runData->HCS_Drawables[i].size.y = surf->h;
-        runData->HCS_Drawables[i].tex = HCS_Gfx_Surface_to_texture(surf);
-        return HCS_Entity_get_component_id(e,HCS_cDrawable);
-    }
-    
     runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = HCS_Asset_manager(n, HCS_AAdd);
     return HCS_Entity_get_component_id(e,HCS_cDrawable);
-}
-
-void HCS_Drawable_add_quad(HCS_Entity e, int quad_x, int quad_y, int quad_w, int quad_h)
-{
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].quad_pos.x = quad_x;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].quad_pos.y = quad_y;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].quad_size.x = quad_w;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].quad_size.y = quad_h;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_quad = true;
-}
-
-void HCS_Drawable_add_rect(HCS_Entity e, int r, int g, int b, int a, bool fill)
-{
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].color.r = r;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].color.g = g;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].color.b = b;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].color.a = a;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].draw_rect = true;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].fill_rect = fill;
-}
-
-void HCS_Drawable_reset_unmanaged_with_text(HCS_Entity e, char* text)
-{
-    HCS_Gfx_Surface surf = HCS_Gfx_Text_to_surface(text);
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.x = surf->w;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.y = surf->h;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = HCS_Gfx_Surface_to_texture(surf);
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].managed = false;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text = true;
-}
-
-void HCS_Drawable_reset_unmanaged(HCS_Entity e, HCS_Gfx_Surface surf)
-{
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.x = surf->w;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].size.y = surf->h;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].tex = HCS_Gfx_Surface_to_texture(surf);
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].managed = false;
-    runData->HCS_Drawables[HCS_Entity_get_component_id(e,HCS_cDrawable)].use_path_as_image_text = false;
 }
 
 

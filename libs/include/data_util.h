@@ -3,7 +3,7 @@
 #define DATA_UTIL_H
 
 #include <unistd.h>
-#include <sys/time.h>
+#include <math.h>
 
 typedef struct {
     int x,y;
@@ -109,25 +109,5 @@ void prepare_path(char* argv[])
     cwd[strlen(cwd)- CHARS_TIL_ROOT_OF_PROJ] = '\0';
     chdir(cwd);
 }
-
-double delta = 0.0f;
-bool frozen = true;
-
-struct timeval begin, end;
-
-void tick()
-{
-    gettimeofday(&end, 0);
-    long seconds = end.tv_sec - begin.tv_sec;
-    long microseconds = end.tv_usec - begin.tv_usec;
-    delta = seconds + microseconds*1e-6;
-    gettimeofday(&begin, 0);
-    if (frozen)
-    {
-        frozen = false;
-        delta = 0.0f;
-    }
-}
-
 
 #endif

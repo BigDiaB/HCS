@@ -26,7 +26,7 @@ void HCS_Gravity_remove(HCS_Entity e)
     LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Gravity entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
-void HCS_Gravity_system()
+void HCS_Gravity_system(double delta)
 {
     int j;
     for (j = 0; j < runData->HCS_Gravity_used; j++)
