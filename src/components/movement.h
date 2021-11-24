@@ -38,18 +38,18 @@ void HCS_Movement_system(double delta)
         if (HCS_Entity_has_component(HCS_Entity_get_entity_id(i,HCS_cMovement),HCS_cState))
         {
             HCS_Entity e = HCS_Entity_get_entity_id(i,HCS_cMovement);
-            HCS_State d = *HCS_State_get(e);
+            HCS_State* d = HCS_State_get(e);
             
             if (!HCS_Entity_has_component(e,HCS_cGravity))
             {
-                if (d.up)
+                if (d->up)
                     runData->HCS_Movements[i].vel.y -= runData->HCS_Movements[i].speed.y * delta;
-                if (d.down)
+                if (d->down)
                     runData->HCS_Movements[i].vel.y += runData->HCS_Movements[i].speed.y * delta;
             }
-            if (d.left)
+            if (d->left)
                 runData->HCS_Movements[i].vel.x -= runData->HCS_Movements[i].speed.x * delta;
-            if (d.right)
+            if (d->right)
                 runData->HCS_Movements[i].vel.x += runData->HCS_Movements[i].speed.x * delta;
         }
         

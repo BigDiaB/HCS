@@ -61,6 +61,7 @@
  
  -Sprite Editor + Exporteur damit wir SDL(2)_image los werden!
  -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!
+ -Coole Dateiändung überlegen!
  
  
  -Sound überarbeiten!                                                           FÜRS ERSTE AUF EIS GELEGT!
@@ -87,9 +88,9 @@ void init_event()
     
     e = HCS_Entity_create("Box");
     HCS_Body_add(e,1000,100,500,500);
-    HCS_Sprite_add(e,"gfx.txt");
-    HCS_Collider_add(e,vec_new_int(8,0));
-    
+    HCS_Sprite_add(e,"box.txt");
+    HCS_Collider_add(e,vec_new_int(0,0));
+
     HCS_Event_remove("init");
 }
 
