@@ -42,13 +42,13 @@ void HCS_Clickable_system()
         vec2i temp_size = {10,10};
         vec2i temp_bod_size = { HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.x,HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.y};
         vec2f temp_pos;
-//        if (HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > HCS_Sprite_Drawtype_UI)
-//        {
-//            temp_pos.x = bod.pos.x * STRETCH_WIDTH ;
-//            temp_pos.y = bod.pos.y ;
-//            temp_bod_size.x *= STRETCH_WIDTH;
-//        }
-//        else
+        //        if (HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > HCS_Sprite_Drawtype_UI)
+        //        {
+        //            temp_pos.x = bod.pos.x * STRETCH_WIDTH ;
+        //            temp_pos.y = bod.pos.y ;
+        //            temp_bod_size.x *= STRETCH_WIDTH;
+        //        }
+        //        else
         {
             temp_pos.x = (bod.pos.x - HCS_Gfx_Camera.x) ;
             temp_pos.y = (bod.pos.y - HCS_Gfx_Camera.y) ;
@@ -60,8 +60,8 @@ void HCS_Clickable_system()
         hot = false;
         if (cAABB(HCS_Gfx_Mouse_pos,temp_pos,temp_size,temp_bod_size))
         {
-            if (isDown("mouse"))     //TODO:Maus-Koordinaten und Maus-Knöpfe irgendwie ersetzen!
-                runData->HCS_Clickables[i].down = true;
+            runData->HCS_Clickables[i].old_down = runData->HCS_Clickables[i].down;
+            runData->HCS_Clickables[i].down = isDown("mouse");
             hot = true;
             if (runData->HCS_Clickables[i].old_down && !isDown("mouse"))
             {
@@ -99,8 +99,7 @@ void HCS_Clickable_system()
         else if (hot && !runData->HCS_Clickables[i].down)
             HCS_Gfx_Texture_color_mod(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,150, 150, 150);
         else if (!hot && !runData->HCS_Clickables[i].down)
-            HCS_Gfx_Texture_color_mod(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,200, 200, 200);
-        runData->HCS_Clickables[i].old_down = runData->HCS_Clickables[i].down;
+            HCS_Gfx_Texture_color_mod(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,255, 255, 255);
         
     }
 }

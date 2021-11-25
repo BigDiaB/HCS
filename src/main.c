@@ -61,7 +61,7 @@
  
  -Sprite Editor + Exporteur damit wir SDL(2)_image los werden!
  -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!
- -Coole Dateiändung überlegen!
+ -Coole Dateiendung überlegen!
  
  
  -Sound überarbeiten!                                                           FÜRS ERSTE AUF EIS GELEGT!
@@ -73,7 +73,6 @@
  -Auf SDL(1) umsteigen, für einfaches Porten zu Wii, 3ds, Vita, etc.            NOPE, NO PAIN NO GAIN, lol
  -Handy per QR-Code oder ID-Nummer verbinden und als Controller benutzen
  */
-
 
 void init_event()
 {
@@ -87,10 +86,15 @@ void init_event()
     HCS_Collider_add(e,vec_new_int(8,0));
     
     e = HCS_Entity_create("Box");
-    HCS_Body_add(e,1000,100,100,600);
+    HCS_Body_add(e,1400,100,500,500);
     HCS_Sprite_add(e,"box.txt");
     HCS_Collider_add(e,vec_new_int(0,0));
     HCS_Clickable_add(e,&running,HCS_Click_off);
+    
+    e = HCS_Entity_create("Box2");
+    HCS_Body_add(e,400,600,500,500);
+    HCS_Sprite_add(e,"box.txt");
+    HCS_Collider_add(e,vec_new_int(0,0));
     
     HCS_Event_remove("init");
 }

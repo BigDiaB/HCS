@@ -741,4 +741,9 @@ void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)
     r->h = map_number_in_range_to_new_range(r->h,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
     r->x = map_number_in_range_to_new_range(r->x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
     r->w = map_number_in_range_to_new_range(r->w,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
+    
+//    r->y = map_number_in_range_to_new_range(r->y,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
+//    r->h = map_number_in_range_to_new_range(r->h,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
+//    r->x = map_number_in_range_to_new_range(r->x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
+//    r->w = map_number_in_range_to_new_range(r->w,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
 }
