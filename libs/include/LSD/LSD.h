@@ -11,11 +11,14 @@
 #define LSD_THREADS_MAX 100
 #define LSD_DELTAS_MAX 100
 
+typedef char bool;
+const char true = 1;
+const char false = 0;
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <stdbool.h>
 #include <sys/time.h>
 #include <pthread.h>
 

@@ -2,11 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
 //Meine Tools:
-#include "data_util.h"      //<- Nützliche Funkionen, die ich immer wieder brauche
-
 #include <LSD/LSD.h>        //<- "Logging" System
 #include "HCS.h"            //<- Entity Component System
 
@@ -77,7 +73,6 @@
 void init_event()
 {
     HCS_Entity e = HCS_Entity_create("Test");
-    
     HCS_State_add(e);
     HCS_Body_add(e,100,100,500,500);
     HCS_Movement_add(e,4000,4000);
@@ -132,14 +127,10 @@ int main(int argc, char* argv[])
 {
     //Library-Initialisierung
     HCS_Init(argv);
-    
     LSD_Log_level_set(LSD_llALL);
-    
     LSD_Thread_add("Miscellaneous",Misc_Wrapper);
     LSD_Thread_add("Movement",Move_Wrapper);
-    
     HCS_Event_add("init",init_event);
-    
     //Game-Loop
     while(running || LSD_Thread_used > 0)
     {
@@ -152,9 +143,7 @@ int main(int argc, char* argv[])
             HCS_Event_run();
         }
     }
-    
     HCS_Entity_clear();
-    
     //Library-Deinitialisierung
     HCS_Deinit();
     exit(0);
