@@ -1,7 +1,7 @@
 
 #pragma once
 
-int HCS_Collider_add(HCS_Entity e, vec2i size_mod)
+int HCS_Collider_add(HCS_Entity e, vec2f pos_mod, vec2i size_mod)
 {
     if (!HCS_Entity_has_component(e,HCS_cBody))
     {
@@ -11,7 +11,8 @@ int HCS_Collider_add(HCS_Entity e, vec2i size_mod)
     
     runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].active = true;
     
-    runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].offset = size_mod;
+    runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].offset.size = size_mod;
+    runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].offset.pos = pos_mod;
     
     
     if (HCS_Entity_has_component(e,HCS_cMovement))
@@ -63,15 +64,52 @@ void HCS_Collider_system(double delta)
                             
                             *two = *t_two;
                             
-                            if (runData->HCS_Colliders[j].offset.x != 0)
-                                two->size.x -= t_two->size.x / runData->HCS_Colliders[j].offset.x;
-                            if (runData->HCS_Colliders[j].offset.y != 0)
-                                two->size.y -= t_two->size.x / runData->HCS_Colliders[j].offset.y;
+                            if (runData->HCS_Colliders[i].offset.size.x != 0)
+                                test->size.x -= (double)(one->size.x / 8) * (double)runData->HCS_Colliders[i].offset.size.x;
+                            if (runData->HCS_Colliders[i].offset.size.y != 0)
+                                test->size.y -= (double)(one->size.y / 8) * (double)runData->HCS_Colliders[i].offset.size.y;
+                            if (runData->HCS_Colliders[i].offset.pos.x != 0)
+                            {
+                                test->pos.x += runData->HCS_Colliders[i].offset.pos.x * (one->size.x / 8);
+                                // test->pos.x += 1;
+                                test->size.x -= 3;
+                            }
+                            // else
+                                // test->pos.x -= 1;
+                            if (runData->HCS_Colliders[i].offset.pos.y != 0)
+                            {
+                                test->pos.y += runData->HCS_Colliders[i].offset.pos.y * (one->size.y / 8);
+                                // test->pos.y += 1;
+                                test->size.y -= 3;
+                            }
+                            // else
+                                // test->pos.y -= 1;
 
-                            if (runData->HCS_Colliders[i].offset.x != 0)
-                                test->size.x -= one->size.x / runData->HCS_Colliders[i].offset.x;
-                            if (runData->HCS_Colliders[i].offset.y != 0)
-                                test->size.y -= one->size.x / runData->HCS_Colliders[i].offset.y;
+                            if (runData->HCS_Colliders[i].offset.size.x != 0)
+                                two->size.x -= (double)(t_two->size.x / 8) * (double)runData->HCS_Colliders[j].offset.size.x;
+                            if (runData->HCS_Colliders[i].offset.size.y != 0)
+                                two->size.y -= (double)(t_two->size.y / 8) * (double)runData->HCS_Colliders[j].offset.size.y;
+                            if (runData->HCS_Colliders[j].offset.pos.x != 0)
+                            {
+                                two->pos.x += runData->HCS_Colliders[j].offset.pos.x * (t_two->size.x / 8);
+                                two->pos.x += 1;
+                                two->size.x -= 3;
+                            }
+                            else
+                                two->pos.x -= 1;
+                            if (runData->HCS_Colliders[j].offset.pos.y != 0)
+                            {
+                                two->pos.y += runData->HCS_Colliders[j].offset.pos.y * (t_two->size.y / 8);
+                                two->pos.y += 1;
+                                // two->size.y -= 3;
+                            }
+                            // else
+                                // two->pos.y -= 1;
+                            
+                            
+
+                            vec2i pos_diff = {0,0};
+                            vec_sub(pos_diff,test->pos,one->pos);
                             
                             if (AABB(
                                      test->pos,
@@ -93,6 +131,7 @@ void HCS_Collider_system(double delta)
                                     #define t_collision player_bottom - two->pos.y
                                     #define l_collision player_right - two->pos.x
                                     #define r_collision tiles_right - test->pos.x
+
                                     
                                     if (fabsf(test->pos.y  > two->pos.y ? two->pos.y + two->size.y - test->pos.y : test->pos.y + test->size.y - two->pos.y) < fabsf(test->pos.x > two->pos.x ? two->pos.x + two->size.x - test->pos.x : test->pos.x + test->size.x - two->pos.x))
                                     {
@@ -100,14 +139,14 @@ void HCS_Collider_system(double delta)
                                         if (t_collision < b_collision && t_collision < l_collision && t_collision < r_collision )
                                         {
                                             //Top collision
-                                            one->pos.y = two->pos.y - test->size.y;
+                                            one->pos.y = two->pos.y - test->size.y - pos_diff.y;
                                             move->vel.y = 0;
                                             runData->HCS_Colliders[i].on_ground = true;
                                         }
                                         if (b_collision < t_collision && b_collision < l_collision && b_collision < r_collision)
                                         {
                                             //bottom collision
-                                            one->pos.y = two->pos.y + two->size.y;
+                                            one->pos.y = two->pos.y + two->size.y - pos_diff.y;
                                             move->vel.y = 0;
                                         }
                                         
@@ -118,13 +157,13 @@ void HCS_Collider_system(double delta)
                                         if (l_collision < r_collision && l_collision < t_collision && l_collision < b_collision)
                                         {
                                             //Left collision
-                                            one->pos.x  = two->pos.x - test->size.x;
+                                            one->pos.x  = two->pos.x - test->size.x - pos_diff.x;
                                             move->vel.x = 0;
                                         }
                                         if (r_collision < l_collision && r_collision < t_collision && r_collision < b_collision )
                                         {
                                             //Right collision
-                                            one->pos.x = two->pos.x + two->size.x;
+                                            one->pos.x = two->pos.x + two->size.x - pos_diff.x;
                                             move->vel.x = 0;
                                         }
                                     }

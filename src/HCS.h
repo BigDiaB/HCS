@@ -266,7 +266,7 @@ typedef struct {
 typedef struct{
     HCS_Collisiontype type;
     HCS_Body collider;
-    vec2i offset;
+    HCS_Body offset;
     bool on_ground;
     bool last_on_ground;
     bool active;
@@ -357,7 +357,7 @@ int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type);
 HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
 
-int HCS_Collider_add(HCS_Entity e, vec2i size_mod);
+int HCS_Collider_add(HCS_Entity e, vec2f pos_mod, vec2i size_mod);
 HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();

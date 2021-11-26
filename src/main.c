@@ -44,6 +44,8 @@
  -Seperate threads für System-Gruppen!                                          FERTIG!           -> HCS_System is no more!
  -Optional extra Collider-rect für Collider anstelle von Body                   FERTIG!           -> Collider-Offset in HCS_Collider-Struct
  -Clickables wieder hinzufügen!                                                 FERTIG!           -> HCS_Clickable und Clickable.h
+ -Bessere veränderbare Collider!                                                FERTIG!           -> in HCS_Collider_add()
+
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
@@ -51,7 +53,7 @@
  -Tile-World-Map-Loader?
  -"Spatial-Hashing" für Terrain-Collisions!
  -Managed Asset für Sprites... Ughh...
- 
+
  -Cap für Threads
  
  
@@ -72,24 +74,26 @@
 
 void init_event()
 {
-    HCS_Entity e = HCS_Entity_create("Test");
+    HCS_Entity e = HCS_Entity_create("Player");
     HCS_State_add(e);
-    HCS_Body_add(e,100,100,500,500);
+    HCS_Body_add(e,500,100,500,500);
     HCS_Movement_add(e,4000,4000);
     HCS_Input_add(e);
     HCS_Sprite_add(e,"gfx.txt");
-    HCS_Collider_add(e,vec_new_int(8,0));
+    HCS_Collider_add(e,vec_new_float(2,0),vec_new_int(6,0));
+    HCS_Jump_add(e,6000,true,0);
+    HCS_Gravity_add(e,0,4000);
     
     e = HCS_Entity_create("Box");
-    HCS_Body_add(e,1400,100,500,500);
+    HCS_Body_add(e,1400,300,500,500);
     HCS_Sprite_add(e,"box.txt");
-    HCS_Collider_add(e,vec_new_int(0,0));
+    HCS_Collider_add(e,vec_new_float(0,0),vec_new_int(0,0));
     HCS_Clickable_add(e,&running,HCS_Click_off);
     
     e = HCS_Entity_create("Box2");
-    HCS_Body_add(e,400,600,500,500);
+    HCS_Body_add(e,10,800,2200,100);
     HCS_Sprite_add(e,"box.txt");
-    HCS_Collider_add(e,vec_new_int(0,0));
+    HCS_Collider_add(e,vec_new_float(0,0),vec_new_int(0,0));
     
     HCS_Event_remove("init");
 }
