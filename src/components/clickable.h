@@ -5,7 +5,7 @@ int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type)
 {
     if (!HCS_Entity_has_component(e,HCS_cBody) || !HCS_Entity_has_component(e,HCS_cSprite))
         LSD_Log(LSD_ltERROR,"Entity fehlen vorausgesetzte Komponente für Clickable!");
-    runData->HCS_Entities[e][HCS_cClickable] = get_unused_id_from_blacklist(runData->HCS_Clickable_list, &runData->HCS_Clickable_used, HCS_MAX_CLICKABLES);
+    runData->HCS_Entities[e][HCS_cClickable] = LSD_Math_get_id_from_array(runData->HCS_Clickable_list, &runData->HCS_Clickable_used, HCS_MAX_CLICKABLES);
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].action = action;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].old_down = false;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].down = false;
@@ -22,13 +22,8 @@ HCS_Clickable* HCS_Clickable_get(HCS_Entity e)
 
 void HCS_Clickable_remove(HCS_Entity e)
 {
-    remove_element_from_array(runData->HCS_Clickable_list,&runData->HCS_Clickable_used,&runData->HCS_Entities[e][HCS_cClickable]);
+    LSD_Math_remove_object_from_array(runData->HCS_Clickable_list,&runData->HCS_Clickable_used,&runData->HCS_Entities[e][HCS_cClickable]);
     LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
-}
-
-bool cAABB(vec2i pos1, vec2f pos2, vec2i size1, vec2i size2)
-{
-    return (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y);
 }
 
 void HCS_Clickable_system()
@@ -39,9 +34,9 @@ void HCS_Clickable_system()
     {
         int i = runData->HCS_Clickable_list[j];
         HCS_Body bod = *HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable));
-        vec2i temp_size = {10,10};
-        vec2i temp_bod_size = { HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.x,HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.y};
-        vec2f temp_pos;
+        LSD_Vec2i temp_size = {10,10};
+        LSD_Vec2i temp_bod_size = { HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.x,HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.y};
+        LSD_Vec2f temp_pos;
         //        if (HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > HCS_Sprite_Drawtype_UI)
         //        {
         //            temp_pos.x = bod.pos.x * STRETCH_WIDTH ;
@@ -53,12 +48,12 @@ void HCS_Clickable_system()
             temp_pos.x = (bod.pos.x - HCS_Gfx_Camera.x) ;
             temp_pos.y = (bod.pos.y - HCS_Gfx_Camera.y) ;
         }
-        temp_pos.y = map_number_in_range_to_new_range(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
-        temp_bod_size.y = map_number_in_range_to_new_range(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
-        temp_pos.x = map_number_in_range_to_new_range(temp_pos.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
-        temp_bod_size.x = map_number_in_range_to_new_range(temp_bod_size.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
+        temp_pos.y = LSD_Math_map(temp_pos.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
+        temp_bod_size.y = LSD_Math_map(temp_bod_size.y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
+        temp_pos.x = LSD_Math_map(temp_pos.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
+        temp_bod_size.x = LSD_Math_map(temp_bod_size.x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
         hot = false;
-        if (cAABB(HCS_Gfx_Mouse_pos,temp_pos,temp_size,temp_bod_size))
+        if (AABB(HCS_Gfx_Mouse_pos,temp_pos,temp_size,temp_bod_size))
         {
             runData->HCS_Clickables[i].old_down = runData->HCS_Clickables[i].down;
             runData->HCS_Clickables[i].down = isDown("mouse");

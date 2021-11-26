@@ -3,108 +3,7 @@
 
 #include <SDL2/SDL.h>
 
-#include <unistd.h>
-#include <math.h>
-
-typedef struct {
-    int x,y;
-} vec2i;
-
-typedef struct {
-    float x,y;
-} vec2f;
-
-typedef struct {
-    double x,y;
-} vec2d;
-
-vec2i vec_new_int(int x, int y)
-{
-    vec2i vec;
-    vec.x = x;
-    vec.y = y;
-    return vec;
-}
-
-vec2f vec_new_float(float x, float y)
-{
-    vec2f vec;
-    vec.x = x;
-    vec.y = y;
-    return vec;
-}
-
-vec2d vec_new_double(double x, double y)
-{
-    vec2d vec;
-    vec.x = x;
-    vec.y = y;
-    return vec;
-}
-
-#define vec_add(Z,X,Y) Z.x = X.x + Y.x; Z.y = X.y + Y.y;
-#define vec_sub(Z,X,Y) Z.x = X.x - Y.x; Z.y = X.y - Y.y;
-#define vec_mul(Z,X,Y) Z.x = X.x * Y.x; Z.y = X.y * Y.y;
-#define vec_div(Z,X,Y) Z.x = X.x / Y.x; Z.y = X.y / Y.y;
-
-#define function_ptr(X,Y,Z) X(*Y)Z
 #define AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
-
-void remove_element_from_array(int arr[], int* max_arr, int* index_to_be_removed)
-{
-    int i;
-    for (i = *index_to_be_removed; i < *max_arr - 1; i++)
-    {
-        arr[i] = arr[i + 1];
-    }
-    (*max_arr)--;
-}
-
-int get_unused_id_from_blacklist(int black_list[], int* black_fill, int max_id)
-{
-    int i;
-    for (i = 0; i < max_id; i++)
-    {
-        bool newo = true;
-        int j;
-        for (j = 0; j < (*black_fill); j++)
-            if (i == black_list[j])
-                newo = false;
-        if (newo)
-        {
-            black_list[*black_fill] = i;
-            (*black_fill)++;
-            return i;
-        }
-    }
-    printf("Keine freien IDs!\n");
-    exit(1);
-}
-
-float map_number_in_range_to_new_range(float num, float min1, float max1, float min2, float max2)
-{
-    return (num - min1) * (max2 - min2) / (max1 - min1) + min2;
-}
-
-#define CHARS_TIL_ROOT_OF_PROJ 6
-void prepare_path(char* argv[])
-{
-    char path_save[1024];
-    char cwd[1024];
-    char* p;
-    if(!(p = strrchr(argv[0], '/')))
-        getcwd(cwd, sizeof(cwd));
-    else
-    {
-        *p = '\0';
-        getcwd(path_save, sizeof(path_save));
-        chdir(argv[0]);
-        getcwd(cwd, sizeof(cwd));
-        chdir(path_save);
-    }
-    cwd[strlen(cwd)- CHARS_TIL_ROOT_OF_PROJ] = '\0';
-    chdir(cwd);
-}
 
 #define HCS_Gfx_Texture_color_mod(X,R,G,B)          SDL_SetTextureColorMod(X,R,G,B)
 #define HCS_Gfx_Texture_alpha_mod(X,A)              SDL_SetTextureAlphaMod(X,Y)
@@ -153,16 +52,16 @@ bool HCS_Gfx_Input_last_A;
 bool HCS_Gfx_Input_last_B;
 bool HCS_Gfx_Mouse_last_clicked;
 
-vec2f HCS_Gfx_Camera = {0,0};
-vec2i HCS_Gfx_Mouse_pos;
+LSD_Vec2f HCS_Gfx_Camera = {0,0};
+LSD_Vec2i HCS_Gfx_Mouse_pos;
 
 double WORLD_TO_SCREEN_X = 1000;
 double WORLD_TO_SCREEN_Y = 1000;
 
 /* !!!NUR FÜR UI-ELEMENTE!!! */
-vec2i HCS_Screen_size_get()
+LSD_Vec2i HCS_Screen_size_get()
 {
-    vec2i size = {WORLD_TO_SCREEN_X,WORLD_TO_SCREEN_Y};
+    LSD_Vec2i size = {WORLD_TO_SCREEN_X,WORLD_TO_SCREEN_Y};
     return size;
 }
 
@@ -227,13 +126,13 @@ typedef struct {
 } HCS_Name;
 
 typedef struct {
-    vec2f pos;
-    vec2i size;
+    LSD_Vec2f pos;
+    LSD_Vec2i size;
 } HCS_Body;
 
 typedef struct{
     bool active;
-    vec2d force;
+    LSD_Vec2d force;
 } HCS_Gravity;
 
 typedef struct{
@@ -259,8 +158,8 @@ typedef struct{
 } HCS_Jump;
 
 typedef struct {
-    vec2f vel;
-    vec2f speed;
+    LSD_Vec2f vel;
+    LSD_Vec2f speed;
 } HCS_Movement;
 
 typedef struct{
@@ -357,7 +256,7 @@ int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type);
 HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
 
-int HCS_Collider_add(HCS_Entity e, vec2f pos_mod, vec2i size_mod);
+int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod);
 HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();
@@ -421,7 +320,7 @@ struct HCS_Data {
     int HCS_Input_used;
 };
 
-struct HCS_Data* runData;
+static struct HCS_Data* runData;
 
 bool isPressed(char* key)
 {
@@ -498,7 +397,7 @@ bool isDown(char* key)
 //                }
 //            }
 //            {
-//                    int id = get_unused_id_from_blacklist(runData->HCS_Managed_asset_list, &runData->HCS_Managed_asset_used, HCS_MAX_SPRITES);
+//                    int id = LSD_Math_get_id_from_array(runData->HCS_Managed_asset_list, &runData->HCS_Managed_asset_used, HCS_MAX_SPRITES);
 //                    runData->HCS_Managed_asset_list[runData->HCS_Managed_asset_used] = id;
 ////                    runData->HCS_Managed_assets[id].tex = HCS_Gfx_Surface_to_texture(HCS_Gfx_Image_load(path));
 //                    runData->HCS_Managed_assets[id].path = path;
@@ -519,7 +418,7 @@ bool isDown(char* key)
 //                if (runData->HCS_Managed_assets[i].used <= 0)
 //                {
 ////                    HCS_Gfx_Texture_destroy(runData->HCS_Managed_assets[i].tex);
-//                    remove_element_from_array(runData->HCS_Managed_asset_list,&runData->HCS_Managed_asset_used,&j);
+//                    LSD_Math_remove_object_from_array(runData->HCS_Managed_asset_list,&runData->HCS_Managed_asset_used,&j);
 //                }
 //                return NULL;
 //            }
@@ -621,7 +520,7 @@ void HCS_Update(double delta)
 
 void HCS_Init(char* argv[])
 {
-    prepare_path(argv);
+    LSD_File_path_prepare(argv,6);
     
     runData = malloc(sizeof(struct HCS_Data));
     struct HCS_Data zero = {0};
@@ -698,15 +597,14 @@ HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component componen
 
 HCS_Entity HCS_Entity_get_by_name(char* n)
 {
-    int j;
+    int i,j;
     for (j = 0; j < runData->HCS_Name_used; j++)
     {
-        int i = runData->HCS_Name_list[j];
+        i = runData->HCS_Name_list[j];
         if (0 == strcmp(runData->HCS_Names[i].name,n))
             return HCS_Entity_get_entity_id(i,HCS_cName);
     }
-    LSD_Log(LSD_ltMESSAGE,n);
-    LSD_Log(LSD_ltERROR,"Konnte Entity nicht nach Namen finden!");
+    LSD_Log(LSD_ltERROR,"Konnte Entity nicht nach Namen finden!: %s", n);
     return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
 }
 
@@ -724,6 +622,8 @@ void HCS_Entity_kill(HCS_Entity e)
         HCS_Movement_remove(e);
     if (HCS_Entity_has_component(e,HCS_cClickable))
         HCS_Clickable_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cSprite))
+        HCS_Sprite_remove(e);
 //    if (HCS_Entity_has_component(e,HCS_cDrawable))
 //        HCS_Drawable_remove(e);
     if (HCS_Entity_has_component(e,HCS_cBody))
@@ -746,7 +646,7 @@ void HCS_Entity_clear()
 
 void HCS_Event_add(char* n,void (*sys))
 {
-    int id = get_unused_id_from_blacklist(runData->HCS_Event_list, &runData->HCS_Event_used, HCS_MAX_EVENTS);
+    int id = LSD_Math_get_id_from_array(runData->HCS_Event_list, &runData->HCS_Event_used, HCS_MAX_EVENTS);
     runData->HCS_Event_list[runData->HCS_Event_used] = id;
     runData->HCS_Events[id].event = sys;
     runData->HCS_Events[id].name = n;
@@ -762,7 +662,7 @@ void HCS_Event_remove(char* n)
         if (0 == strcmp(runData->HCS_Events[i].name,n))
         {
             runData->HCS_Events[i].event = HCS_Void_func;
-            remove_element_from_array(runData->HCS_Event_list,&runData->HCS_Event_used,&j);
+            LSD_Math_remove_object_from_array(runData->HCS_Event_list,&runData->HCS_Event_used,&j);
             LSD_Log(LSD_ltMESSAGE,"Event %s erfolgreich entfernt!",n);
             return;
         }
@@ -787,7 +687,7 @@ void HCS_Event_run()
 
 void HCS_Name_add(HCS_Entity ent, char* n)
 {
-    int index = get_unused_id_from_blacklist(runData->HCS_Name_list,&runData->HCS_Name_used, HCS_MAX_NAMES);
+    int index = LSD_Math_get_id_from_array(runData->HCS_Name_list,&runData->HCS_Name_used, HCS_MAX_NAMES);
     runData->HCS_Entities[ent][HCS_cName] = index;
     runData->HCS_Names[index].name = n;
 }
@@ -799,12 +699,12 @@ HCS_Name* HCS_Name_get(HCS_Entity ent)
 
 void HCS_Name_remove(HCS_Entity ent)
 {
-    remove_element_from_array(runData->HCS_Name_list, &runData->HCS_Name_used, &runData->HCS_Entities[ent][HCS_cName]);
+    LSD_Math_remove_object_from_array(runData->HCS_Name_list, &runData->HCS_Name_used, &runData->HCS_Entities[ent][HCS_cName]);
 }
 
 HCS_Entity HCS_Entity_create(char* n)
 {
-    HCS_Entity ent = get_unused_id_from_blacklist(runData->HCS_Entity_list, &runData->HCS_Entity_used, HCS_MAX_ENTITIES);
+    HCS_Entity ent = LSD_Math_get_id_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, HCS_MAX_ENTITIES);
     int i;
     for (i = 0; i < HCS_NUM_COMPONENTS; i++)
         runData->HCS_Entities[ent][i] = -1;
@@ -820,7 +720,7 @@ void HCS_Entity_remove(HCS_Entity ent)
     for (i = 0; i < runData->HCS_Entity_used; i++)
         if (runData->HCS_Entity_list[i] == ent)
             index = i;
-    remove_element_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, &index);
+    LSD_Math_remove_object_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, &index);
     LSD_Log(LSD_ltMESSAGE,"Entity %d erfolgreicht entfernt!",ent);
 }
 
@@ -841,15 +741,15 @@ void HCS_Entity_remove(HCS_Entity ent)
 void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)
 {
     
-    r->y = map_number_in_range_to_new_range(r->y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
-    r->h = map_number_in_range_to_new_range(r->h,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
-    r->x = map_number_in_range_to_new_range(r->x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
-    r->w = map_number_in_range_to_new_range(r->w,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
+    r->y = LSD_Math_map(r->y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
+    r->h = LSD_Math_map(r->h,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
+    r->x = LSD_Math_map(r->x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
+    r->w = LSD_Math_map(r->w,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
     
-//    r->y = map_number_in_range_to_new_range(r->y,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
-//    r->h = map_number_in_range_to_new_range(r->h,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
-//    r->x = map_number_in_range_to_new_range(r->x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
-//    r->w = map_number_in_range_to_new_range(r->w,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
+//    r->y = LSD_Math_map(r->y,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
+//    r->h = LSD_Math_map(r->h,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
+//    r->x = LSD_Math_map(r->x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
+//    r->w = LSD_Math_map(r->w,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
 }
 
 #endif

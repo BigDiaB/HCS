@@ -3,7 +3,7 @@
 
 int HCS_Body_add(HCS_Entity e, float x, float y, int w, int h)
 {
-    runData->HCS_Entities[e][HCS_cBody] = get_unused_id_from_blacklist(runData->HCS_Body_list, &runData->HCS_Body_used, HCS_MAX_BODIES);
+    runData->HCS_Entities[e][HCS_cBody] = LSD_Math_get_id_from_array(runData->HCS_Body_list, &runData->HCS_Body_used, HCS_MAX_BODIES);
     runData->HCS_Bodies[HCS_Entity_get_component_id(e,HCS_cBody)].pos.x = x;
     runData->HCS_Bodies[HCS_Entity_get_component_id(e,HCS_cBody)].pos.y = y;
     runData->HCS_Bodies[HCS_Entity_get_component_id(e,HCS_cBody)].size.x = w;
@@ -21,6 +21,6 @@ HCS_Body* HCS_Body_get(HCS_Entity e)
 
 void HCS_Body_remove(HCS_Entity e)
 {
-    remove_element_from_array(runData->HCS_Body_list,&runData->HCS_Body_used,&runData->HCS_Entities[e][HCS_cBody]);
+    LSD_Math_remove_object_from_array(runData->HCS_Body_list,&runData->HCS_Body_used,&runData->HCS_Entities[e][HCS_cBody]);
     LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Body entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }

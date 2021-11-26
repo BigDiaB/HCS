@@ -3,7 +3,7 @@
 
 int HCS_Input_add(HCS_Entity e)
 {
-    runData->HCS_Entities[e][HCS_cInput] = get_unused_id_from_blacklist(runData->HCS_Input_list, &runData->HCS_Input_used, HCS_MAX_INPUTS);
+    runData->HCS_Entities[e][HCS_cInput] = LSD_Math_get_id_from_array(runData->HCS_Input_list, &runData->HCS_Input_used, HCS_MAX_INPUTS);
     runData->HCS_Inputs[HCS_Entity_get_component_id(e,HCS_cInput)].active = true;
     LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Input hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
     
@@ -17,7 +17,7 @@ HCS_Input* HCS_Input_get(HCS_Entity e)
 
 void HCS_Input_remove(HCS_Entity e)
 {
-    remove_element_from_array(runData->HCS_Input_list, &runData->HCS_Input_used, &runData->HCS_Entities[e][HCS_cInput]);
+    LSD_Math_remove_object_from_array(runData->HCS_Input_list, &runData->HCS_Input_used, &runData->HCS_Entities[e][HCS_cInput]);
     LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Input entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 

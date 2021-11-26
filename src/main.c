@@ -53,6 +53,7 @@
  -Tile-World-Map-Loader?
  -"Spatial-Hashing" für Terrain-Collisions!
  -Managed Asset für Sprites... Ughh...
+ -Sprite-Layering... again ... Ughhhhhhhhhhhhhhhh!
 
  -Cap für Threads
  
@@ -72,7 +73,9 @@
  -Handy per QR-Code oder ID-Nummer verbinden und als Controller benutzen
  */
 
-void init_event()
+bool game_started = false;
+
+void game_start_event()
 {
     HCS_Entity e = HCS_Entity_create("Player");
     HCS_State_add(e);
@@ -80,22 +83,50 @@ void init_event()
     HCS_Movement_add(e,4000,4000);
     HCS_Input_add(e);
     HCS_Sprite_add(e,"gfx.txt");
-    HCS_Collider_add(e,vec_new_float(2,0),vec_new_int(6,0));
+    HCS_Collider_add(e,LSD_Vec_new_float(2,0),LSD_Vec_new_int(6,0));
     HCS_Jump_add(e,6000,true,0);
     HCS_Gravity_add(e,0,4000);
     
     e = HCS_Entity_create("Box");
     HCS_Body_add(e,1400,300,500,500);
     HCS_Sprite_add(e,"box.txt");
-    HCS_Collider_add(e,vec_new_float(0,0),vec_new_int(0,0));
+    HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
     HCS_Clickable_add(e,&running,HCS_Click_off);
     
     e = HCS_Entity_create("Box2");
     HCS_Body_add(e,10,800,2200,100);
     HCS_Sprite_add(e,"box.txt");
-    HCS_Collider_add(e,vec_new_float(0,0),vec_new_int(0,0));
-    
-    HCS_Event_remove("init");
+    HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
+
+    HCS_Event_remove("game_start");
+}
+bool initialised = false;
+
+void init_event()
+{
+    if (!initialised)
+    {
+        HCS_Entity e = HCS_Entity_create("Start_Button");
+
+        HCS_Body_add(e,HCS_Screen_size_get().x / 2 + 500, 300, 600, 400);
+        HCS_Sprite_add(e,"box.txt");
+        HCS_Clickable_add(e,&game_started,HCS_Click_on);
+
+        e = HCS_Entity_create("Quit_Button");
+
+        HCS_Body_add(e,HCS_Screen_size_get().x / 2 - 300, 300, 600, 400);
+        HCS_Sprite_add(e,"box.txt");
+        HCS_Clickable_add(e,&running,HCS_Click_off);
+
+        initialised = true;
+    }
+    if (game_started)
+    {
+        HCS_Entity_kill(HCS_Entity_get_by_name("Start_Button"));
+        HCS_Entity_kill(HCS_Entity_get_by_name("Quit_Button"));
+        HCS_Event_add("game_start",game_start_event);
+        HCS_Event_remove("init");
+    }
 }
 
 LSD_Thread_function(Misc_Wrapper)

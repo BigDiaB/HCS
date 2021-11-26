@@ -6,7 +6,7 @@ int HCS_Jump_add(HCS_Entity e, double n, bool m, double l)
     if (!HCS_Entity_has_component(e,HCS_cCollider) || !HCS_Entity_has_component(e,HCS_cMovement) || !HCS_Entity_has_component(e,HCS_cState))
         LSD_Log(LSD_ltERROR, "Entity fehlen vorausgesetzte Komponente für Jump");
     
-    runData->HCS_Entities[e][HCS_cJump] = get_unused_id_from_blacklist(runData->HCS_Jump_list, &runData->HCS_Jump_used, HCS_MAX_JUMPS);
+    runData->HCS_Entities[e][HCS_cJump] = LSD_Math_get_id_from_array(runData->HCS_Jump_list, &runData->HCS_Jump_used, HCS_MAX_JUMPS);
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].strength = n;
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].needs_ground = m;
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].jump_time = l;
@@ -27,7 +27,7 @@ HCS_Jump* HCS_Jump_get(HCS_Entity e)
 
 void HCS_Jump_remove(HCS_Entity e)
 {
-    remove_element_from_array(runData->HCS_Jump_list,&runData->HCS_Jump_used,&runData->HCS_Entities[e][HCS_cJump]);
+    LSD_Math_remove_object_from_array(runData->HCS_Jump_list,&runData->HCS_Jump_used,&runData->HCS_Entities[e][HCS_cJump]);
     LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Jump entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 

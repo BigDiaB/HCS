@@ -1,7 +1,7 @@
 #pragma once 
 int HCS_Sprite_add(HCS_Entity e, char* n)
 {
-    int index = get_unused_id_from_blacklist(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
+    int index = LSD_Math_get_id_from_array(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
     runData->HCS_Entities[e][HCS_cSprite] = index;
     HCS_Sprite* spr =&runData->HCS_Sprites[index];
     
@@ -47,7 +47,7 @@ HCS_Sprite* HCS_Sprite_get(HCS_Entity e)
 
 void HCS_Sprite_remove(HCS_Entity e)
 {
-    remove_element_from_array(runData->HCS_Sprite_list, &runData->HCS_Sprite_used, &runData->HCS_Entities[e][HCS_cSprite]);
+    LSD_Math_remove_object_from_array(runData->HCS_Sprite_list, &runData->HCS_Sprite_used, &runData->HCS_Entities[e][HCS_cSprite]);
 }
 
 void HCS_Sprite_system(double delta)
