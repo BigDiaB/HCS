@@ -1,10 +1,15 @@
 #pragma once 
-int HCS_Sprite_add(HCS_Entity e, char* n)
+
+#define HCS_Drawable_Drawtype_UI 8
+
+int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t)
 {
     int index = LSD_Math_get_id_from_array(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
     runData->HCS_Entities[e][HCS_cSprite] = index;
     HCS_Sprite* spr =&runData->HCS_Sprites[index];
     
+    spr->type = t;
+
     FILE* file;
     file = fopen(n,"r");
     char lines[24][34];
@@ -52,19 +57,70 @@ void HCS_Sprite_remove(HCS_Entity e)
 
 void HCS_Sprite_system(double delta)
 {
-    HCS_Gfx_Rectangle r;
-    int i,j;
+    // HCS_Gfx_Rectangle r;
+    // int i,j;
+    // for (j = 0; j < runData->HCS_Sprite_used; j++)
+    // {
+    //     i = runData->HCS_Sprite_list[j];
+    //     HCS_Body* bod = HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cSprite));
+    //     r.x = bod->pos.x - HCS_Gfx_Camera.x;
+    //     r.y = bod->pos.y - HCS_Gfx_Camera.y;
+    //     r.w = bod->size.x;
+    //     r.h = bod->size.y;
+        
+    //     HCS_Drawable_translate_rect(&r);
+        
+    //     SDL_RenderCopy(renderer,runData->HCS_Sprites[i].tex,NULL,&r);
+    // }
+
+    int depth_buffer[num_draw_types][HCS_MAX_SPRITES];
+    int used_buffer[num_draw_types];
+
+
+
+
+    int j;
+    for (j = 0; j < num_draw_types; j++)
+        used_buffer[j] = 0;
     for (j = 0; j < runData->HCS_Sprite_used; j++)
     {
-        i = runData->HCS_Sprite_list[j];
-        HCS_Body* bod = HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cSprite));
-        r.x = bod->pos.x - HCS_Gfx_Camera.x;
-        r.y = bod->pos.y - HCS_Gfx_Camera.y;
-        r.w = bod->size.x;
-        r.h = bod->size.y;
-        
-        HCS_Drawable_translate_rect(&r);
-        
-        SDL_RenderCopy(renderer,runData->HCS_Sprites[i].tex,NULL,&r);
+        int i = runData->HCS_Sprite_list[j];
+        depth_buffer[runData->HCS_Sprites[i].type][used_buffer[runData->HCS_Sprites[i].type]] = HCS_Entity_get_entity_id(i,HCS_cSprite);
+        used_buffer[runData->HCS_Sprites[i].type]++;
+    }
+
+    int t;
+    for (t = 0; t < num_draw_types; t++)
+    {
+        if (t > HCS_Drawable_Drawtype_UI)
+        {
+            int i;
+            for (i = 0; i < used_buffer[t]; i++)
+            {
+                HCS_Gfx_Rectangle r;
+                HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[t][i],HCS_cSprite));
+                r.x = b->pos.x * STRETCH_WIDTH;
+                r.y = b->pos.y;
+                r.w = b->size.x  * STRETCH_WIDTH;
+                r.h = b->size.y;
+                HCS_Drawable_translate_rect(&r);
+                SDL_RenderCopy(renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
+            }
+        }
+        else
+        {
+            int i;
+            for (i = 0; i < used_buffer[t]; i++)
+            {
+                HCS_Gfx_Rectangle r;
+                HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[t][i],HCS_cSprite));
+                r.x = b->pos.x - HCS_Gfx_Camera.x;
+                r.y = b->pos.y - HCS_Gfx_Camera.y;
+                r.w = b->size.x;
+                r.h = b->size.y;
+                HCS_Drawable_translate_rect(&r);
+                SDL_RenderCopy(renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
+            }
+        }
     }
 }

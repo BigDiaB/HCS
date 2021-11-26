@@ -113,6 +113,7 @@ typedef enum {
 
 typedef struct
 {
+    HCS_Drawtype type;
     HCS_Gfx_Rectangle body;
     HCS_Gfx_Texture tex;
     char* path;
@@ -247,7 +248,7 @@ void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r);
 //void HCS_Drawable_remove(HCS_Entity e);
 //void HCS_Drawable_system();
 
-int HCS_Sprite_add(HCS_Entity e, char* n);
+int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t);
 HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
 void HCS_Sprite_remove(HCS_Entity e);
 void HCS_Sprite_system();
