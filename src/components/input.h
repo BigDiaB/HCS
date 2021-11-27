@@ -31,12 +31,12 @@ void HCS_Input_system(double delta)
         if (runData->HCS_Inputs[i].active)
         {
             HCS_State* d = HCS_State_get(HCS_Entity_get_entity_id(i,HCS_cInput));
-            d->up = isDown("up");
-            d->down = isDown("down");
-            d->left = isDown("left");
-            d->right = isDown("right");
-            d->A = isDown("A");
-            d->B = isDown("B");
+            d->up = HCS_Input_Pad.y < -40;
+            d->down = HCS_Input_Pad.y > 40;
+            d->left = HCS_Input_Pad.x < -40;
+            d->right = HCS_Input_Pad.x > 40;
+            d->A = HCS_Input_A_down == true;
+            d->B = HCS_Input_B_down == true;
 
             if (HCS_Entity_has_component(HCS_Entity_get_entity_id(i,HCS_cInput),HCS_cCollider))
                 d->on_ground = HCS_Collider_get(HCS_Entity_get_entity_id(i,HCS_cInput))->on_ground;

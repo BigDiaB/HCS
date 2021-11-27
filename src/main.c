@@ -1,7 +1,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+#include <sys/socket.h> //<- Für den Controller-Server
+#include <netinet/in.h> //<- Für den Controller-Server
+
 //Meine Tools:
 #include <LSD/LSD.h>        //<- "Logging" System
 #include "HCS.h"            //<- Entity Component System
@@ -62,6 +65,7 @@
  -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!
  -Coole Dateiendung überlegen!
  
+ -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen!
  
  -Sound überarbeiten!                                                           FÜRS ERSTE AUF EIS GELEGT!
  -Das runData-Struct serialisieren und wieder deserialisieren!                  FÜRS ERSTE AUF EIS GELEGT! (Evtl. später mit Data Desk arbeiten!)
@@ -72,61 +76,57 @@
  -Auf SDL(1) umsteigen, für einfaches Porten zu Wii, 3ds, Vita, etc.            NOPE, NO PAIN NO GAIN, lol
  -Handy per QR-Code oder ID-Nummer verbinden und als Controller benutzen
  */
-
+bool thread_sync = false;
 bool game_started = false;
 
 void game_start_event()
 {
-    HCS_Entity e = HCS_Entity_create("Player");
-    HCS_State_add(e);
-    HCS_Body_add(e,500,100,500,500);
-    HCS_Movement_add(e,4000,4000);
-    HCS_Input_add(e);
-    HCS_Sprite_add(e,"gfx.txt",HCS_Draw_Sprite);
-    HCS_Collider_add(e,LSD_Vec_new_float(2,0),LSD_Vec_new_int(6,0));
-    HCS_Jump_add(e,6000,true,0);
-    HCS_Gravity_add(e,0,4000);
-    
-    e = HCS_Entity_create("Box");
-    HCS_Body_add(e,1400,300,500,500);
-    HCS_Sprite_add(e,"box.txt",HCS_Draw_Background1);
-    HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
-    HCS_Clickable_add(e,&running,HCS_Click_off);
-    
-    e = HCS_Entity_create("Box2");
-    HCS_Body_add(e,10,800,2200,100);
-    HCS_Sprite_add(e,"box.txt",HCS_Draw_Background0);
-    HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
-
-    HCS_Event_remove("game_start");
-}
-bool initialised = false;
-
-void init_event()
-{
-    if (!initialised)
-    {
-        HCS_Entity e = HCS_Entity_create("Start_Button");
-
-        HCS_Body_add(e,HCS_Screen_size_get().x / 2 + 500, 300, 600, 400);
-        HCS_Sprite_add(e,"box.txt",HCS_Draw_Menu0);
-        HCS_Clickable_add(e,&game_started,HCS_Click_on);
-
-        e = HCS_Entity_create("Quit_Button");
-
-        HCS_Body_add(e,HCS_Screen_size_get().x / 2 - 300, 300, 600, 400);
-        HCS_Sprite_add(e,"box.txt",HCS_Draw_Menu0);
-        HCS_Clickable_add(e,&running,HCS_Click_off);
-
-        initialised = true;
-    }
     if (game_started)
     {
         HCS_Entity_kill(HCS_Entity_get_by_name("Start_Button"));
         HCS_Entity_kill(HCS_Entity_get_by_name("Quit_Button"));
-        HCS_Event_add("game_start",game_start_event);
-        HCS_Event_remove("init");
+        
+        HCS_Entity e = HCS_Entity_create("Player");
+        HCS_State_add(e);
+        HCS_Body_add(e,500,100,500,500);
+        HCS_Movement_add(e,4000,4000);
+        HCS_Input_add(e);
+        HCS_Sprite_add(e,"gfx.txt",HCS_Draw_Sprite);
+        HCS_Collider_add(e,LSD_Vec_new_float(2,0),LSD_Vec_new_int(6,0));
+        HCS_Jump_add(e,6000,true,0);
+        HCS_Gravity_add(e,0,4000);
+        
+        e = HCS_Entity_create("Box");
+        HCS_Body_add(e,1400,550,500,500);
+        HCS_Sprite_add(e,"box.txt",HCS_Draw_Background1);
+        HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
+        HCS_Clickable_add(e,&running,HCS_Click_off);
+        
+        e = HCS_Entity_create("Box2");
+        HCS_Body_add(e,10,800,2200,500);
+        HCS_Sprite_add(e,"box.txt",HCS_Draw_Background0);
+        HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
+
+        HCS_Event_remove("game_start");
     }
+    
+}
+
+void init_event()
+{
+    HCS_Entity e = HCS_Entity_create("Start_Button");
+    HCS_Body_add(e,HCS_Screen_size_get().x / 2 + 500, 300, 600, 400);
+    HCS_Sprite_add(e,"box.txt",HCS_Draw_Menu0);
+    HCS_Clickable_add(e,&game_started,HCS_Click_on);
+
+    e = HCS_Entity_create("Quit_Button");
+    HCS_Body_add(e,HCS_Screen_size_get().x / 2 - 300, 300, 600, 400);
+    HCS_Sprite_add(e,"box.txt",HCS_Draw_Menu0);
+    HCS_Clickable_add(e,&running,HCS_Click_off);
+
+    HCS_Event_add("game_start",game_start_event);
+
+    HCS_Event_remove("init");
 }
 
 LSD_Thread_function(Misc_Wrapper)
@@ -157,6 +157,111 @@ LSD_Thread_function(Move_Wrapper)
     LSD_Thread_finish();
 }
 
+
+LSD_Thread_function(Controller_Server)
+{
+    LSD_Thread_init();
+    int server_fd, new_socket;
+    const char* template = "HTTP/1.1 200 OK\nContent-Type: text/html; charset=UTF-8\nContent-Length: %lu\n\n%s";
+
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        LSD_Log(LSD_ltERROR, "Socket wurde nicht erstellt!");
+        exit(1);
+    }
+
+    struct sockaddr_in address;
+    #define PORT 1234
+    #define NUM_CONNECTIONS 1
+
+    memset((char*)&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_ANY);
+    address.sin_port = htons(PORT);
+
+    if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0)
+    {
+        LSD_Log(LSD_ltERROR,"Bind ist fehlgeschlagen!");
+        exit(1);
+    }
+
+    if (listen(server_fd, NUM_CONNECTIONS) < 0)
+    {
+        LSD_Log(LSD_ltERROR,"Listen ist fehlgeschlagen!");
+        exit(1);
+    }
+
+
+
+    int addrlen = sizeof(address);
+
+    while(running)
+    {
+        if ((new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen)) < 0)
+        {
+            LSD_Log(LSD_ltERROR, "Accept ist fehlgeschlagen!");
+            exit(1);
+        }
+
+
+        char buffer[30000] = {0};
+
+        int valread = read(new_socket, buffer, 1024);
+        // system("clear");
+        // LSD_Log(LSD_ltMESSAGE, "%s", buffer);
+        if (valread < 0)
+        {
+            LSD_Log(LSD_ltWARNING, "Read konnte keine Bytes lesen!");
+        }
+
+        char* message = malloc(1);
+
+        if(strstr(buffer, "GET") != NULL)
+        {
+            buffer[(int)(strstr(buffer, "\n") - buffer) - 10] = 0;
+
+            char path[1024] = "server";
+            strcat(path,buffer + 4);
+
+            LSD_File* file = LSD_File_open(path);
+
+            message = realloc(message,strlen(file->data) + strlen(template) + 100);
+
+            sprintf(message,template,strlen(file->data),file->data);
+
+            LSD_File_close(file);
+        }
+        else if(strstr(buffer, "POST") != NULL)
+        {
+            // buffer[(int)(strstr(buffer, "\n") - buffer)] = 0;
+            // LSD_Log(LSD_ltMESSAGE,"%s", buffer);
+            char* right_line = strstr(buffer,"Content-Type: ") + 14;
+            right_line[(int)(strstr(right_line, "\n") - right_line)] = 0;
+            // LSD_Log(LSD_ltMESSAGE,"%s", right_line);
+
+           
+
+            sscanf(right_line, "%d %d %d %d",&HCS_Input_A_down, &HCS_Input_B_down, &HCS_Input_Pad.x, &HCS_Input_Pad.y);
+        }
+
+
+
+        write(new_socket, message, strlen(message));
+
+        free(message);
+
+        close(new_socket);
+
+        while(!thread_sync) {}
+        thread_sync = false;
+
+    }
+    close(server_fd);
+
+    LSD_Delta_remove("Controller_Server");
+    LSD_Thread_finish();
+}
+
 //Main-Loop mit Game-Loop:
 int main(int argc, char* argv[])
 {
@@ -165,6 +270,7 @@ int main(int argc, char* argv[])
     LSD_Log_level_set(LSD_llALL);
     LSD_Thread_add("Miscellaneous",Misc_Wrapper);
     LSD_Thread_add("Movement",Move_Wrapper);
+    LSD_Thread_add("Controller",Controller_Server);
     HCS_Event_add("init",init_event);
     //Game-Loop
     while(running || LSD_Thread_used > 0)
@@ -172,10 +278,20 @@ int main(int argc, char* argv[])
         LSD_Thread_system();
         if (running)
         {
+            // HCS_Input_A_Ldown = HCS_Input_A_down;
+            // HCS_Input_B_Ldown = HCS_Input_B_down;
+
+            // HCS_Input_A_pressed = HCS_Input_A_down && !HCS_Input_A_Ldown;
+            // HCS_Input_B_pressed = HCS_Input_B_down && !HCS_Input_B_Ldown;
+
+            // HCS_Input_A_released = !HCS_Input_A_down && HCS_Input_A_Ldown;
+            // HCS_Input_B_released = !HCS_Input_B_down && HCS_Input_B_Ldown;
+
             HCS_Sprite_system(LSD_Delta_none);
             HCS_Clickable_system(LSD_Delta_none);
             HCS_Update(LSD_Delta_none);
             HCS_Event_run();
+            thread_sync = true;
         }
     }
     HCS_Entity_clear();

@@ -1,6 +1,6 @@
 
 function mousePressed() {
-  return false;
+  return 0;
 }
 
 document.addEventListener('gesturestart', function(e) {
@@ -35,10 +35,7 @@ function Box(x,y,w,h)
   box.pos.y = y;
   box.size.x = w;
   box.size.y = h;
-  box.down = false;
-  box.last_down = false;
-  box.pressed = false;
-  box.released = false;
+  box.down = 0;
 
   box.draw = function()
   {
@@ -57,11 +54,13 @@ let SICK;
 let x_diff = 0;
 let y_diff = 0;
 
+let frame = 0;
+
 let joystick_center_x;
 let joystick_center_y;
 let joystick_radius;
 
-let joy_drawn = false;
+let joy_drawn = 0;
 
 function draw_buttons()
 {
@@ -69,40 +68,8 @@ function draw_buttons()
   B.draw();
 }
 
-function update_buttons()
-{
-
-  if (A.down && !A.last_down)
-    A.pressed = true;
-  else
-    A.pressed = false;
-  if (!A.down && A.last_down)
-    A.released = true;
-  else
-    A.released = false;
-
-  if (B.down && !B.last_down)
-    B.pressed = true;
-  else
-    B.pressed = false;
-  if (!B.down && B.last_down)
-    B.released = true;
-  else
-    B.released = false;
-
-
-  A.last_down = A.down;
-  A.down = false;
-  // A.pressed = false;
-  // A.released = false;
-  B.last_down = B.down;
-  B.down = false;
-  // B.pressed = false;
-  // B.released = false;
-}
-
 function joy_touch(touch_x, touch_y) {
-  if (joy_drawn == true)
+  if (joy_drawn == 1)
     return;
   x_diff = int(touch_x - joystick_center_x);
   y_diff = int(joystick_center_y - touch_y);
@@ -127,7 +94,7 @@ function joy_touch(touch_x, touch_y) {
   ellipse(touch_x, touch_y, joystick_radius, joystick_radius);
   line(joystick_center_x, joystick_center_y, touch_x, touch_y);
   pop();
-  joy_drawn = true;
+  joy_drawn = 1;
 }
 
 function draw_joy_field()
@@ -148,26 +115,29 @@ function draw_joy_field()
 
   x_diff = 0;
   y_diff = 0;
-  joy_drawn = false;
+  joy_drawn = 0;
 }
 
 function check_touches()
 {
-  var joy = false;
+  A.down = 0;
+  B.down = 0;
+  var joy = 0;
   fill('red');
   
   for (var i = 0; i < touches.length; i++) {
     if (touches[i].x < width / 3 * 2)
     {
       joy_touch(touches[i].x,touches[i].y);
-      joy = true;
+      joy = 1;
     }
     else
     {
       if (Box_vs_point(A,touches[i]))
-        A.down = true;
+        A.down = 1;
+  
       if (Box_vs_point(B,touches[i]))
-        B.down = true;
+        B.down = 1;
     }
     ellipse(touches[i].x, touches[i].y, 10, 10);
   }
@@ -183,12 +153,9 @@ function check_touches()
 function send_HTTP_request(method, url, data) {
   return fetch(url, {
     method: method,
-    body: JSON.stringify(data),
-    headers: data ? {"Content-Type": "application/json"} : {}
+    body: "Your mom is thick, not gonna lie!",
+    headers: {"Content-Type": data}
   })
-  .then(response => {
-    return response.json();
-  });
 }
 
 
@@ -205,36 +172,30 @@ function setup() {
   A =  new Box(windowWidth - 150,30,100,100);
   B =  new Box(windowWidth - 200, 145,100,100);
   STICK = vec2(0,0);
+  // frameRate(30);
 }
 
 
 
 function draw() {
+
+  // frame++;
+  // if (frame % 10 == 0)
+  {
+    var Data_String = "";
+    send_HTTP_request("POST","/",Data_String.concat(
+      A.down.toString(), " ",
+      B.down.toString(), " ",
+      STICK.x.toString(), " ",
+      STICK.y.toString()));
+  }
+
   background(255);
 
   draw_buttons();
 
   draw_joy_field();
 
-  update_buttons();
-
   check_touches();
-
-  var AB = {};
-  AB.down = A.down; 
-  AB.pressed = A.pressed; 
-  AB.released = A.released;
-
-  var BB = {};
-  BB.down = B.down; 
-  BB.pressed = B.pressed; 
-  BB.released = B.released;
-
-  var Data = {};
-  Data.A = AB;
-  Data.B = BB;
-  Data.Stick = STICK;
-
-  send_HTTP_request("POST","/",Data)
 }
 

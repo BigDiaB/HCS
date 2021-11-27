@@ -36,21 +36,33 @@ SDL_Window* window;
 SDL_Renderer* renderer;
 HCS_Gfx_Rectangle WIN_SIZE;
 
-bool HCS_Gfx_Input_up;
-bool HCS_Gfx_Input_down;
-bool HCS_Gfx_Input_left;
-bool HCS_Gfx_Input_right;
-bool HCS_Gfx_Input_A;
-bool HCS_Gfx_Input_B;
+// bool HCS_Gfx_Input_up;
+// bool HCS_Gfx_Input_down;
+// bool HCS_Gfx_Input_left;
+// bool HCS_Gfx_Input_right;
+// bool HCS_Gfx_Input_A;
+// bool HCS_Gfx_Input_B;
 bool HCS_Gfx_Mouse_clicked;
 
-bool HCS_Gfx_Input_last_up;
-bool HCS_Gfx_Input_last_down;
-bool HCS_Gfx_Input_last_left;
-bool HCS_Gfx_Input_last_right;
-bool HCS_Gfx_Input_last_A;
-bool HCS_Gfx_Input_last_B;
+// bool HCS_Gfx_Input_last_up;
+// bool HCS_Gfx_Input_last_down;
+// bool HCS_Gfx_Input_last_left;
+// bool HCS_Gfx_Input_last_right;
+// bool HCS_Gfx_Input_last_A;
+// bool HCS_Gfx_Input_last_B;
 bool HCS_Gfx_Mouse_last_clicked;
+
+bool HCS_Input_A_Ldown;
+bool HCS_Input_A_down;
+bool HCS_Input_A_pressed;
+bool HCS_Input_A_released;
+
+bool HCS_Input_B_Ldown;
+bool HCS_Input_B_down;
+bool HCS_Input_B_pressed;
+bool HCS_Input_B_released;
+
+LSD_Vec2i HCS_Input_Pad;
 
 LSD_Vec2f HCS_Gfx_Camera = {0,0};
 LSD_Vec2i HCS_Gfx_Mouse_pos;
@@ -325,18 +337,18 @@ static struct HCS_Data* runData;
 
 bool isPressed(char* key)
 {
-    if (0 == strcmp("up",key))
-        return HCS_Gfx_Input_up && !HCS_Gfx_Input_last_up;
-    if (0 == strcmp("down",key))
-        return HCS_Gfx_Input_down && !HCS_Gfx_Input_last_down;
-    if (0 == strcmp("left",key))
-        return HCS_Gfx_Input_left && !HCS_Gfx_Input_last_left;
-    if (0 == strcmp("right",key))
-        return HCS_Gfx_Input_right && !HCS_Gfx_Input_last_right;
-    if (0 == strcmp("A",key))
-        return HCS_Gfx_Input_A && !HCS_Gfx_Input_last_A;
-    if (0 == strcmp("B",key))
-        return HCS_Gfx_Input_B && !HCS_Gfx_Input_last_B;
+    // if (0 == strcmp("up",key))
+    //     return HCS_Gfx_Input_up && !HCS_Gfx_Input_last_up;
+    // if (0 == strcmp("down",key))
+    //     return HCS_Gfx_Input_down && !HCS_Gfx_Input_last_down;
+    // if (0 == strcmp("left",key))
+    //     return HCS_Gfx_Input_left && !HCS_Gfx_Input_last_left;
+    // if (0 == strcmp("right",key))
+    //     return HCS_Gfx_Input_right && !HCS_Gfx_Input_last_right;
+    // if (0 == strcmp("A",key))
+    //     return HCS_Gfx_Input_A && !HCS_Gfx_Input_last_A;
+    // if (0 == strcmp("B",key))
+    //     return HCS_Gfx_Input_B && !HCS_Gfx_Input_last_B;
     if (0 == strcmp("mouse",key))
         return HCS_Gfx_Mouse_clicked && !HCS_Gfx_Mouse_last_clicked;
     LSD_Log(LSD_ltERROR,"Key: %s stimmt mit keinem der Vorgegebenen überein!",key);
@@ -344,18 +356,18 @@ bool isPressed(char* key)
 }
 bool isReleased(char* key)
 {
-    if (0 == strcmp("up",key))
-        return !HCS_Gfx_Input_up && HCS_Gfx_Input_last_up;
-    if (0 == strcmp("down",key))
-        return !HCS_Gfx_Input_down && HCS_Gfx_Input_last_down;
-    if (0 == strcmp("left",key))
-        return !HCS_Gfx_Input_left && HCS_Gfx_Input_last_left;
-    if (0 == strcmp("right",key))
-        return !HCS_Gfx_Input_right && HCS_Gfx_Input_last_right;
-    if (0 == strcmp("A",key))
-        return !HCS_Gfx_Input_A && HCS_Gfx_Input_last_A;
-    if (0 == strcmp("B",key))
-        return !HCS_Gfx_Input_B && HCS_Gfx_Input_last_B;
+    // if (0 == strcmp("up",key))
+    //     return !HCS_Gfx_Input_up && HCS_Gfx_Input_last_up;
+    // if (0 == strcmp("down",key))
+    //     return !HCS_Gfx_Input_down && HCS_Gfx_Input_last_down;
+    // if (0 == strcmp("left",key))
+    //     return !HCS_Gfx_Input_left && HCS_Gfx_Input_last_left;
+    // if (0 == strcmp("right",key))
+    //     return !HCS_Gfx_Input_right && HCS_Gfx_Input_last_right;
+    // if (0 == strcmp("A",key))
+    //     return !HCS_Gfx_Input_A && HCS_Gfx_Input_last_A;
+    // if (0 == strcmp("B",key))
+    //     return !HCS_Gfx_Input_B && HCS_Gfx_Input_last_B;
     if (0 == strcmp("mouse",key))
         return !HCS_Gfx_Mouse_clicked && HCS_Gfx_Mouse_last_clicked;
     LSD_Log(LSD_ltERROR,"Key: %s stimmt mit keinem der Vorgegebenen überein!",key);
@@ -363,18 +375,18 @@ bool isReleased(char* key)
 }
 bool isDown(char* key)
 {
-    if (0 == strcmp("up",key))
-        return HCS_Gfx_Input_up;
-    if (0 == strcmp("down",key))
-        return HCS_Gfx_Input_down;
-    if (0 == strcmp("left",key))
-        return HCS_Gfx_Input_left;
-    if (0 == strcmp("right",key))
-        return HCS_Gfx_Input_right;
-    if (0 == strcmp("A",key))
-        return HCS_Gfx_Input_A;
-    if (0 == strcmp("B",key))
-        return HCS_Gfx_Input_B;
+    // if (0 == strcmp("up",key))
+    //     return HCS_Gfx_Input_up;
+    // if (0 == strcmp("down",key))
+    //     return HCS_Gfx_Input_down;
+    // if (0 == strcmp("left",key))
+    //     return HCS_Gfx_Input_left;
+    // if (0 == strcmp("right",key))
+    //     return HCS_Gfx_Input_right;
+    // if (0 == strcmp("A",key))
+    //     return HCS_Gfx_Input_A;
+    // if (0 == strcmp("B",key))
+    //     return HCS_Gfx_Input_B;
     if (0 == strcmp("mouse",key))
         return HCS_Gfx_Mouse_clicked;
     LSD_Log(LSD_ltERROR,"Key: %s stimmt mit keinem der Vorgegebenen überein!",key);
@@ -438,12 +450,12 @@ void HCS_Update(double delta)
 {
     SDL_Event event;
 
-    HCS_Gfx_Input_last_up = HCS_Gfx_Input_up;
-    HCS_Gfx_Input_last_down = HCS_Gfx_Input_down;
-    HCS_Gfx_Input_last_left = HCS_Gfx_Input_left;
-    HCS_Gfx_Input_last_right = HCS_Gfx_Input_right;
-    HCS_Gfx_Input_last_A = HCS_Gfx_Input_A;
-    HCS_Gfx_Input_last_B = HCS_Gfx_Input_B;
+    // HCS_Gfx_Input_last_up = HCS_Gfx_Input_up;
+    // HCS_Gfx_Input_last_down = HCS_Gfx_Input_down;
+    // HCS_Gfx_Input_last_left = HCS_Gfx_Input_left;
+    // HCS_Gfx_Input_last_right = HCS_Gfx_Input_right;
+    // HCS_Gfx_Input_last_A = HCS_Gfx_Input_A;
+    // HCS_Gfx_Input_last_B = HCS_Gfx_Input_B;
 
     while( SDL_PollEvent(&event))
         switch(event.type)
@@ -451,52 +463,52 @@ void HCS_Update(double delta)
             case SDL_QUIT:
                 running = false;
                 break;
-            case SDL_KEYDOWN:
-            switch(event.key.keysym.sym)
-            {
-                case HCS_INPUT_UP:
-                HCS_Gfx_Input_up = true;
-                break;
-                case HCS_INPUT_DOWN:
-                HCS_Gfx_Input_down = true;
-                break;
-                case HCS_INPUT_LEFT:
-                HCS_Gfx_Input_left = true;
-                break;
-                case HCS_INPUT_RIGHT:
-                HCS_Gfx_Input_right = true;
-                break;
-                case HCS_INPUT_A:
-                HCS_Gfx_Input_A = true;
-                break;
-                case HCS_INPUT_B:
-                HCS_Gfx_Input_B = true;
-                break;
-            }
-            break;
-            case SDL_KEYUP:
-            switch(event.key.keysym.sym)
-            {
-                case HCS_INPUT_UP:
-                HCS_Gfx_Input_up = false;
-                break;
-                case HCS_INPUT_DOWN:
-                HCS_Gfx_Input_down = false;
-                break;
-                case HCS_INPUT_LEFT:
-                HCS_Gfx_Input_left = false;
-                break;
-                case HCS_INPUT_RIGHT:
-                HCS_Gfx_Input_right = false;
-                break;
-                case HCS_INPUT_A:
-                HCS_Gfx_Input_A = false;
-                break;
-                case HCS_INPUT_B:
-                HCS_Gfx_Input_B = false;
-                break;
-            }
-            break;
+            // case SDL_KEYDOWN:
+            // switch(event.key.keysym.sym)
+            // {
+            //     case HCS_INPUT_UP:
+            //     HCS_Gfx_Input_up = true;
+            //     break;
+            //     case HCS_INPUT_DOWN:
+            //     HCS_Gfx_Input_down = true;
+            //     break;
+            //     case HCS_INPUT_LEFT:
+            //     HCS_Gfx_Input_left = true;
+            //     break;
+            //     case HCS_INPUT_RIGHT:
+            //     HCS_Gfx_Input_right = true;
+            //     break;
+            //     case HCS_INPUT_A:
+            //     HCS_Gfx_Input_A = true;
+            //     break;
+            //     case HCS_INPUT_B:
+            //     HCS_Gfx_Input_B = true;
+            //     break;
+            // }
+            // break;
+            // case SDL_KEYUP:
+            // switch(event.key.keysym.sym)
+            // {
+            //     case HCS_INPUT_UP:
+            //     HCS_Gfx_Input_up = false;
+            //     break;
+            //     case HCS_INPUT_DOWN:
+            //     HCS_Gfx_Input_down = false;
+            //     break;
+            //     case HCS_INPUT_LEFT:
+            //     HCS_Gfx_Input_left = false;
+            //     break;
+            //     case HCS_INPUT_RIGHT:
+            //     HCS_Gfx_Input_right = false;
+            //     break;
+            //     case HCS_INPUT_A:
+            //     HCS_Gfx_Input_A = false;
+            //     break;
+            //     case HCS_INPUT_B:
+            //     HCS_Gfx_Input_B = false;
+            //     break;
+            // }
+            // break;
         }
 
     HCS_Gfx_Mouse_last_clicked = HCS_Gfx_Mouse_clicked;
