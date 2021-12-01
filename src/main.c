@@ -228,7 +228,8 @@ LSD_Thread_function(Controller_Server)
     LSD_Thread_init();
 
     LSD_WebServer* server = LSD_WebServer_open("server",LSD_WebServer_STD_GET,Controller_Server_POST);
-    LSD_WebServer_serve_while(server,&running);
+    while(running)
+        LSD_WebServer_serve_once(server);
     LSD_WebServer_close(server);
 
     LSD_Thread_finish();

@@ -9,6 +9,8 @@
     Und Vektoren
     Und Array-Funktionen
     Und Path-Funktionen
+    Und Delta-Timer-Funktionen
+    Und Socket basiertem Webserver
 */
 
 #define LSD_THREADS_MAX 100
