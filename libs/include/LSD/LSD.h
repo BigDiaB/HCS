@@ -62,7 +62,7 @@ struct LSD_Vec2d
 
 enum LSD_Log_type
 {
-    LSD_ltMESSAGE,LSD_ltWARNING,LSD_ltERROR
+    LSD_ltMESSAGE,LSD_ltWARNING,LSD_ltERROR, LSD_ltCUSTOM
 };
 
 enum LSD_Log_level
@@ -187,12 +187,20 @@ float LSD_Math_map(float num, float min1, float max1, float min2, float max2);
 /* Setzt die Working-Directory um setback Chars zurück */
 void LSD_File_path_prepare(char* argv[], int setback);
 
-void LSD_WebServer_serve_while(LSD_WebServer* server, bool* running);
-
+/* Bereitet einen Webserver vor, um später mit LSD_WebServer_serve_while() zu serven */
 LSD_WebServer* LSD_WebServer_open(const char* dp,void (*GET)(struct LSD_WebServer* server),void (*POST)(struct LSD_WebServer* server));
 
+/* Beendet jegliche Kommunikation mit Klienten und free'd den Speicherplatz des Servers */
 void LSD_WebServer_close(LSD_WebServer* server);
 
+/* Standart POST-, bzw GET-Handler für einen Server der keine speziellen Versionen davon braucht */
 void LSD_WebServer_STD_GET(LSD_WebServer* server);
+void LSD_WebServer_STD_POST(LSD_WebServer* server);
+
+/* Lässt den Webserver so lange serven, bis der Boolean nicht mehr war ist */
+void LSD_WebServer_serve_while(LSD_WebServer* server, bool* running);
+
+/* Lässt den Webserver eine POST-, bzw. GET-Request bearbeiten */
+void LSD_WebServer_serve_once(LSD_WebServer* server);
 
 #endif
