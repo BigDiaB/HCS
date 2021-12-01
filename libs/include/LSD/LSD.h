@@ -23,7 +23,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 
-typedef char bool;
+typedef int bool;
 
 #define LSD_Delta_none          0.0f
 #define LSD_Thread_function(X)  void* X(void* i)

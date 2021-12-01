@@ -1,26 +1,41 @@
 <!DOCTYPE html>
 <html lang="de-DE">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no" />
     <title>Benjis hippe Website für coole Kidz!</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="data:;base64,=">
-    <style>
-      canvas {
-        position: absolute;
-      }
-      body {
-        margin: 0;
-        overflow: hidden;
-      }
+    <!-- <link href="css/style.css" rel="stylesheet"> -->
+    <style type="text/css">
+        body {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            outline: none;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+            background-color: rgb(75, 75, 75);
+            overflow: hidden;
+        }
+        canvas {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            outline: none;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+        } 
     </style>
 </head>
-
-<body>
+<body class="disable-text">
+    <script type="text/javascript"> 
+    window.onorientationchange = function() {window.location.reload();} 
+    if(window.innerHeight > window.innerWidth){alert("Das hier funktioniert nur im Querformat!\n\nBitte drehe dein Gerät um 90°!");}
+    </script>
     <script src="js/p5.js"></script>
     <script src="js/script.js"></script>
 </body>
-
 </html>

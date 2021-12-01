@@ -56,9 +56,9 @@ void HCS_Clickable_system(double delta)
         if (AABB(HCS_Gfx_Mouse_pos,temp_pos,temp_size,temp_bod_size))
         {
             runData->HCS_Clickables[i].old_down = runData->HCS_Clickables[i].down;
-            runData->HCS_Clickables[i].down = isDown("mouse");
+            runData->HCS_Clickables[i].down = HCS_Gfx_Mouse_clicked;
             hot = true;
-            if (runData->HCS_Clickables[i].old_down && !isDown("mouse"))
+            if (runData->HCS_Clickables[i].old_down && !HCS_Gfx_Mouse_clicked)
             {
                 switch (runData->HCS_Clickables[i].type) {
                     case HCS_Click_toggle:

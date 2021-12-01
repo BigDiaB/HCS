@@ -2,22 +2,14 @@
 
 #define HCS_Drawable_Drawtype_UI 8
 
-int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t)
+void sprite_new(HCS_Sprite* spr, char* filename)
 {
-    int index = LSD_Math_get_id_from_array(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
-    runData->HCS_Entities[e][HCS_cSprite] = index;
-    HCS_Sprite* spr =&runData->HCS_Sprites[index];
-    
-    spr->type = t;
-
     FILE* file;
-    file = fopen(n,"r");
+    file = fopen(filename,"r");
     char lines[24][34];
     int line,collum;
     for (line = 0; line < 24; line++)
          fgets(lines[line],33,file);
-//    while(fgets(lines[line],33,file) != NULL)
-//        line++;
 
     for (line = 0; line < 8; line++)
     {
@@ -41,6 +33,21 @@ int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t)
     
     spr->tex = SDL_CreateTextureFromSurface(renderer,temp);
     SDL_FreeSurface(temp);
+}
+
+int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t)
+{
+    int index = LSD_Math_get_id_from_array(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
+    runData->HCS_Entities[e][HCS_cSprite] = index;
+    HCS_Sprite* spr =&runData->HCS_Sprites[index];
+    
+    sprite_new(spr,n);
+
+    spr->type = t;
+
+    
+
+    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Sprite hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
     
     return index;
 }
