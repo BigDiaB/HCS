@@ -13,6 +13,9 @@
 
 #define LSD_THREADS_MAX 100
 #define LSD_DELTAS_MAX 100
+#define LSD_WEBSERVER_MAX_CONNECTIONS 1
+#define LSD_WEBSERVER_PORT 1234
+#define LSD_WEBSERVER_MAX_READBUFFER_SIZE 1024
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +25,10 @@
 #include <math.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> 
+#include <netdb.h>   
 
 typedef int bool;
 
@@ -87,6 +94,25 @@ struct LSD_Delta
     double last_delta;
 };
 
+struct LSD_WebServer
+{
+    int server_fd, client_fd;
+    int addrlen;
+    struct sockaddr_in address;
+
+    void (*POST_handle)(struct LSD_WebServer* server);
+    void (*GET_handle)(struct LSD_WebServer* server);
+
+    char read_buffer[LSD_WEBSERVER_MAX_READBUFFER_SIZE];
+
+    const char* directory_prefix;
+    const char* response_template;
+    char* response_message;
+};
+
+
+
+
 
 typedef struct LSD_Vec2i LSD_Vec2i;
 typedef struct LSD_Vec2f LSD_Vec2f;
@@ -96,7 +122,7 @@ typedef enum LSD_Log_level LSD_Log_level;
 typedef struct LSD_File LSD_File;
 typedef struct LSD_Thread LSD_Thread;
 typedef struct LSD_Delta LSD_Delta;
-
+typedef struct LSD_WebServer LSD_WebServer;
 
 
 LSD_Thread LSD_Threads[LSD_THREADS_MAX];
@@ -160,5 +186,13 @@ float LSD_Math_map(float num, float min1, float max1, float min2, float max2);
 
 /* Setzt die Working-Directory um setback Chars zurück */
 void LSD_File_path_prepare(char* argv[], int setback);
+
+void LSD_WebServer_serve_while(LSD_WebServer* server, bool* running);
+
+LSD_WebServer* LSD_WebServer_open(const char* dp,void (*GET)(struct LSD_WebServer* server),void (*POST)(struct LSD_WebServer* server));
+
+void LSD_WebServer_close(LSD_WebServer* server);
+
+void LSD_WebServer_STD_GET(LSD_WebServer* server);
 
 #endif

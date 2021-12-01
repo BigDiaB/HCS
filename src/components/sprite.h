@@ -80,15 +80,13 @@ void HCS_Sprite_system(double delta)
     //     SDL_RenderCopy(renderer,runData->HCS_Sprites[i].tex,NULL,&r);
     // }
 
-    int depth_buffer[num_draw_types][HCS_MAX_SPRITES];
-    int used_buffer[num_draw_types];
+    int depth_buffer[num_draw_types][HCS_MAX_SPRITES] = {};
+    int used_buffer[num_draw_types] = {0};
 
 
 
 
-    int j;
-    for (j = 0; j < num_draw_types; j++)
-        used_buffer[j] = 0;
+    int i,j,t;
     for (j = 0; j < runData->HCS_Sprite_used; j++)
     {
         int i = runData->HCS_Sprite_list[j];
@@ -96,38 +94,32 @@ void HCS_Sprite_system(double delta)
         used_buffer[runData->HCS_Sprites[i].type]++;
     }
 
-    int t;
-    for (t = 0; t < num_draw_types; t++)
+    for (t = 0; t < HCS_Drawable_Drawtype_UI; t++)
     {
-        if (t > HCS_Drawable_Drawtype_UI)
+        for (i = 0; i < used_buffer[t]; i++)
         {
-            int i;
-            for (i = 0; i < used_buffer[t]; i++)
-            {
-                HCS_Gfx_Rectangle r;
-                HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[t][i],HCS_cSprite));
-                r.x = b->pos.x * STRETCH_WIDTH;
-                r.y = b->pos.y;
-                r.w = b->size.x  * STRETCH_WIDTH;
-                r.h = b->size.y;
-                HCS_Drawable_translate_rect(&r);
-                SDL_RenderCopy(renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
-            }
+             HCS_Gfx_Rectangle r;
+             HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[t][i],HCS_cSprite));
+             r.x = b->pos.x - HCS_Gfx_Camera.x;
+             r.y = b->pos.y - HCS_Gfx_Camera.y;
+             r.w = b->size.x;
+             r.h = b->size.y;
+             HCS_Drawable_translate_rect(&r);
+             HCS_Gfx_Texture_draw(runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,r);
         }
-        else
+    }
+    for (t = HCS_Drawable_Drawtype_UI; t < num_draw_types; t++)
+    {
+        for (i = 0; i < used_buffer[t]; i++)
         {
-            int i;
-            for (i = 0; i < used_buffer[t]; i++)
-            {
-                HCS_Gfx_Rectangle r;
-                HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[t][i],HCS_cSprite));
-                r.x = b->pos.x - HCS_Gfx_Camera.x;
-                r.y = b->pos.y - HCS_Gfx_Camera.y;
-                r.w = b->size.x;
-                r.h = b->size.y;
-                HCS_Drawable_translate_rect(&r);
-                SDL_RenderCopy(renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
-            }
+            HCS_Gfx_Rectangle r;
+            HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[t][i],HCS_cSprite));
+            r.x = b->pos.x * STRETCH_WIDTH;
+            r.y = b->pos.y;
+            r.w = b->size.x  * STRETCH_WIDTH;
+            r.h = b->size.y;
+            HCS_Drawable_translate_rect(&r);
+            HCS_Gfx_Texture_draw(runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,r);
         }
     }
 }

@@ -57,6 +57,8 @@
  -Managed Asset für Sprites... Ughh...
 
  -Cap für Threads
+
+ -Wrapper um den Webserver schreiben (LSD_Server?)
  
  
  -Sprite Editor + Exporteur damit wir SDL(2)_image los werden!
@@ -76,15 +78,12 @@
  */
 
 bool game_started = false;
-SDL_Texture* QR_TEX;
+HCS_Gfx_Texture QR_TEX;
+HCS_Gfx_Rectangle QR_BODY = {100,100,400,400};
 void game_start_event()
 {
-    HCS_Gfx_Rectangle r;
-    r.x = 100;
-    r.y = 100;
-    r.w = 400;
-    r.h = 400;
-    SDL_RenderCopy(renderer, QR_TEX, NULL, &r);
+
+    HCS_Gfx_Texture_draw(QR_TEX, NULL, QR_BODY);
 
 
     if (game_started)
@@ -167,9 +166,6 @@ LSD_Thread_function(Move_Wrapper)
     LSD_Thread_finish();
 }
 
-
-#include "web-server-controller.h"
-
 HCS_Sprite CURSOR_SPRITE;
 HCS_Gfx_Rectangle CURSOR_BODY;
 bool CURSOR_INIT = false;
@@ -216,6 +212,26 @@ void HCS_Cursor_event()
     CURSOR_BODY.x = HCS_Gfx_Mouse_pos.x;
     CURSOR_BODY.y = HCS_Gfx_Mouse_pos.y;
     SDL_RenderCopy(renderer,CURSOR_SPRITE.tex,NULL,&CURSOR_BODY);
+}
+
+
+void Controller_Server_POST(LSD_WebServer* server)
+{
+    char* right_line = strstr(server->read_buffer,"Content-Type: ") + 14;
+    right_line[(int)(strstr(right_line, "\n") - right_line)] = 0;
+    sscanf(right_line, "%d %d %d %d",&HCS_Input_A_down, &HCS_Input_B_down, &HCS_Input_Pad.x, &HCS_Input_Pad.y);
+}
+
+
+LSD_Thread_function(Controller_Server)
+{
+    LSD_Thread_init();
+
+    LSD_WebServer* server = LSD_WebServer_open("server",LSD_WebServer_STD_GET,Controller_Server_POST);
+    LSD_WebServer_serve_while(server,&running);
+    LSD_WebServer_close(server);
+
+    LSD_Thread_finish();
 }
 
 //Main-Loop mit Game-Loop:

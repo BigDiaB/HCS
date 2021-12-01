@@ -8,7 +8,7 @@
 #define HCS_Gfx_Texture_color_mod(X,R,G,B)          SDL_SetTextureColorMod(X,R,G,B)
 #define HCS_Gfx_Texture_alpha_mod(X,A)              SDL_SetTextureAlphaMod(X,Y)
 
-#define HCS_Gfx_Texture_draw(X,Y,Z)                 SDL_RenderCopy(renderer,X,Y,Z)
+#define HCS_Gfx_Texture_draw(X,Y,Z)                 SDL_RenderCopy(renderer,X,Y,&Z)
 #define HCS_Gfx_Rectangle_fill(X)                   SDL_RenderFillRect(renderer,&X)
 #define HCS_Gfx_Rectangle_draw(X)                   SDL_RenderDrawRect(renderer,&X)
 #define HCS_Gfx_DrawColor_set(R,G,B,A)              SDL_SetRenderDrawColor(renderer,R,G,B,A)
