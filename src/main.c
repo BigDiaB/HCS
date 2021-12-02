@@ -6,6 +6,7 @@
 #include <LSD/LSD.h>        //<- "Logging" System
 #include "HCS.h"            //<- Entity Component System
 
+
 /*
  TODO:
  -Endlich die verdammten Error-Messages einfügen!!                              DONE!             -> Siehe source
@@ -174,6 +175,7 @@ void HCS_Cursor_event()
 {
     if (!CURSOR_INIT)
     {
+        HCS_Gfx_Mouse_pos = LSD_Vec_new_int(WIN_SIZE.w / 2,WIN_SIZE.h / 2);
         CURSOR_BODY.w = 75;
         CURSOR_BODY.h = 75;
         sprite_new(&CURSOR_SPRITE,"cursor.txt"); 
@@ -242,10 +244,8 @@ int main(int argc, char* argv[])
     
     //Library-Initialisierung
     HCS_Init(argv);
-
-    
-
     LSD_Log_level_set(LSD_llALL);
+
     LSD_Thread_add("Miscellaneous",Misc_Wrapper);
     LSD_Thread_add("Movement",Move_Wrapper);
     LSD_Thread_add("Controller",Controller_Server);

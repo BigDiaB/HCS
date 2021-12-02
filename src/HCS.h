@@ -54,7 +54,7 @@ LSD_Vec2i HCS_Input_Pad;
 bool HCS_Input_Menu = true;
 
 LSD_Vec2f HCS_Gfx_Camera = {0,0};
-LSD_Vec2i HCS_Gfx_Mouse_pos = {0,0};
+LSD_Vec2i HCS_Gfx_Mouse_pos;
 
 double WORLD_TO_SCREEN_X = 1000;
 double WORLD_TO_SCREEN_Y = 1000;
@@ -196,6 +196,7 @@ void HCS_Update(double delta);
 HCS_Entity HCS_Entity_create(char* n);
 void HCS_Entity_remove(HCS_Entity ent);
 void HCS_Entity_kill(HCS_Entity e);
+void HCS_Entity_clear();
 
 bool HCS_Entity_has_component(HCS_Entity ent, HCS_Component comp);
 int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp);
@@ -269,6 +270,8 @@ void HCS_Gfx_Draw_black_bars();
 bool isPressed(char* key);
 bool isReleased(char* key);
 bool isDown(char* key);
+
+void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r);
 
 
 struct HCS_Data {
@@ -604,20 +607,6 @@ void HCS_Entity_remove(HCS_Entity ent)
     LSD_Log(LSD_ltMESSAGE,"Entity %d erfolgreicht entfernt!",ent);
 }
 
-#include "components/input.h"
-
-#include "components/states.h"
-#include "components/body.h"
-
-#include "components/movement.h"
-#include "components/collision.h"
-#include "components/jump.h"
-#include "components/gravity.h"
-
-#include "components/sprite.h"
-//#include "components/drawable.h"
-#include "components/clickable.h"
-
 void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)
 {
     
@@ -631,5 +620,19 @@ void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)
 //    r->x = LSD_Math_map(r->x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
 //    r->w = LSD_Math_map(r->w,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
 }
+
+#include "components/input.h"
+
+#include "components/states.h"
+#include "components/body.h"
+
+#include "components/movement.h"
+#include "components/collision.h"
+#include "components/jump.h"
+#include "components/gravity.h"
+
+#include "components/sprite.h"
+//#include "components/drawable.h"
+#include "components/clickable.h"
 
 #endif
