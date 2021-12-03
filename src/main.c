@@ -48,9 +48,11 @@
  -Bessere veränderbare Collider!                                                FERTIG!           -> in HCS_Collider_add()
  -Sprite-Layering... again ... Ughhhhhhhhhhhhhhhh!                              FERTIG!           -> CMD-C CMD-V aus Drawable-Ruinen
  -Handy per QR-Code oder ID-Nummer verbinden und als Controller benutzen        YESS! YESSSSS!!!  -> Es ist vollbracht! In web-server-controller.h!
+ -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird!            FERTIG!           -> In Controller-Server!
+ -Wrapper um den Webserver schreiben (LSD_Server?)                              FERTIG!           -> LSD_WebServer
+ -Coole Dateiendung überlegen!                                                  FERTIG!           -> .hgx
 
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
- -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
  
  -Tile-World-Map-Loader?
@@ -59,12 +61,9 @@
 
  -Cap für Threads
 
- -Wrapper um den Webserver schreiben (LSD_Server?)
- 
- 
  -Sprite Editor + Exporteur damit wir SDL(2)_image los werden!
  -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!
- -Coole Dateiendung überlegen!
+
  
  -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen!
  
@@ -98,20 +97,20 @@ void game_start_event()
         HCS_Body_add(e,500,100,500,500);
         HCS_Movement_add(e,4000,4000);
         HCS_Input_add(e);
-        HCS_Sprite_add(e,"gfx.txt",HCS_Draw_Sprite);
+        HCS_Sprite_add(e,"assets/gfx.hgx",HCS_Draw_Sprite);
         HCS_Collider_add(e,LSD_Vec_new_float(2,0),LSD_Vec_new_int(6,0));
         HCS_Jump_add(e,6000,true,0);
         HCS_Gravity_add(e,0,4000);
         
         e = HCS_Entity_create("Box");
         HCS_Body_add(e,1400,550,500,500);
-        HCS_Sprite_add(e,"box.txt",HCS_Draw_Background1);
+        HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Background1);
         HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
         HCS_Clickable_add(e,&running,HCS_Click_off);
         
         e = HCS_Entity_create("Box2");
         HCS_Body_add(e,10,800,2200,200);
-        HCS_Sprite_add(e,"box.txt",HCS_Draw_Background0);
+        HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Background0);
         HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
 
         HCS_Event_remove("game_start");
@@ -125,14 +124,14 @@ void init_event()
     HCS_Drawable_translate_rect(&QR_BODY);
     HCS_Entity e = HCS_Entity_create("Start_Button");
     HCS_Body_add(e,HCS_Screen_size_get().x / 2 + 500, 300, 600, 400);
-    HCS_Sprite_add(e,"box.txt",HCS_Draw_Menu0);
+    HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Menu0);
     HCS_Clickable_add(e,&game_started,HCS_Click_on);
 
     e = HCS_Entity_create("Quit_Button");
     HCS_Body_add(e,HCS_Screen_size_get().x / 2 - 300, 300, 600, 400);
-    HCS_Sprite_add(e,"box.txt",HCS_Draw_Menu0);
+    HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Menu0);
     HCS_Sprite_remove(e);
-    HCS_Sprite_add(e,"box.txt",HCS_Draw_Menu0);
+    HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Menu0);
     HCS_Clickable_add(e,&running,HCS_Click_off);
 
     HCS_Event_add("game_start",game_start_event);
@@ -179,7 +178,7 @@ void HCS_Cursor_event()
         HCS_Gfx_Mouse_pos = LSD_Vec_new_int(WIN_SIZE.w / 2,WIN_SIZE.h / 2);
         CURSOR_BODY.w = 75;
         CURSOR_BODY.h = 75;
-        sprite_new(&CURSOR_SPRITE,"cursor.txt"); 
+        sprite_new(&CURSOR_SPRITE,"assets/cursor.hgx"); 
         CURSOR_INIT = true;   
         LSD_Delta_add("HCS_Cursor");
     }
