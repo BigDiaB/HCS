@@ -122,6 +122,7 @@ void game_start_event()
 void init_event()
 {
     QR_TEX = SDL_CreateTextureFromSurface(renderer,SDL_LoadBMP("server/Controller-Server.bmp"));
+    HCS_Drawable_translate_rect(&QR_BODY);
     HCS_Entity e = HCS_Entity_create("Start_Button");
     HCS_Body_add(e,HCS_Screen_size_get().x / 2 + 500, 300, 600, 400);
     HCS_Sprite_add(e,"box.txt",HCS_Draw_Menu0);
@@ -219,9 +220,9 @@ void HCS_Cursor_event()
 
 void Controller_Server_POST(LSD_WebServer* server)
 {
-    char* right_line = strstr(server->read_buffer,"Content-Type: ") + 14;
-    right_line[(int)(strstr(right_line, "\n") - right_line)] = 0;
-    sscanf(right_line, "%d %d %d %d",&HCS_Input_A_down, &HCS_Input_B_down, &HCS_Input_Pad.x, &HCS_Input_Pad.y);
+    char* data_line = strstr(server->read_buffer,"Content-Type: ") + 14;
+    data_line[(int)(strstr(data_line, "\n") - data_line)] = 0;
+    sscanf(data_line, "%d %d %d %d",&HCS_Input_A_down, &HCS_Input_B_down, &HCS_Input_Pad.x, &HCS_Input_Pad.y);
 }
 
 

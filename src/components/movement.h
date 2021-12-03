@@ -9,7 +9,7 @@ int HCS_Movement_add(HCS_Entity e, float sx, float sy)
     runData->HCS_Entities[e][HCS_cMovement] = LSD_Math_get_id_from_array(runData->HCS_Movement_list, &runData->HCS_Movement_used, HCS_MAX_MOVEMENTS);
     runData->HCS_Movements[HCS_Entity_get_component_id(e,HCS_cMovement)].speed.x = sx;
     runData->HCS_Movements[HCS_Entity_get_component_id(e,HCS_cMovement)].speed.y = sy;
-    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Movement hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Movement hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
     
     return HCS_Entity_get_component_id(e,HCS_cMovement);
 }
@@ -22,7 +22,7 @@ HCS_Movement* HCS_Movement_get(HCS_Entity e)
 void HCS_Movement_remove(HCS_Entity e)
 {
     LSD_Math_remove_object_from_array(runData->HCS_Movement_list,&runData->HCS_Movement_used,&runData->HCS_Entities[e][HCS_cMovement]);
-    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Movement entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Movement entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
 

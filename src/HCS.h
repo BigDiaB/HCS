@@ -533,7 +533,7 @@ void HCS_Event_add(char* n,void (*sys))
     runData->HCS_Event_list[runData->HCS_Event_used] = id;
     runData->HCS_Events[id].event = sys;
     runData->HCS_Events[id].name = n;
-    LSD_Log(LSD_ltMESSAGE,"Event %s erfolgreich hinzugefügt!",n);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Event %s erfolgreich hinzugefügt!",n);
 }
 
 void HCS_Event_remove(char* n)
@@ -546,12 +546,12 @@ void HCS_Event_remove(char* n)
         {
             runData->HCS_Events[i].event = HCS_Void_func;
             LSD_Math_remove_object_from_array(runData->HCS_Event_list,&runData->HCS_Event_used,&j);
-            LSD_Log(LSD_ltMESSAGE,"Event %s erfolgreich entfernt!",n);
+            LSD_Log(LSD_ltCUSTOM,"HCS: Event %s erfolgreich entfernt!",n);
             return;
         }
     }
-    LSD_Log(LSD_ltMESSAGE,n);
-    LSD_Log(LSD_ltERROR,"Event konnte nicht entfernt werden, Name wurde nicht gefunden");
+    LSD_Log(LSD_ltCUSTOM,"HCS: %s",n);
+    LSD_Log(LSD_ltERROR,"Event konnte nicht entfernt werden, Name wurde nicht gefunden!");
 }
 
 void HCS_Event_run()
@@ -592,7 +592,7 @@ HCS_Entity HCS_Entity_create(char* n)
     for (i = 0; i < HCS_NUM_COMPONENTS; i++)
         runData->HCS_Entities[ent][i] = -1;
     HCS_Name_add(ent,n);
-    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s erfolgreicht erstellt!",ent,n);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s erfolgreicht erstellt!",ent,n);
     return ent;
 }
 
@@ -604,7 +604,7 @@ void HCS_Entity_remove(HCS_Entity ent)
         if (runData->HCS_Entity_list[i] == ent)
             index = i;
     LSD_Math_remove_object_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, &index);
-    LSD_Log(LSD_ltMESSAGE,"Entity %d erfolgreicht entfernt!",ent);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d erfolgreicht entfernt!",ent);
 }
 
 void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)

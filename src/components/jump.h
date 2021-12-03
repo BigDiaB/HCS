@@ -15,7 +15,7 @@ int HCS_Jump_add(HCS_Entity e, double n, bool m, double l)
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].can_jump = true;
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].jump_ground_timer = 0.0f;
     
-    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Jump hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Jump hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
     
     return HCS_Entity_get_component_id(e,HCS_cJump);
 }
@@ -28,7 +28,7 @@ HCS_Jump* HCS_Jump_get(HCS_Entity e)
 void HCS_Jump_remove(HCS_Entity e)
 {
     LSD_Math_remove_object_from_array(runData->HCS_Jump_list,&runData->HCS_Jump_used,&runData->HCS_Entities[e][HCS_cJump]);
-    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht Jump entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Jump entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
 void HCS_Jump_system(double delta)

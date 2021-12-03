@@ -10,7 +10,7 @@ int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type)
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].old_down = false;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].down = false;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].type = type;
-    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
     return HCS_Entity_get_component_id(e,HCS_cClickable);
 }
 
@@ -23,7 +23,7 @@ HCS_Clickable* HCS_Clickable_get(HCS_Entity e)
 void HCS_Clickable_remove(HCS_Entity e)
 {
     LSD_Math_remove_object_from_array(runData->HCS_Clickable_list,&runData->HCS_Clickable_used,&runData->HCS_Entities[e][HCS_cClickable]);
-    LSD_Log(LSD_ltMESSAGE,"Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
 void HCS_Clickable_system(double delta)
