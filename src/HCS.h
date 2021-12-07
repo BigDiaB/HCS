@@ -207,6 +207,7 @@ void HCS_Init(char* argv[]);
 void HCS_Deinit();
 void HCS_Stop();
 void HCS_Update(double delta);
+void HCS_Gfx_Fullscreen_toggle();
 
 HCS_Entity HCS_Entity_create(char* n);
 void HCS_Entity_remove(HCS_Entity ent);
@@ -278,15 +279,6 @@ int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod);
 HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();
-
-void HCS_Gfx_Fullscreen_toggle();
-void HCS_Gfx_Draw_black_bars();
-
-bool isPressed(char* key);
-bool isReleased(char* key);
-bool isDown(char* key);
-
-void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r);
 
 
 struct HCS_runData {

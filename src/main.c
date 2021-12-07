@@ -6,8 +6,6 @@
 #include <LSD/LSD.h>        //<- "Logging" System
 #include "HCS.h"            //<- Entity Component System
 
-#include "sprite_editor.h"
-
 /*
  TODO:
  -Endlich die verdammten Error-Messages einfügen!!                              DONE!             -> Siehe source
@@ -52,27 +50,15 @@
  -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird!            FERTIG!           -> In Controller-Server!
  -Wrapper um den Webserver schreiben (LSD_Server?)                              FERTIG!           -> LSD_WebServer
  -Coole Dateiendung überlegen!                                                  FERTIG!           -> .hgx
+ -Sprite Editor + Exporteur damit wir SDL(2)_image los werden!                  YESSSSS!           -> Es ist fertig!
 
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
- 
- -Tile-World-Map-Loader?
- -"Spatial-Hashing" für Terrain-Collisions!
  -Managed Asset für Sprites... Ughh...
-
  -Cap für Threads
-
- -Sprite Editor + Exporteur damit wir SDL(2)_image los werden!
  -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!
-
- 
- -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen!
- 
- -Sound überarbeiten!                                                           FÜRS ERSTE AUF EIS GELEGT!
- -Das runData-Struct serialisieren und wieder deserialisieren!                  FÜRS ERSTE AUF EIS GELEGT! (Evtl. später mit Data Desk arbeiten!)
- -"Black-Bars" für Oben und Unten implementieren!                               NICHT NOTWENDIG!  -> Windowed-Mode hat immer die gleiche Ratio wie Fullscreen!
- -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!                        NICHT WIRKLICH... -> Bereits entfernt, lol
- -Auf SDL(1) umsteigen, für einfaches Porten zu Wii, 3ds, Vita, etc.            NOPE, NO PAIN NO GAIN, lol
+ -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen die es brauchen!
+ -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!
  
  Very Nice To Haves™:
 
@@ -130,6 +116,8 @@ void init_event()
 
     HCS_Event_remove("init");
 }
+
+// #include "sprite_editor.h"
 
 LSD_Thread_function(Misc_Wrapper)
 {
@@ -238,13 +226,11 @@ int main(int argc, char* argv[])
     HCS_Init(argv);
     LSD_Log_level_set(LSD_llALL);
 
-    // LSD_Thread_add("Miscellaneous",Misc_Wrapper);
-    // LSD_Thread_add("Movement",Move_Wrapper);
+    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
+    LSD_Thread_add("Movement",Move_Wrapper);
     LSD_Thread_add("Controller",Controller_Server);
     HCS_Event_add("Cursor",HCS_Cursor_event);
-    // HCS_Event_add("init",init_event);
-
-    sprite_editor_init();
+    HCS_Event_add("init",init_event);
 
     //Game-Loop
     while(running || LSD_Thread_used > 0)

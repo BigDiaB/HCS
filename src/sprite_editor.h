@@ -123,7 +123,7 @@ void on_safe_click(int nothing)
 }
 
 
-void sprite_editor_init()
+void init_event()
 {
 	editorData = malloc(sizeof(struct HCS_editorData));
     struct HCS_editorData zero = {0};
@@ -421,7 +421,7 @@ void sprite_editor_init()
     HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
     HCS_Clickable_add_func(e,sprite_editor_deinit,index);
 
-    
+    HCS_Event_remove("init");    
 }
 
 #endif
