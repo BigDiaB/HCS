@@ -29,8 +29,8 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h> 
-#include <netdb.h>   
+#include <arpa/inet.h>
+#include <netdb.h>
 
 typedef int bool;
 

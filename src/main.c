@@ -6,6 +6,7 @@
 #include <LSD/LSD.h>        //<- "Logging" System
 #include "HCS.h"            //<- Entity Component System
 
+#include "sprite_editor.h"
 
 /*
  TODO:
@@ -78,17 +79,10 @@
  */
 
 bool game_started = false;
-HCS_Gfx_Texture QR_TEX;
-HCS_Gfx_Rectangle QR_BODY = {100,100,400,400};
 void game_start_event()
 {
-
-    HCS_Gfx_Texture_draw(QR_TEX, NULL, QR_BODY);
-
-
     if (game_started)
     {
-        SDL_DestroyTexture(QR_TEX);
         HCS_Entity_kill(HCS_Entity_get_by_name("Start_Button"));
         HCS_Entity_kill(HCS_Entity_get_by_name("Quit_Button"));
         
@@ -106,7 +100,7 @@ void game_start_event()
         HCS_Body_add(e,1400,550,500,500);
         HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Background1);
         HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
-        HCS_Clickable_add(e,&running,HCS_Click_off);
+        HCS_Clickable_add(e,&running,HCS_Click_off,HCS_Trig_released);
         
         e = HCS_Entity_create("Box2");
         HCS_Body_add(e,10,800,2200,200);
@@ -120,19 +114,17 @@ void game_start_event()
 
 void init_event()
 {
-    QR_TEX = SDL_CreateTextureFromSurface(renderer,SDL_LoadBMP("server/Controller-Server.bmp"));
-    HCS_Drawable_translate_rect(&QR_BODY);
     HCS_Entity e = HCS_Entity_create("Start_Button");
     HCS_Body_add(e,HCS_Screen_size_get().x / 2 + 500, 300, 600, 400);
     HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Menu0);
-    HCS_Clickable_add(e,&game_started,HCS_Click_on);
+    HCS_Clickable_add(e,&game_started,HCS_Click_on,HCS_Trig_released);
 
     e = HCS_Entity_create("Quit_Button");
     HCS_Body_add(e,HCS_Screen_size_get().x / 2 - 300, 300, 600, 400);
     HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Menu0);
     HCS_Sprite_remove(e);
     HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Menu0);
-    HCS_Clickable_add(e,&running,HCS_Click_off);
+    HCS_Clickable_add(e,&running,HCS_Click_off,HCS_Trig_released);
 
     HCS_Event_add("game_start",game_start_event);
 
@@ -184,6 +176,8 @@ void HCS_Cursor_event()
     }
     LSD_Delta_tick("HCS_Cursor");
     double delta = LSD_Delta_get("HCS_Cursor")->delta;
+    if (HCS_Input_A_pressed)
+        HCS_Input_Menu = !HCS_Input_Menu;
     if (HCS_Input_Menu)
     {
         HCS_Input_A_pressed = HCS_Input_A_down && !HCS_Input_A_Ldown;
@@ -239,43 +233,30 @@ LSD_Thread_function(Controller_Server)
 
 //Main-Loop mit Game-Loop:
 int main(int argc, char* argv[])
-{
-    
-    
+{   
     //Library-Initialisierung
     HCS_Init(argv);
     LSD_Log_level_set(LSD_llALL);
 
-    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
-    LSD_Thread_add("Movement",Move_Wrapper);
+    // LSD_Thread_add("Miscellaneous",Misc_Wrapper);
+    // LSD_Thread_add("Movement",Move_Wrapper);
     LSD_Thread_add("Controller",Controller_Server);
     HCS_Event_add("Cursor",HCS_Cursor_event);
-    HCS_Event_add("init",init_event);
+    // HCS_Event_add("init",init_event);
 
-    LSD_Delta_add("Main_Delta");
-    double main_delta;
+    sprite_editor_init();
+
     //Game-Loop
     while(running || LSD_Thread_used > 0)
     {
-        LSD_Delta_tick("Main_Delta");
-        main_delta = LSD_Delta_get("Main_Delta")->delta;
-
-        if (HCS_Input_A_pressed)
-        {
-            HCS_Input_Menu = !HCS_Input_Menu;
-        }
-
         LSD_Thread_system();
         if (running)
         {
-            HCS_Sprite_system(LSD_Delta_none);
-            HCS_Clickable_system(LSD_Delta_none);
-            HCS_Event_run();
-            
-            HCS_Update(main_delta);
+            HCS_Gfx();
+            HCS_Event_run();   
         }
+        HCS_Update(LSD_Delta_none);
     }
-    LSD_Delta_remove("Main_Delta");
 
     HCS_Entity_clear();
     //Library-Deinitialisierung

@@ -13,9 +13,9 @@ void sprite_new(HCS_Sprite* spr, char* filename)
 
     for (line = 0; line < 8; line++)
     {
-        sscanf(lines[line +  0],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->RED[line][0],&spr->RED[line][1],&spr->RED[line][2],&spr->RED[line][3],&spr->RED[line][4],&spr->RED[line][5],&spr->RED[line][6],&spr->RED[line][7]);
-        sscanf(lines[line +  8],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->GRN[line][0],&spr->GRN[line][1],&spr->GRN[line][2],&spr->GRN[line][3],&spr->GRN[line][4],&spr->GRN[line][5],&spr->GRN[line][6],&spr->GRN[line][7]);
-        sscanf(lines[line + 16],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->BLU[line][0],&spr->BLU[line][1],&spr->BLU[line][2],&spr->BLU[line][3],&spr->BLU[line][4],&spr->BLU[line][5],&spr->BLU[line][6],&spr->BLU[line][7]);
+        sscanf(lines[line +  0],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.RED[line][0],&spr->raw.RED[line][1],&spr->raw.RED[line][2],&spr->raw.RED[line][3],&spr->raw.RED[line][4],&spr->raw.RED[line][5],&spr->raw.RED[line][6],&spr->raw.RED[line][7]);
+        sscanf(lines[line +  8],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.GRN[line][0],&spr->raw.GRN[line][1],&spr->raw.GRN[line][2],&spr->raw.GRN[line][3],&spr->raw.GRN[line][4],&spr->raw.GRN[line][5],&spr->raw.GRN[line][6],&spr->raw.GRN[line][7]);
+        sscanf(lines[line + 16],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.BLU[line][0],&spr->raw.BLU[line][1],&spr->raw.BLU[line][2],&spr->raw.BLU[line][3],&spr->raw.BLU[line][4],&spr->raw.BLU[line][5],&spr->raw.BLU[line][6],&spr->raw.BLU[line][7]);
     }
     HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
     HCS_Gfx_Rectangle r;
@@ -26,10 +26,10 @@ void sprite_new(HCS_Sprite* spr, char* filename)
         {
             r.x = collum;
             r.y = line;
-            SDL_FillRect(temp,&r,SDL_MapRGB(temp->format,spr->RED[collum][line],spr->GRN[collum][line],spr->BLU[collum][line]));
+            SDL_FillRect(temp,&r,SDL_MapRGB(temp->format,spr->raw.RED[collum][line],spr->raw.GRN[collum][line],spr->raw.BLU[collum][line]));
         }
     
-    SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,255,0,0));
+    SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
     
     spr->tex = SDL_CreateTextureFromSurface(renderer,temp);
     SDL_FreeSurface(temp);
@@ -39,11 +39,10 @@ int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t)
 {
     int index = LSD_Math_get_id_from_array(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
     runData->HCS_Entities[e][HCS_cSprite] = index;
-    HCS_Sprite* spr =&runData->HCS_Sprites[index];
     
-    sprite_new(spr,n);
+    sprite_new(&runData->HCS_Sprites[index],n);
 
-    spr->type = t;
+    runData->HCS_Sprites[index].type = t;
 
     
 
@@ -60,31 +59,13 @@ HCS_Sprite* HCS_Sprite_get(HCS_Entity e)
 void HCS_Sprite_remove(HCS_Entity e)
 {
     LSD_Math_remove_object_from_array(runData->HCS_Sprite_list, &runData->HCS_Sprite_used, &runData->HCS_Entities[e][HCS_cSprite]);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Sprite entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
 }
 
 void HCS_Sprite_system(double delta)
 {
-    // HCS_Gfx_Rectangle r;
-    // int i,j;
-    // for (j = 0; j < runData->HCS_Sprite_used; j++)
-    // {
-    //     i = runData->HCS_Sprite_list[j];
-    //     HCS_Body* bod = HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cSprite));
-    //     r.x = bod->pos.x - HCS_Gfx_Camera.x;
-    //     r.y = bod->pos.y - HCS_Gfx_Camera.y;
-    //     r.w = bod->size.x;
-    //     r.h = bod->size.y;
-        
-    //     HCS_Drawable_translate_rect(&r);
-        
-    //     SDL_RenderCopy(renderer,runData->HCS_Sprites[i].tex,NULL,&r);
-    // }
-
-    int depth_buffer[num_draw_types][HCS_MAX_SPRITES] = {};
-    int used_buffer[num_draw_types] = {0};
-
-
-
+    int depth_buffer[HCS_NUM_DRAWTYPES][HCS_MAX_SPRITES] = {};
+    int used_buffer[HCS_NUM_DRAWTYPES] = {0};
 
     int i,j,t;
     for (j = 0; j < runData->HCS_Sprite_used; j++)
@@ -108,7 +89,7 @@ void HCS_Sprite_system(double delta)
              HCS_Gfx_Texture_draw(runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,r);
         }
     }
-    for (t = HCS_Drawable_Drawtype_UI; t < num_draw_types; t++)
+    for (t = HCS_Drawable_Drawtype_UI; t < HCS_NUM_DRAWTYPES; t++)
     {
         for (i = 0; i < used_buffer[t]; i++)
         {

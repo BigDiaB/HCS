@@ -17,6 +17,8 @@
 #define HCS_Gfx_Surface_to_texture(X)               SDL_CreateTextureFromSurface(renderer,X)
 #define HCS_Gfx_Texture_destroy(X)                  SDL_DestroyTexture(X)
 
+#define HCS_Gfx()                                   HCS_Sprite_system(LSD_Delta_none); HCS_Clickable_system(LSD_Delta_none)
+
 #define HCS_INPUT_UP                                SDLK_w
 #define HCS_INPUT_DOWN                              SDLK_s
 #define HCS_INPUT_LEFT                              SDLK_a
@@ -101,7 +103,7 @@ typedef enum {
 } HCS_Component;
 
 typedef enum {
-    HCS_Draw_Background0, HCS_Draw_Background1, HCS_Draw_Background2, HCS_Draw_Sprite, HCS_Draw_Decal, HCS_Draw_Effect, HCS_Draw_Debug, HCS_Draw_Menu0, HCS_Draw_Menu1, HCS_Draw_Menu2, HCS_Draw_DebugUI, num_draw_types
+    HCS_Draw_Background0, HCS_Draw_Background1, HCS_Draw_Background2, HCS_Draw_Sprite, HCS_Draw_Decal, HCS_Draw_Effect, HCS_Draw_Debug, HCS_Draw_Menu0, HCS_Draw_Menu1, HCS_Draw_Menu2, HCS_Draw_DebugUI, HCS_NUM_DRAWTYPES
 } HCS_Drawtype;
 
 typedef enum {
@@ -109,22 +111,31 @@ typedef enum {
 } HCS_Clicktype;
 
 typedef enum {
+    HCS_Trig_released, HCS_Trig_down
+} HCS_Triggertype;
+
+typedef enum {
     HCS_Col_Static, HCS_Col_Dynamic
 } HCS_Collisiontype;
+
+typedef struct
+{
+    unsigned char RED[8][8];
+    unsigned char GRN[8][8];
+    unsigned char BLU[8][8];
+} HCS_Sprite_raw;
 
 typedef struct
 {
     HCS_Drawtype type;
     HCS_Gfx_Rectangle body;
     HCS_Gfx_Texture tex;
+    HCS_Sprite_raw raw;
     char* path;
-    unsigned char RED[8][8];
-    unsigned char GRN[8][8];
-    unsigned char BLU[8][8];
 } HCS_Sprite;
 
 typedef struct {
-    char* name;
+    char name[100];
 } HCS_Name;
 
 typedef struct {
@@ -143,9 +154,13 @@ typedef struct{
 
 typedef struct{
     HCS_Clicktype type;
+    HCS_Triggertype trigger;
     bool down;
     bool old_down;
     bool* action;
+    bool use_func;
+    int func_data;
+    void (*func)(int);
 } HCS_Clickable;
 
 
@@ -255,7 +270,7 @@ HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
 void HCS_Sprite_remove(HCS_Entity e);
 void HCS_Sprite_system();
 
-int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type);
+int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type, HCS_Triggertype t);
 HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
 
@@ -274,7 +289,7 @@ bool isDown(char* key);
 void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r);
 
 
-struct HCS_Data {
+struct HCS_runData {
 
     HCS_Event HCS_Events[HCS_MAX_EVENTS];
     HCS_Entity HCS_Event_list[HCS_MAX_EVENTS];
@@ -325,7 +340,7 @@ struct HCS_Data {
     int HCS_Input_used;
 };
 
-static struct HCS_Data* runData;
+static struct HCS_runData* runData;
 
 //HCS_Gfx_Texture HCS_Asset_manager(char* path, HCS_Managed_assettype action)
 //{
@@ -405,8 +420,8 @@ void HCS_Init(char* argv[])
 {
     LSD_File_path_prepare(argv,6);
     
-    runData = malloc(sizeof(struct HCS_Data));
-    struct HCS_Data zero = {0};
+    runData = malloc(sizeof(struct HCS_runData));
+    struct HCS_runData zero = {0};
     *runData = zero;
     
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
@@ -507,8 +522,6 @@ void HCS_Entity_kill(HCS_Entity e)
         HCS_Clickable_remove(e);
     if (HCS_Entity_has_component(e,HCS_cSprite))
         HCS_Sprite_remove(e);
-//    if (HCS_Entity_has_component(e,HCS_cDrawable))
-//        HCS_Drawable_remove(e);
     if (HCS_Entity_has_component(e,HCS_cBody))
         HCS_Body_remove(e);
     if (HCS_Entity_has_component(e,HCS_cState))
@@ -572,7 +585,7 @@ void HCS_Name_add(HCS_Entity ent, char* n)
 {
     int index = LSD_Math_get_id_from_array(runData->HCS_Name_list,&runData->HCS_Name_used, HCS_MAX_NAMES);
     runData->HCS_Entities[ent][HCS_cName] = index;
-    runData->HCS_Names[index].name = n;
+    strcpy(runData->HCS_Names[index].name,n);
 }
 
 HCS_Name* HCS_Name_get(HCS_Entity ent)
