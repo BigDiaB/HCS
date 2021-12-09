@@ -1,123 +1,371 @@
-
-#include <stdio.h>
-#include <stdlib.h>
-
 //Meine Tools:
 #include <LSD/LSD.h>        //<- "Logging" System
 #include "HCS.h"            //<- Entity Component System
 
+struct HCS_runData* runData;
+HCS_Gfx_Color color = {255,255,255,255};
+HCS_Gfx_Color std = {125,125,125,255};
+
+SDL_Window* window;
+SDL_Renderer* renderer;
+HCS_Gfx_Rectangle WIN_SIZE;
+
+bool HCS_Gfx_Mouse_clicked;
+bool HCS_Gfx_Mouse_last_clicked;
+
+bool HCS_Input_A_Ldown;
+bool HCS_Input_A_down;
+bool HCS_Input_A_pressed;
+bool HCS_Input_A_released;
+
+bool HCS_Input_B_Ldown;
+bool HCS_Input_B_down;
+bool HCS_Input_B_pressed;
+bool HCS_Input_B_released;
+
+LSD_Vec2i HCS_Input_Pad;
+
+bool HCS_Input_Menu = true;
+
+LSD_Vec2f HCS_Gfx_Camera = {0,0};
+LSD_Vec2i HCS_Gfx_Mouse_pos;
+
+double WORLD_TO_SCREEN_X = 1000;
+double WORLD_TO_SCREEN_Y = 1000;
+
+double DRAW_OFFSET = 0;
+double STRETCH_WIDTH = 1;
+double STRETCH_HEIGHT = 1;
+
+bool fullscreen = false;
+bool running;
+
+//HCS_Gfx_Texture HCS_Asset_manager(char* path, HCS_Managed_assettype action)
+//{
+//    switch (action)
+//    {
+//        case HCS_AAdd:
+//        {
+//            int j;
+//            for (j = 0; j < runData->HCS_Managed_asset_used; j++)
+//            {
+//                int i = runData->HCS_Managed_asset_list[j];
+//                if (0 == strcmp(runData->HCS_Managed_assets[i].path,path))
+//                {
+//                    runData->HCS_Managed_assets[i].used++;
+//                    return runData->HCS_Managed_assets[i].tex;
+//                }
+//            }
+//            {
+//                    int id = LSD_Math_get_id_from_array(runData->HCS_Managed_asset_list, &runData->HCS_Managed_asset_used, HCS_MAX_SPRITES);
+//                    runData->HCS_Managed_asset_list[runData->HCS_Managed_asset_used] = id;
+////                    runData->HCS_Managed_assets[id].tex = HCS_Gfx_Surface_to_texture(HCS_Gfx_Image_load(path));
+//                    runData->HCS_Managed_assets[id].path = path;
+//                    runData->HCS_Managed_assets[id].used = 1;
+//                    return runData->HCS_Managed_assets[id].tex;
+//                }
+//            break;
+//        }
+//        case HCS_ARemove:
+//        {
+//        int j;
+//        for (j = 0; j < runData->HCS_Managed_asset_used; j++)
+//        {
+//            int i = runData->HCS_Managed_asset_list[j];
+//            if (0 == strcmp(runData->HCS_Managed_assets[i].path,path))
+//            {
+//                runData->HCS_Managed_assets[i].used--;
+//                if (runData->HCS_Managed_assets[i].used <= 0)
+//                {
+////                    HCS_Gfx_Texture_destroy(runData->HCS_Managed_assets[i].tex);
+//                    LSD_Math_remove_object_from_array(runData->HCS_Managed_asset_list,&runData->HCS_Managed_asset_used,&j);
+//                }
+//                return NULL;
+//            }
+//        }
+//        LSD_Log(LSD_ltERROR,"Asset konnte nicht entfernt werden, weil es nicht nach Namen gefunden wurde!: %s",path);
+//        break;
+//        }
+//
+//        default:
+//        break;
+//    }
+//    return NULL;
+//}
+
+void HCS_Update(double delta)
+{
+    SDL_Event event;
+    while( SDL_PollEvent(&event))
+        if (event.type == SDL_QUIT)
+            running = false;
+    HCS_Input_A_pressed = HCS_Input_A_down && !HCS_Input_A_Ldown;
+    HCS_Input_B_pressed = HCS_Input_B_down && !HCS_Input_B_Ldown;
+    HCS_Input_A_released = !HCS_Input_A_down && HCS_Input_A_Ldown;
+    HCS_Input_B_released = !HCS_Input_B_down && HCS_Input_B_Ldown;
+    HCS_Input_A_Ldown = HCS_Input_A_down;
+    HCS_Input_B_Ldown = HCS_Input_B_down;
+    SDL_RenderPresent(renderer);
+    SDL_RenderClear(renderer);
+}
+
+
 /*
- TODO:
- -Endlich die verdammten Error-Messages einfügen!!                              DONE!             -> Siehe source
- -Fullscreen- Windowed- Schalter oder sowas implementieren                      DONE!             -> toggle_fullscreen()
- -Text-rendering mit SDL2_ttf                                                   DONE!             -> TEXT_TO_TEXTURE-Macro u. TEXT_TO_SURFACE-Macro
- -Interactable-Component (Tasten-Kombinationen, Mouseclicks, etc...)            NOT REALLY DONE!  -> Clickable-Component
- -Button-Komponent, aufbauend auf "drawable" und "interactable"                 SEMI DONE!        -> Clickable-Component
- -"Event-Queue": Function-Pointer Liste für "Event-Listeners"                   DONE!             -> check_events() und Source in ECS.h
- -"System-Liste": Function-Pointer Liste für "System-Functions"                 DONE!             -> run_systems() und Source in ECS.h
- -Layering für "drawable"                                                       DONE!             -> draw_type in Source in drawable.h
- -Das "SDL2-Zeug" vom Rest trennen, evtl. eigene Header-File                    DONE!             -> Source in SDL.h
- -Events doch mit Namen linken...                                               DONE!             -> War überrschend easy! Siehe Source in ECS.h
- -Clickables sind gerade broken! Maybe cAABB()                                  DONE!             -> WINDOW_SCALE vergessen...
- -rem_event() scheint auch broken zu sein...                                    GEFIXT!           -> event_list[e] und so...
- -Systeme und Events                                                            FERTIG!           -> Source in HCS.h
- -Die alten Komponenten rüber-porten:                                           FERTIG!           -> Source in HCS.h
- -Screen-Koordinaten irgenwie mappen                                            FERTIG!           -> data_util.h: Map-Funktion + Anwendung davon in Clickable.h und Drawable.h
- -Drawable_reset im Drawable-Struct speichern!                                  FERTIG!           -> Reset-Flag im Drawable-Struct
- -"Black-Bars" für Links und Rechts implementieren!                             FERTIG!           -> #define BLACK_BARS
- -Die Keys in Input "mappable" machen                                           FERTIG!           -> mit #defines oben in main.c
- -Die tick() -Funktion mit c-lib func machen für cross-compatability!           FERTIG!           -> Platform-Indepente tick()-Funktion
- -WINDOW_SCALE entfernen!                                                       FERTIG!           -> Was erwartest du jetzt eigentlich? Es ist nicht mehr da!
- -SDL2 Funktionen mehr abstrackt machen mit Wrappern und defines!               FERTIG!           -> LIB_PLATFORM ist jetzt überall
- -mouseDown mit isDown usw. mergen!                                             FERTIG!           -> Siehe in isDown, isPressed und isReleased
- -"Black-Bars" sind broken...                                                   GEFIXT!           -> if(fullscreen) hat gefehlt
- -Asset-Manager, der die Paths überprüft und so                                 FERTIG!           -> HCS_Asset_Manager() + HCS_Managed_assets in HCS.h
- -LSD_Log überarbeiten mit Format-String wie in printf()!                       FERTIG!           -> In LSD.h, greift aber immernoch auf LSD_Log_old() zurück!
- -LSD_Log mit LSD_Log_old mergen!                                               FERTIG!           -> In LSD.h, greift jetzt nicht mehr auf LSD_Log_old zurück!
- -Jump-Timer hinzufügen!                                                        FERTIG!           -> In jump.h
- -Collisions checken mit zu wenig overhead!                                     FERTIG!           -> In collision.h
- -Input überarbeiten, sodass nur noch UP,DOWN,LEFT,RIGHT,A,B,C,D existieren!    FERTIG!           -> in HCS.h
- -GFX fertig stellen, d.h. alles was mit Grafik und SDL2 zu tun hat wrappen!    FERTIG!           -> in HCS.h
- -Platform.h effektiv mit GFX ersetzen!                                         FERTIG!           -> HCS.h
- -Anständige Messages für LSD_Log() in den HCS Funktionen!                      FERTIG!           -> in HCS.h + Komponenten
- -Seperate Deltas für die einzelnen Threads!                                    FERTIG!           -> LSD_Delta in LSD
- -Seperate threads für System-Gruppen!                                          FERTIG!           -> HCS_System is no more!
- -Optional extra Collider-rect für Collider anstelle von Body                   FERTIG!           -> Collider-Offset in HCS_Collider-Struct
- -Clickables wieder hinzufügen!                                                 FERTIG!           -> HCS_Clickable und Clickable.h
- -Bessere veränderbare Collider!                                                FERTIG!           -> in HCS_Collider_add()
- -Sprite-Layering... again ... Ughhhhhhhhhhhhhhhh!                              FERTIG!           -> CMD-C CMD-V aus Drawable-Ruinen
- -Handy per QR-Code oder ID-Nummer verbinden und als Controller benutzen        YESS! YESSSSS!!!  -> Es ist vollbracht! In web-server-controller.h!
- -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird!            FERTIG!           -> In Controller-Server!
- -Wrapper um den Webserver schreiben (LSD_Server?)                              FERTIG!           -> LSD_WebServer
- -Coole Dateiendung überlegen!                                                  FERTIG!           -> .hgx
- -Sprite Editor + Exporteur damit wir SDL(2)_image los werden!                  YESSSSS!           -> Es ist fertig!
-
- -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
- -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
- -Managed Asset für Sprites... Ughh...
- -Cap für Threads
- -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!
- -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen die es brauchen!
- -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!
- 
- Very Nice To Haves™:
-
+ HCS-Funktionen für das Laden / Entladen und Initialisieren / Deinitialisieren
  */
 
-bool game_started = false;
-void game_start_event()
+void HCS_Init(char* argv[])
 {
-    if (game_started)
+    LSD_File_path_prepare(argv,6);
+    
+    runData = malloc(sizeof(struct HCS_runData));
+    struct HCS_runData zero = {0};
+    *runData = zero;
+    
+    if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
     {
-        HCS_Entity_kill(HCS_Entity_get_by_name("Start_Button"));
-        HCS_Entity_kill(HCS_Entity_get_by_name("Quit_Button"));
-        
-        HCS_Entity e = HCS_Entity_create("Player");
-        HCS_State_add(e);
-        HCS_Body_add(e,500,100,500,500);
-        HCS_Movement_add(e,4000,4000);
-        HCS_Input_add(e);
-        HCS_Sprite_add(e,"assets/gfx.hgx",HCS_Draw_Sprite);
-        HCS_Collider_add(e,LSD_Vec_new_float(2,0),LSD_Vec_new_int(6,0));
-        HCS_Jump_add(e,6000,true,0);
-        HCS_Gravity_add(e,0,4000);
-        
-        e = HCS_Entity_create("Box");
-        HCS_Body_add(e,1400,550,500,500);
-        HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Background1);
-        HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
-        HCS_Clickable_add(e,&running,HCS_Click_off,HCS_Trig_released);
-        
-        e = HCS_Entity_create("Box2");
-        HCS_Body_add(e,10,800,2200,200);
-        HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Background0);
-        HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0));
-
-        HCS_Event_remove("game_start");
+        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+        exit(1);
     }
     
+    SDL_GetDisplayBounds(0,&WIN_SIZE);
+    
+    WIN_SIZE.w *= 0.75;
+    WIN_SIZE.h *= 0.75;
+    
+    window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,WIN_SIZE.w ,WIN_SIZE.h ,SDL_WINDOW_METAL);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_SetRenderDrawColor(renderer,std.r,std.g,std.b,std.a);
+    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    
+    STRETCH_WIDTH = (double)WIN_SIZE.w / (double)WIN_SIZE.h;
+    STRETCH_HEIGHT = (double)WIN_SIZE.h / (double)WIN_SIZE.w;
+    SDL_SetWindowSize(window, WIN_SIZE.w,WIN_SIZE.h);
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    
+    running = true;
+
 }
 
-void init_event()
+
+void HCS_Deinit()
 {
-    HCS_Entity e = HCS_Entity_create("Start_Button");
-    HCS_Body_add(e,HCS_Screen_size_get().x / 2 + 500, 300, 600, 400);
-    HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Menu0);
-    HCS_Clickable_add(e,&game_started,HCS_Click_on,HCS_Trig_released);
-
-    e = HCS_Entity_create("Quit_Button");
-    HCS_Body_add(e,HCS_Screen_size_get().x / 2 - 300, 300, 600, 400);
-    HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Menu0);
-    HCS_Sprite_remove(e);
-    HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Menu0);
-    HCS_Clickable_add(e,&running,HCS_Click_off,HCS_Trig_released);
-
-    HCS_Event_add("game_start",game_start_event);
-
-    HCS_Event_remove("init");
+    SDL_Quit();
+    free(runData);
 }
 
-// #include "sprite_editor.h"
+
+void HCS_Stop()
+{
+    running = false;
+}
+
+
+/*
+ Entity-Such Funktionen
+ */
+
+bool HCS_Entity_has_component(HCS_Entity ent, HCS_Component comp)
+{
+    return (-1 != runData->HCS_Entities[ent][comp]);
+}
+
+int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp)
+{
+    return runData->HCS_Entities[ent][comp];
+}
+
+HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component component)
+{
+    int j;
+    for (j = 0; j < runData->HCS_Entity_used; j++)
+    {
+        int i = runData->HCS_Entity_list[j];
+        if (runData->HCS_Entities[i][component] == comp_list_number)
+            return i;
+    }
+    LSD_Log(LSD_ltERROR,"Entity konnte nicht nach Komponenten gefunden werden!");
+    return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
+}
+
+HCS_Entity HCS_Entity_get_by_name(char* n)
+{
+    int i,j;
+    for (j = 0; j < runData->HCS_Name_used; j++)
+    {
+        i = runData->HCS_Name_list[j];
+        if (0 == strcmp(runData->HCS_Names[i].name,n))
+            return HCS_Entity_get_entity_id(i,HCS_cName);
+    }
+    LSD_Log(LSD_ltERROR,"Konnte Entity nicht nach Namen finden!: %s", n);
+    return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
+}
+
+void HCS_Entity_kill(HCS_Entity e)
+{
+    if (HCS_Entity_has_component(e,HCS_cInput))
+        HCS_Input_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cGravity))
+        HCS_Gravity_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cJump))
+        HCS_Jump_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cCollider))
+        HCS_Collider_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cMovement))
+        HCS_Movement_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cClickable))
+        HCS_Clickable_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cSprite))
+        HCS_Sprite_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cBody))
+        HCS_Body_remove(e);
+    if (HCS_Entity_has_component(e,HCS_cState))
+        HCS_State_remove(e);
+    HCS_Name_remove(e);
+    HCS_Entity_remove(e);
+}
+
+void HCS_Entity_clear()
+{
+    while(runData->HCS_Entity_used)
+        HCS_Entity_kill(runData->HCS_Entity_list[0]);
+}
+/*
+ Events und Systeme:
+    Gekoppelt mit Namen, für leichtes Hinzufügen und Entfernen
+ */
+
+void HCS_Event_add(char* n,void (*sys))
+{
+    int id = LSD_Math_get_id_from_array(runData->HCS_Event_list, &runData->HCS_Event_used, HCS_MAX_EVENTS);
+    runData->HCS_Event_list[runData->HCS_Event_used] = id;
+    runData->HCS_Events[id].event = sys;
+    runData->HCS_Events[id].name = n;
+    LSD_Log(LSD_ltCUSTOM,"HCS: Event %s erfolgreich hinzugefügt!",n);
+}
+
+void HCS_Event_remove(char* n)
+{
+    int j;
+    for (j = 0; j < runData->HCS_Event_used; j++)
+    {
+        int i = runData->HCS_Event_list[j];
+        if (0 == strcmp(runData->HCS_Events[i].name,n))
+        {
+            runData->HCS_Events[i].event = HCS_Void_func;
+            LSD_Math_remove_object_from_array(runData->HCS_Event_list,&runData->HCS_Event_used,&j);
+            LSD_Log(LSD_ltCUSTOM,"HCS: Event %s erfolgreich entfernt!",n);
+            return;
+        }
+    }
+    LSD_Log(LSD_ltCUSTOM,"HCS: %s",n);
+    LSD_Log(LSD_ltERROR,"Event konnte nicht entfernt werden, Name wurde nicht gefunden!");
+}
+
+void HCS_Event_run()
+{
+    int j;
+    for (j = 0; j < runData->HCS_Event_used; j++)
+    {
+        int i = runData->HCS_Event_list[j];
+        runData->HCS_Events[i].event();
+    }
+}
+
+/*
+ Namen-Funktionen, für das Hinzufügen, Suchen und Entfernen von Namen
+ */
+
+void HCS_Name_add(HCS_Entity ent, char* n)
+{
+    int index = LSD_Math_get_id_from_array(runData->HCS_Name_list,&runData->HCS_Name_used, HCS_MAX_NAMES);
+    runData->HCS_Entities[ent][HCS_cName] = index;
+    strcpy(runData->HCS_Names[index].name,n);
+}
+
+HCS_Name* HCS_Name_get(HCS_Entity ent)
+{
+    return &runData->HCS_Names[HCS_Entity_get_component_id(ent,HCS_cName)];
+}
+
+void HCS_Name_remove(HCS_Entity ent)
+{
+    LSD_Math_remove_object_from_array(runData->HCS_Name_list, &runData->HCS_Name_used, &runData->HCS_Entities[ent][HCS_cName]);
+}
+
+HCS_Entity HCS_Entity_create(char* n)
+{
+    HCS_Entity ent = LSD_Math_get_id_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, HCS_MAX_ENTITIES);
+    int i;
+    for (i = 0; i < HCS_NUM_COMPONENTS; i++)
+        runData->HCS_Entities[ent][i] = -1;
+    HCS_Name_add(ent,n);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s erfolgreicht erstellt!",ent,n);
+    return ent;
+}
+
+void HCS_Entity_remove(HCS_Entity ent)
+{
+    int index;
+    int i;
+    for (i = 0; i < runData->HCS_Entity_used; i++)
+        if (runData->HCS_Entity_list[i] == ent)
+            index = i;
+    LSD_Math_remove_object_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, &index);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d erfolgreicht entfernt!",ent);
+}
+
+void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)
+{
+    
+    r->y = LSD_Math_map(r->y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
+    r->h = LSD_Math_map(r->h,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
+    r->x = LSD_Math_map(r->x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
+    r->w = LSD_Math_map(r->w,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
+    
+//    r->y = LSD_Math_map(r->y,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
+//    r->h = LSD_Math_map(r->h,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
+//    r->x = LSD_Math_map(r->x,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
+//    r->w = LSD_Math_map(r->w,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
+}
+
+#include "components/input.h"
+
+#include "components/states.h"
+#include "components/body.h"
+
+#include "components/movement.h"
+#include "components/collision.h"
+#include "components/jump.h"
+#include "components/gravity.h"
+
+#include "components/sprite.h"
+//#include "components/drawable.h"
+#include "components/clickable.h"
+
+void Controller_Server_POST(LSD_WebServer* server)
+{
+    char* data_line = strstr(server->read_buffer,"Content-Type: ") + 14;
+    data_line[(int)(strstr(data_line, "\n") - data_line)] = 0;
+    sscanf(data_line, "%d %d %d %d",&HCS_Input_A_down, &HCS_Input_B_down, &HCS_Input_Pad.x, &HCS_Input_Pad.y);
+}
+
+
+LSD_Thread_function(Controller_Server)
+{
+    LSD_Thread_init();
+
+    LSD_WebServer* server = LSD_WebServer_open("server",LSD_WebServer_STD_GET,Controller_Server_POST);
+    while(running)
+        LSD_WebServer_serve_once(server);
+    LSD_WebServer_close(server);
+
+    LSD_Thread_finish();
+}
+
 
 LSD_Thread_function(Misc_Wrapper)
 {
@@ -147,77 +395,7 @@ LSD_Thread_function(Move_Wrapper)
     LSD_Thread_finish();
 }
 
-HCS_Sprite CURSOR_SPRITE;
-HCS_Gfx_Rectangle CURSOR_BODY;
-bool CURSOR_INIT = false;
 
-void HCS_Cursor_event()
-{
-    if (!CURSOR_INIT)
-    {
-        HCS_Gfx_Mouse_pos = LSD_Vec_new_int(WIN_SIZE.w / 2,WIN_SIZE.h / 2);
-        CURSOR_BODY.w = 75;
-        CURSOR_BODY.h = 75;
-        sprite_new(&CURSOR_SPRITE,"assets/cursor.hgx"); 
-        CURSOR_INIT = true;   
-        LSD_Delta_add("HCS_Cursor");
-    }
-    LSD_Delta_tick("HCS_Cursor");
-    double delta = LSD_Delta_get("HCS_Cursor")->delta;
-    if (HCS_Input_A_pressed)
-        HCS_Input_Menu = !HCS_Input_Menu;
-    if (HCS_Input_Menu)
-    {
-        HCS_Input_A_pressed = HCS_Input_A_down && !HCS_Input_A_Ldown;
-        HCS_Input_B_pressed = HCS_Input_B_down && !HCS_Input_B_Ldown;
-        HCS_Input_A_released = !HCS_Input_A_down && HCS_Input_A_Ldown;
-        HCS_Input_B_released = !HCS_Input_B_down && HCS_Input_B_Ldown;
-
-        HCS_Gfx_Mouse_last_clicked = HCS_Gfx_Mouse_clicked;
-        HCS_Gfx_Mouse_clicked = HCS_Input_B_down && HCS_Input_Menu;
-
-        LSD_Vec2d temp;
-        LSD_Vec_mul(temp, HCS_Input_Pad, LSD_Vec_new_double(10,10));
-        LSD_Vec_mul(temp, temp, LSD_Vec_new_double(delta,delta));
-        LSD_Vec_add(HCS_Gfx_Mouse_pos,HCS_Gfx_Mouse_pos,temp);
-
-        if (HCS_Gfx_Mouse_pos.x + 75 / 8 * 7 > WIN_SIZE.w)
-            HCS_Gfx_Mouse_pos.x = WIN_SIZE.w - 75 / 8 * 7;
-
-        if (HCS_Gfx_Mouse_pos.x < 0)
-            HCS_Gfx_Mouse_pos.x = 0;
-
-        if (HCS_Gfx_Mouse_pos.y + 75 / 8 * 7 > WIN_SIZE.h)
-            HCS_Gfx_Mouse_pos.y = WIN_SIZE.h - 75 / 8 * 7;
-
-        if (HCS_Gfx_Mouse_pos.y < 0)
-            HCS_Gfx_Mouse_pos.y = 0;
-    }
-    CURSOR_BODY.x = HCS_Gfx_Mouse_pos.x;
-    CURSOR_BODY.y = HCS_Gfx_Mouse_pos.y;
-    SDL_RenderCopy(renderer,CURSOR_SPRITE.tex,NULL,&CURSOR_BODY);
-}
-
-
-void Controller_Server_POST(LSD_WebServer* server)
-{
-    char* data_line = strstr(server->read_buffer,"Content-Type: ") + 14;
-    data_line[(int)(strstr(data_line, "\n") - data_line)] = 0;
-    sscanf(data_line, "%d %d %d %d",&HCS_Input_A_down, &HCS_Input_B_down, &HCS_Input_Pad.x, &HCS_Input_Pad.y);
-}
-
-
-LSD_Thread_function(Controller_Server)
-{
-    LSD_Thread_init();
-
-    LSD_WebServer* server = LSD_WebServer_open("server",LSD_WebServer_STD_GET,Controller_Server_POST);
-    while(running)
-        LSD_WebServer_serve_once(server);
-    LSD_WebServer_close(server);
-
-    LSD_Thread_finish();
-}
 
 //Main-Loop mit Game-Loop:
 int main(int argc, char* argv[])
@@ -225,12 +403,10 @@ int main(int argc, char* argv[])
     //Library-Initialisierung
     HCS_Init(argv);
     LSD_Log_level_set(LSD_llALL);
-
     LSD_Thread_add("Miscellaneous",Misc_Wrapper);
     LSD_Thread_add("Movement",Move_Wrapper);
     LSD_Thread_add("Controller",Controller_Server);
-    HCS_Event_add("Cursor",HCS_Cursor_event);
-    HCS_Event_add("init",init_event);
+    HCS_Main(argc,argv);
 
     //Game-Loop
     while(running || LSD_Thread_used > 0)
@@ -239,7 +415,7 @@ int main(int argc, char* argv[])
         if (running)
         {
             HCS_Gfx();
-            HCS_Event_run();   
+            HCS_Event_run();
         }
         HCS_Update(LSD_Delta_none);
     }
@@ -248,4 +424,16 @@ int main(int argc, char* argv[])
     //Library-Deinitialisierung
     HCS_Deinit();
     exit(0);
+}
+
+/* !!!NUR FÜR UI-ELEMENTE!!! */
+LSD_Vec2i HCS_Screen_size_get()
+{
+    LSD_Vec2i size = {WORLD_TO_SCREEN_X,WORLD_TO_SCREEN_Y};
+    return size;
+}
+void HCS_Void_func()
+{
+    LSD_Log(LSD_ltERROR,"Du solltest das hier niemals sehen können!");
+    return;
 }

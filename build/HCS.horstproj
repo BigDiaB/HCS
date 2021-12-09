@@ -3,10 +3,10 @@ lib_path: -L../libs/lib
 
 libraries:  -lLSD -lSDL2 -lm -liconv  -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-weak_framework,CoreHaptics -Wl,-weak_framework,GameController -Wl,-framework,ForceFeedback -lobjc -Wl,-framework,CoreVideo -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit -Wl,-weak_framework,QuartzCore -Wl,-weak_framework,Metal
 
-source: ../src/main.c
+source:  ../src/main.c
 
 gxx: clang
 gxxflags: -Wall -O2
 cxxflags: -g -std=c89
 
-out: game
+out: HCS
