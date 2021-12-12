@@ -4,35 +4,13 @@
 
 void sprite_new(HCS_Sprite* spr, char* filename)
 {
-    FILE* file;
-    file = fopen(filename,"r");
-    char lines[24][34];
-    int line,collum;
-    for (line = 0; line < 24; line++)
-         fgets(lines[line],33,file);
-
-    for (line = 0; line < 8; line++)
+    HCS_Sprite* test = HCS_Asset(filename);
+    if (test != NULL)
     {
-        sscanf(lines[line +  0],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.RED[line][0],&spr->raw.RED[line][1],&spr->raw.RED[line][2],&spr->raw.RED[line][3],&spr->raw.RED[line][4],&spr->raw.RED[line][5],&spr->raw.RED[line][6],&spr->raw.RED[line][7]);
-        sscanf(lines[line +  8],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.GRN[line][0],&spr->raw.GRN[line][1],&spr->raw.GRN[line][2],&spr->raw.GRN[line][3],&spr->raw.GRN[line][4],&spr->raw.GRN[line][5],&spr->raw.GRN[line][6],&spr->raw.GRN[line][7]);
-        sscanf(lines[line + 16],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.BLU[line][0],&spr->raw.BLU[line][1],&spr->raw.BLU[line][2],&spr->raw.BLU[line][3],&spr->raw.BLU[line][4],&spr->raw.BLU[line][5],&spr->raw.BLU[line][6],&spr->raw.BLU[line][7]);
+        *spr = *test;
+        return;
     }
-    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
-    HCS_Gfx_Rectangle r;
-    r.w = 1;
-    r.h = 1;
-    for (line = 7; line > -1; line--)
-        for (collum = 0; collum < 8; collum++)
-        {
-            r.x = 7 - line;
-            r.y = collum;
-            SDL_FillRect(temp,&r,SDL_MapRGB(temp->format,spr->raw.RED[collum][line],spr->raw.GRN[collum][line],spr->raw.BLU[collum][line]));
-        }
     
-    SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
-    
-    spr->tex = SDL_CreateTextureFromSurface(renderer,temp);
-    SDL_FreeSurface(temp);
 }
 
 int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t)
@@ -40,7 +18,7 @@ int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t)
     int index = LSD_Math_get_id_from_array(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
     runData->HCS_Entities[e][HCS_cSprite] = index;
     
-    sprite_new(&runData->HCS_Sprites[index],n);
+    runData->HCS_Sprites[index] = *HCS_Asset(n);
 
     runData->HCS_Sprites[index].type = t;
 
@@ -105,10 +83,16 @@ void HCS_Sprite_system(double delta)
     }
 }
 
-void HCS_Sprite_use_text(HCS_Entity e, char* n)
+void HCS_Sprite_use_text(HCS_Entity e, char* n, int length)
 {
-    int len = strlen(n);
+    int len = length;
+    if (len < 1)
+    {
+        n = " ";
+        len = 1;
+    }
     HCS_Body_get(e)->size.x = HCS_Body_get(e)->size.y * len;
+    
     char path[200];
     char temp[len];
     int i;
@@ -139,13 +123,8 @@ void HCS_Sprite_use_text(HCS_Entity e, char* n)
             character[1] = 0;
             strcat(path,character);
             strcat(path,".hgx");
-            file = fopen(path,"r");
-            char lines[24][34];
-            int line,collum;
-            for (line = 0; line < 24; line++)
-                 fgets(lines[line],33,file);
             r.x = i * 9;
-            sprite_new(spr,path);
+            spr = HCS_Asset(path);
             SDL_RenderCopy(renderer,spr->tex,NULL,&r);
         }
     }

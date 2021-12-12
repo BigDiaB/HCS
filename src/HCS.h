@@ -1,3 +1,63 @@
+/*
+ TODO:
+ -Endlich die verdammten Error-Messages einfügen!!                              DONE!             -> Siehe source
+ -Fullscreen- Windowed- Schalter oder sowas implementieren                      DONE!             -> toggle_fullscreen()
+ -Text-rendering mit SDL2_ttf                                                   DONE!             -> TEXT_TO_TEXTURE-Macro u. TEXT_TO_SURFACE-Macro
+ -Interactable-Component (Tasten-Kombinationen, Mouseclicks, etc...)            NOT REALLY DONE!  -> Clickable-Component
+ -Button-Komponent, aufbauend auf "drawable" und "interactable"                 SEMI DONE!        -> Clickable-Component
+ -"Event-Queue": Function-Pointer Liste für "Event-Listeners"                   DONE!             -> check_events() und Source in ECS.h
+ -"System-Liste": Function-Pointer Liste für "System-Functions"                 DONE!             -> run_systems() und Source in ECS.h
+ -Layering für "drawable"                                                       DONE!             -> draw_type in Source in drawable.h
+ -Das "SDL2-Zeug" vom Rest trennen, evtl. eigene Header-File                    DONE!             -> Source in SDL.h
+ -Events doch mit Namen linken...                                               DONE!             -> War überrschend easy! Siehe Source in ECS.h
+ -Clickables sind gerade broken! Maybe cAABB()                                  DONE!             -> WINDOW_SCALE vergessen...
+ -rem_event() scheint auch broken zu sein...                                    GEFIXT!           -> event_list[e] und so...
+ -Systeme und Events                                                            FERTIG!           -> Source in HCS.h
+ -Die alten Komponenten rüber-porten:                                           FERTIG!           -> Source in HCS.h
+ -Screen-Koordinaten irgenwie mappen                                            FERTIG!           -> data_util.h: Map-Funktion + Anwendung davon in Clickable.h und Drawable.h
+ -Drawable_reset im Drawable-Struct speichern!                                  FERTIG!           -> Reset-Flag im Drawable-Struct
+ -"Black-Bars" für Links und Rechts implementieren!                             FERTIG!           -> #define BLACK_BARS
+ -Die Keys in Input "mappable" machen                                           FERTIG!           -> mit #defines oben in main.c
+ -Die tick() -Funktion mit c-lib func machen für cross-compatability!           FERTIG!           -> Platform-Indepente tick()-Funktion
+ -WINDOW_SCALE entfernen!                                                       FERTIG!           -> Was erwartest du jetzt eigentlich? Es ist nicht mehr da!
+ -SDL2 Funktionen mehr abstrackt machen mit Wrappern und defines!               FERTIG!           -> LIB_PLATFORM ist jetzt überall
+ -mouseDown mit isDown usw. mergen!                                             FERTIG!           -> Siehe in isDown, isPressed und isReleased
+ -"Black-Bars" sind broken...                                                   GEFIXT!           -> if(fullscreen) hat gefehlt
+ -Asset-Manager, der die Paths überprüft und so                                 FERTIG!           -> HCS_Asset_Manager() + HCS_Managed_assets in HCS.h
+ -LSD_Log überarbeiten mit Format-String wie in printf()!                       FERTIG!           -> In LSD.h, greift aber immernoch auf LSD_Log_old() zurück!
+ -LSD_Log mit LSD_Log_old mergen!                                               FERTIG!           -> In LSD.h, greift jetzt nicht mehr auf LSD_Log_old zurück!
+ -Jump-Timer hinzufügen!                                                        FERTIG!           -> In jump.h
+ -Collisions checken mit zu wenig overhead!                                     FERTIG!           -> In collision.h
+ -Input überarbeiten, sodass nur noch UP,DOWN,LEFT,RIGHT,A,B,C,D existieren!    FERTIG!           -> in HCS.h
+ -GFX fertig stellen, d.h. alles was mit Grafik und SDL2 zu tun hat wrappen!    FERTIG!           -> in HCS.h
+ -Platform.h effektiv mit GFX ersetzen!                                         FERTIG!           -> HCS.h
+ -Anständige Messages für LSD_Log() in den HCS Funktionen!                      FERTIG!           -> in HCS.h + Komponenten
+ -Seperate Deltas für die einzelnen Threads!                                    FERTIG!           -> LSD_Delta in LSD
+ -Seperate threads für System-Gruppen!                                          FERTIG!           -> HCS_System is no more!
+ -Optional extra Collider-rect für Collider anstelle von Body                   FERTIG!           -> Collider-Offset in HCS_Collider-Struct
+ -Clickables wieder hinzufügen!                                                 FERTIG!           -> HCS_Clickable und Clickable.h
+ -Bessere veränderbare Collider!                                                FERTIG!           -> in HCS_Collider_add()
+ -Sprite-Layering... again ... Ughhhhhhhhhhhhhhhh!                              FERTIG!           -> CMD-C CMD-V aus Drawable-Ruinen
+ -Handy per QR-Code oder ID-Nummer verbinden und als Controller benutzen        YESS! YESSSSS!!!  -> Es ist vollbracht! In web-server-controller.h!
+ -"Fake Cursor" aka Pointer, der mit Dpad oder Stick gesteuert wird!            FERTIG!           -> In Controller-Server!
+ -Wrapper um den Webserver schreiben (LSD_Server?)                              FERTIG!           -> LSD_WebServer
+ -Coole Dateiendung überlegen!                                                  FERTIG!           -> .hgx
+ -Sprite Editor + Exporteur damit wir SDL(2)_image los werden!                  YESSSSS!          -> Es ist fertig!
+ 
+ -Sprite-Data Cachen (Esentially Managed-Assets)!
+ -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
+ -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
+ -Managed Asset für Sprites... Ughh...
+ -Cap für Threads
+ -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!
+ -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen die es brauchen!
+ -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!
+ 
+ Very Nice To Haves™:
+ 
+ */
+
+
 #ifndef HCS_H
 #define HCS_H
 
@@ -5,6 +65,7 @@
 
 #define HCS_CONTINUE()  return true
 #define HCS_STOP()  return false
+#define main HCS_Main
 
 #define AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
 
@@ -103,6 +164,11 @@ typedef struct{
     bool active;
 } HCS_Input;
 
+typedef struct {
+    HCS_Sprite spr;
+    char* path;
+} HCS_Managed_Asset;
+
 typedef struct{
     HCS_Clicktype type;
     HCS_Triggertype trigger;
@@ -155,6 +221,7 @@ typedef struct {
 } HCS_Event;
 
 LSD_Vec2i HCS_Screen_size_get();
+HCS_Sprite* HCS_Asset(char* path);
 void HCS_Void_func();
 void HCS_Init(char* argv[]);
 void HCS_Deinit();
@@ -213,7 +280,7 @@ void HCS_Movement_system();
 
 void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r);
 int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t);
-void HCS_Sprite_use_text(HCS_Entity e, char* n);
+void HCS_Sprite_use_text(HCS_Entity e, char* n, int length);
 HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
 void HCS_Sprite_remove(HCS_Entity e);
 void HCS_Sprite_system();
@@ -228,9 +295,11 @@ HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();
 
-
 struct HCS_runData {
 
+    HCS_Managed_Asset HCS_Managed_Assets[HCS_MAX_SPRITES];
+    int HCS_Managed_Asset_used;
+    
     HCS_Event HCS_Events[HCS_MAX_EVENTS];
     HCS_Entity HCS_Event_list[HCS_MAX_EVENTS];
     int HCS_Event_used;
@@ -279,7 +348,5 @@ struct HCS_runData {
     HCS_Entity HCS_Input_list[HCS_MAX_INPUTS];
     int HCS_Input_used;
 };
-
-
 
 #endif

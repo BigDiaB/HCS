@@ -2,6 +2,10 @@
 #include <LSD/LSD.h>        //<- "Logging" System
 #include "HCS.h"            //<- Entity Component System
 
+#ifdef main
+#undef main
+#endif
+
 struct HCS_runData* runData;
 HCS_Gfx_Color color = {255,255,255,255};
 HCS_Gfx_Color std = {125,125,125,255};
@@ -9,6 +13,9 @@ HCS_Gfx_Color std = {125,125,125,255};
 SDL_Window* window;
 SDL_Renderer* renderer;
 HCS_Gfx_Rectangle WIN_SIZE;
+
+char HCS_TextInput[2046];
+int HCS_TextSize = 0;
 
 bool HCS_Gfx_Mouse_clicked;
 bool HCS_Gfx_Mouse_last_clicked;
@@ -40,59 +47,6 @@ double STRETCH_HEIGHT = 1;
 bool fullscreen = false;
 bool running;
 
-//HCS_Gfx_Texture HCS_Asset_manager(char* path, HCS_Managed_assettype action)
-//{
-//    switch (action)
-//    {
-//        case HCS_AAdd:
-//        {
-//            int j;
-//            for (j = 0; j < runData->HCS_Managed_asset_used; j++)
-//            {
-//                int i = runData->HCS_Managed_asset_list[j];
-//                if (0 == strcmp(runData->HCS_Managed_assets[i].path,path))
-//                {
-//                    runData->HCS_Managed_assets[i].used++;
-//                    return runData->HCS_Managed_assets[i].tex;
-//                }
-//            }
-//            {
-//                    int id = LSD_Math_get_id_from_array(runData->HCS_Managed_asset_list, &runData->HCS_Managed_asset_used, HCS_MAX_SPRITES);
-//                    runData->HCS_Managed_asset_list[runData->HCS_Managed_asset_used] = id;
-////                    runData->HCS_Managed_assets[id].tex = HCS_Gfx_Surface_to_texture(HCS_Gfx_Image_load(path));
-//                    runData->HCS_Managed_assets[id].path = path;
-//                    runData->HCS_Managed_assets[id].used = 1;
-//                    return runData->HCS_Managed_assets[id].tex;
-//                }
-//            break;
-//        }
-//        case HCS_ARemove:
-//        {
-//        int j;
-//        for (j = 0; j < runData->HCS_Managed_asset_used; j++)
-//        {
-//            int i = runData->HCS_Managed_asset_list[j];
-//            if (0 == strcmp(runData->HCS_Managed_assets[i].path,path))
-//            {
-//                runData->HCS_Managed_assets[i].used--;
-//                if (runData->HCS_Managed_assets[i].used <= 0)
-//                {
-////                    HCS_Gfx_Texture_destroy(runData->HCS_Managed_assets[i].tex);
-//                    LSD_Math_remove_object_from_array(runData->HCS_Managed_asset_list,&runData->HCS_Managed_asset_used,&j);
-//                }
-//                return NULL;
-//            }
-//        }
-//        LSD_Log(LSD_ltERROR,"Asset konnte nicht entfernt werden, weil es nicht nach Namen gefunden wurde!: %s",path);
-//        break;
-//        }
-//
-//        default:
-//        break;
-//    }
-//    return NULL;
-//}
-
 void HCS_Update(double delta)
 {
     SDL_Event event;
@@ -113,6 +67,32 @@ void HCS_Update(double delta)
                 running = HCS_Main(0,NULL);
             }
         }
+        else if (event.type == SDL_KEYDOWN)
+        {
+            if( event.key.keysym.sym == SDLK_BACKSPACE && HCS_TextSize > -1 )
+            {
+                //Entferne den letzten char!
+                HCS_TextInput[HCS_TextSize] = 0;
+                HCS_TextSize--;
+            }
+            else if( event.key.keysym.sym == SDLK_c && SDL_GetModState() & KMOD_CTRL )
+            {
+                SDL_SetClipboardText(HCS_TextInput);
+            }
+            else if( event.key.keysym.sym == SDLK_v && SDL_GetModState() & KMOD_CTRL )
+            {
+                strcat(HCS_TextInput,SDL_GetClipboardText());
+                HCS_TextSize += strlen(SDL_GetClipboardText());
+            }
+        }
+    else if (event.type == SDL_TEXTINPUT)
+    {
+        if(!(SDL_GetModState() & KMOD_CTRL && (event.text.text[0] == 'c' || event.text.text[0] == 'C' || event.text.text[0] == 'v' || event.text.text[0] == 'V')))
+        {
+            strcat(HCS_TextInput,event.text.text);
+            HCS_TextSize += strlen(event.text.text);
+        }
+    }
     SDL_RenderPresent(renderer);
     SDL_RenderClear(renderer);
 }
@@ -198,6 +178,7 @@ HCS_Entity HCS_Entity_get_by_name(char* n)
             return HCS_Entity_get_entity_id(i,HCS_cName);
     }
     LSD_Log(LSD_ltERROR,"Konnte Entity nicht nach Namen finden!: %s", n);
+    exit(1);
     return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
 }
 
@@ -432,7 +413,7 @@ int main(int argc, char* argv[])
     //Game-Loop
     while(running || LSD_Thread_used > 0)
     {
-        LSD_Thread_system();
+        // LSD_Thread_system();
         if (running)
         {
             HCS_Sprite_system(LSD_Delta_none);
@@ -445,4 +426,49 @@ int main(int argc, char* argv[])
     //Library-Deinitialisierung
     HCS_Deinit();
     exit(0);
+}
+
+HCS_Sprite* HCS_Asset(char* path)
+{
+    int j,line,collum;
+    FILE* file;
+    char lines[24][34];
+    
+    for (j = 0; j < runData->HCS_Managed_Asset_used; j++)
+    {
+        if (0 == strcmp(path,runData->HCS_Managed_Assets[j].path))
+            return &runData->HCS_Managed_Assets[j].spr;
+    }
+    
+    HCS_Sprite* spr = &runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].spr;
+    runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].path = path;
+    
+    file = fopen(path,"r");
+    for (line = 0; line < 24; line++)
+         fgets(lines[line],33,file);
+    fclose(file);
+    for (line = 0; line < 8; line++)
+    {
+        sscanf(lines[line +  0],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.RED[line][0],&spr->raw.RED[line][1],&spr->raw.RED[line][2],&spr->raw.RED[line][3],&spr->raw.RED[line][4],&spr->raw.RED[line][5],&spr->raw.RED[line][6],&spr->raw.RED[line][7]);
+        sscanf(lines[line +  8],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.GRN[line][0],&spr->raw.GRN[line][1],&spr->raw.GRN[line][2],&spr->raw.GRN[line][3],&spr->raw.GRN[line][4],&spr->raw.GRN[line][5],&spr->raw.GRN[line][6],&spr->raw.GRN[line][7]);
+        sscanf(lines[line + 16],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.BLU[line][0],&spr->raw.BLU[line][1],&spr->raw.BLU[line][2],&spr->raw.BLU[line][3],&spr->raw.BLU[line][4],&spr->raw.BLU[line][5],&spr->raw.BLU[line][6],&spr->raw.BLU[line][7]);
+    }
+    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
+    HCS_Gfx_Rectangle r;
+    r.w = 1;
+    r.h = 1;
+    for (line = 7; line > -1; line--)
+        for (collum = 0; collum < 8; collum++)
+        {
+            r.x = 7 - line;
+            r.y = collum;
+            SDL_FillRect(temp,&r,SDL_MapRGB(temp->format,spr->raw.RED[collum][line],spr->raw.GRN[collum][line],spr->raw.BLU[collum][line]));
+        }
+    
+    SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
+    
+    spr->tex = SDL_CreateTextureFromSurface(renderer,temp);
+    SDL_FreeSurface(temp);
+    
+    return spr;
 }
