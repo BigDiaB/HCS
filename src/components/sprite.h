@@ -21,11 +21,11 @@ void sprite_new(HCS_Sprite* spr, char* filename)
     HCS_Gfx_Rectangle r;
     r.w = 1;
     r.h = 1;
-    for (line = 0; line < 8; line++)
+    for (line = 7; line > -1; line--)
         for (collum = 0; collum < 8; collum++)
         {
-            r.x = collum;
-            r.y = line;
+            r.x = 7 - line;
+            r.y = collum;
             SDL_FillRect(temp,&r,SDL_MapRGB(temp->format,spr->raw.RED[collum][line],spr->raw.GRN[collum][line],spr->raw.BLU[collum][line]));
         }
     
@@ -67,10 +67,10 @@ void HCS_Sprite_system(double delta)
     int depth_buffer[HCS_NUM_DRAWTYPES][HCS_MAX_SPRITES] = {};
     int used_buffer[HCS_NUM_DRAWTYPES] = {0};
 
-    int i,j,t;
-    for (j = 0; j < runData->HCS_Sprite_used; j++)
+    int i,t;
+    for (t = 0; t < runData->HCS_Sprite_used; t++)
     {
-        int i = runData->HCS_Sprite_list[j];
+        int i = runData->HCS_Sprite_list[t];
         depth_buffer[runData->HCS_Sprites[i].type][used_buffer[runData->HCS_Sprites[i].type]] = HCS_Entity_get_entity_id(i,HCS_cSprite);
         used_buffer[runData->HCS_Sprites[i].type]++;
     }
@@ -103,4 +103,51 @@ void HCS_Sprite_system(double delta)
             HCS_Gfx_Texture_draw(runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,r);
         }
     }
+}
+
+void HCS_Sprite_use_text(HCS_Entity e, char* n)
+{
+    int len = strlen(n);
+    HCS_Body_get(e)->size.x = HCS_Body_get(e)->size.y * len;
+    char path[200];
+    char temp[len];
+    int i;
+    for (i = 0; i < len; i++)
+        temp[i] = toupper(n[i]);
+    FILE* file;
+    HCS_Sprite* spr;
+    HCS_Gfx_Rectangle re;
+    re.w = 1;
+    re.h = 1;
+    HCS_Gfx_Rectangle r;
+    r.w = 8;
+    r.h = 8;
+    r.y = 0;
+    
+    SDL_DestroyTexture(HCS_Sprite_get(e)->tex);
+    HCS_Sprite_get(e)->tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, len * 9, 8);
+    SDL_SetTextureBlendMode( HCS_Sprite_get(e)->tex, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderTarget(renderer,HCS_Sprite_get(e)->tex);
+//    SDL_RenderClear(renderer);
+    for (i = 0; i < len; i++)
+    {
+        if (temp[i] != ' ')
+        {
+            strcpy(path,"assets/Font/");
+            char character[2];
+            character[0] = temp[i];
+            character[1] = 0;
+            strcat(path,character);
+            strcat(path,".hgx");
+            file = fopen(path,"r");
+            char lines[24][34];
+            int line,collum;
+            for (line = 0; line < 24; line++)
+                 fgets(lines[line],33,file);
+            r.x = i * 9;
+            sprite_new(spr,path);
+            SDL_RenderCopy(renderer,spr->tex,NULL,&r);
+        }
+    }
+    SDL_SetRenderTarget(renderer,NULL);
 }

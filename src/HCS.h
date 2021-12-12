@@ -3,6 +3,9 @@
 
 #include <SDL2/SDL.h>
 
+#define HCS_CONTINUE()  return true
+#define HCS_STOP()  return false
+
 #define AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
 
 #define HCS_Gfx_Texture_color_mod(X,R,G,B)          SDL_SetTextureColorMod(X,R,G,B)
@@ -16,8 +19,6 @@
 #define HCS_Gfx_Image_load(X)                       IMG_Load(X)
 #define HCS_Gfx_Surface_to_texture(X)               SDL_CreateTextureFromSurface(renderer,X)
 #define HCS_Gfx_Texture_destroy(X)                  SDL_DestroyTexture(X)
-
-#define HCS_Gfx()                                   HCS_Sprite_system(LSD_Delta_none); HCS_Clickable_system(LSD_Delta_none)
 
 #define HCS_INPUT_UP                                SDLK_w
 #define HCS_INPUT_DOWN                              SDLK_s
@@ -157,10 +158,9 @@ LSD_Vec2i HCS_Screen_size_get();
 void HCS_Void_func();
 void HCS_Init(char* argv[]);
 void HCS_Deinit();
-void HCS_Stop();
 void HCS_Update(double delta);
 void HCS_Gfx_Fullscreen_toggle();
-void HCS_Main(int argc, char* argv[]);
+int HCS_Main(int argc, char* argv[]);
 
 void sprite_new(HCS_Sprite* spr, char* filename);
 
@@ -173,6 +173,7 @@ bool HCS_Entity_has_component(HCS_Entity ent, HCS_Component comp);
 int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp);
 HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component component);
 HCS_Entity HCS_Entity_get_by_name(char* n);
+bool HCS_Entity_exist(char* n);
 
 void HCS_Event_add(char* n,void (*sys));
 void HCS_Event_remove(char* n);
@@ -211,22 +212,14 @@ void HCS_Movement_remove(HCS_Entity e);
 void HCS_Movement_system();
 
 void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r);
-//int HCS_Drawable_add(HCS_Entity e, char* n, float x, float y, bool text, HCS_Drawtype t);
-//int HCS_Drawable_add(HCS_Entity e, char* n);
-//void HCS_Drawable_add_quad(HCS_Entity e, int quad_x, int quad_y, int quad_w, int quad_h);
-//void HCS_Drawable_add_rect(HCS_Entity e, int r, int g, int b, int a, bool fill);
-//void HCS_Drawable_reset_unmanaged_with_text(HCS_Entity e, char* text);
-//void HCS_Drawable_reset_unmanaged(HCS_Entity e, HCS_Gfx_Surface surf);
-//HCS_Drawable* HCS_Drawable_get(HCS_Entity e);
-//void HCS_Drawable_remove(HCS_Entity e);
-//void HCS_Drawable_system();
-
 int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t);
+void HCS_Sprite_use_text(HCS_Entity e, char* n);
 HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
 void HCS_Sprite_remove(HCS_Entity e);
 void HCS_Sprite_system();
 
 int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type, HCS_Triggertype t);
+void HCS_Clickable_add_func(HCS_Entity e,void(*func)(int),int func_data);
 HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
 

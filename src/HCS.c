@@ -99,12 +99,20 @@ void HCS_Update(double delta)
     while( SDL_PollEvent(&event))
         if (event.type == SDL_QUIT)
             running = false;
-    HCS_Input_A_pressed = HCS_Input_A_down && !HCS_Input_A_Ldown;
-    HCS_Input_B_pressed = HCS_Input_B_down && !HCS_Input_B_Ldown;
-    HCS_Input_A_released = !HCS_Input_A_down && HCS_Input_A_Ldown;
-    HCS_Input_B_released = !HCS_Input_B_down && HCS_Input_B_Ldown;
-    HCS_Input_A_Ldown = HCS_Input_A_down;
-    HCS_Input_B_Ldown = HCS_Input_B_down;
+        else if (event.type == SDL_WINDOWEVENT)
+        {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                SDL_GetWindowSize(window, &WIN_SIZE.w,&WIN_SIZE.h);
+                STRETCH_WIDTH = (double)WIN_SIZE.w / (double)WIN_SIZE.h;
+                STRETCH_HEIGHT = (double)WIN_SIZE.h / (double)WIN_SIZE.w;
+                HCS_Entity_clear();
+                free(runData);
+                runData = malloc(sizeof(struct HCS_runData));
+                struct HCS_runData zero = {0};
+                *runData = zero;
+                running = HCS_Main(0,NULL);
+            }
+        }
     SDL_RenderPresent(renderer);
     SDL_RenderClear(renderer);
 }
@@ -133,7 +141,7 @@ void HCS_Init(char* argv[])
     WIN_SIZE.w *= 0.75;
     WIN_SIZE.h *= 0.75;
     
-    window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,WIN_SIZE.w ,WIN_SIZE.h ,SDL_WINDOW_METAL);
+    window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,WIN_SIZE.w ,WIN_SIZE.h ,SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_SetRenderDrawColor(renderer,std.r,std.g,std.b,std.a);
     SDL_RenderClear(renderer);
@@ -143,11 +151,6 @@ void HCS_Init(char* argv[])
     STRETCH_HEIGHT = (double)WIN_SIZE.h / (double)WIN_SIZE.w;
     SDL_SetWindowSize(window, WIN_SIZE.w,WIN_SIZE.h);
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    
-    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    
-    running = true;
-
 }
 
 
@@ -155,12 +158,6 @@ void HCS_Deinit()
 {
     SDL_Quit();
     free(runData);
-}
-
-
-void HCS_Stop()
-{
-    running = false;
 }
 
 
@@ -395,37 +392,6 @@ LSD_Thread_function(Move_Wrapper)
     LSD_Thread_finish();
 }
 
-
-
-//Main-Loop mit Game-Loop:
-int main(int argc, char* argv[])
-{   
-    //Library-Initialisierung
-    HCS_Init(argv);
-    LSD_Log_level_set(LSD_llALL);
-    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
-    LSD_Thread_add("Movement",Move_Wrapper);
-    LSD_Thread_add("Controller",Controller_Server);
-    HCS_Main(argc,argv);
-
-    //Game-Loop
-    while(running || LSD_Thread_used > 0)
-    {
-        LSD_Thread_system();
-        if (running)
-        {
-            HCS_Gfx();
-            HCS_Event_run();
-        }
-        HCS_Update(LSD_Delta_none);
-    }
-
-    HCS_Entity_clear();
-    //Library-Deinitialisierung
-    HCS_Deinit();
-    exit(0);
-}
-
 /* !!!NUR FÜR UI-ELEMENTE!!! */
 LSD_Vec2i HCS_Screen_size_get()
 {
@@ -436,4 +402,47 @@ void HCS_Void_func()
 {
     LSD_Log(LSD_ltERROR,"Du solltest das hier niemals sehen können!");
     return;
+}
+
+bool HCS_Entity_exist(char* n)
+{
+    int i,j;
+    for (j = 0; j < runData->HCS_Name_used; j++)
+    {
+        i = runData->HCS_Name_list[j];
+        if (0 == strcmp(n,runData->HCS_Names[i].name))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+//Main-Loop mit Game-Loop:
+int main(int argc, char* argv[])
+{
+    //Library-Initialisierung
+    HCS_Init(argv);
+    LSD_Log_level_set(LSD_llALL);
+    running = HCS_Main(argc,argv);
+//    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
+//    LSD_Thread_add("Movement",Move_Wrapper);
+//    LSD_Thread_add("Controller",Controller_Server);
+    //Game-Loop
+    while(running || LSD_Thread_used > 0)
+    {
+        LSD_Thread_system();
+        if (running)
+        {
+            HCS_Sprite_system(LSD_Delta_none);
+            HCS_Clickable_system(LSD_Delta_none);
+            HCS_Event_run();
+        }
+        HCS_Update(LSD_Delta_none);
+    }
+    HCS_Entity_clear();
+    //Library-Deinitialisierung
+    HCS_Deinit();
+    exit(0);
 }

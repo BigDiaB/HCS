@@ -87,6 +87,7 @@ void HCS_Clickable_system(double delta)
                         }
                         if (runData->HCS_Clickables[i].use_func)
                             runData->HCS_Clickables[i].func(runData->HCS_Clickables[i].func_data);
+                        return;
                     }
                     break;
 
@@ -107,6 +108,7 @@ void HCS_Clickable_system(double delta)
                         }
                         if (runData->HCS_Clickables[i].use_func)
                             runData->HCS_Clickables[i].func(runData->HCS_Clickables[i].func_data);
+                        return;
                     }
                     break;
 
