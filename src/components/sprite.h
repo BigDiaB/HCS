@@ -104,12 +104,12 @@ void HCS_Sprite_use_text(HCS_Entity e, char* n, int length)
     re.w = 1;
     re.h = 1;
     HCS_Gfx_Rectangle r;
-    r.w = 8;
-    r.h = 8;
+    r.w = 16;
+    r.h = 16;
     r.y = 0;
     
     SDL_DestroyTexture(HCS_Sprite_get(e)->tex);
-    HCS_Sprite_get(e)->tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, len * 9, 8);
+    HCS_Sprite_get(e)->tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, len * 18, 16);
     SDL_SetTextureBlendMode( HCS_Sprite_get(e)->tex, SDL_BLENDMODE_BLEND);
     SDL_SetRenderTarget(renderer,HCS_Sprite_get(e)->tex);
 //    SDL_RenderClear(renderer);
@@ -123,7 +123,7 @@ void HCS_Sprite_use_text(HCS_Entity e, char* n, int length)
             character[1] = 0;
             strcat(path,character);
             strcat(path,".hgx");
-            r.x = i * 9;
+            r.x = i * 18;
             spr = HCS_Asset(path);
             SDL_RenderCopy(renderer,spr->tex,NULL,&r);
         }

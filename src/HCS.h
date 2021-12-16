@@ -57,7 +57,6 @@
  
  */
 
-
 #ifndef HCS_H
 #define HCS_H
 
@@ -77,7 +76,6 @@
 #define HCS_Gfx_Rectangle_draw(X)                   SDL_RenderDrawRect(renderer,&X)
 #define HCS_Gfx_DrawColor_set(R,G,B,A)              SDL_SetRenderDrawColor(renderer,R,G,B,A)
 
-#define HCS_Gfx_Image_load(X)                       IMG_Load(X)
 #define HCS_Gfx_Surface_to_texture(X)               SDL_CreateTextureFromSurface(renderer,X)
 #define HCS_Gfx_Texture_destroy(X)                  SDL_DestroyTexture(X)
 
@@ -93,12 +91,12 @@ typedef SDL_Surface* HCS_Gfx_Surface;
 typedef SDL_Rect     HCS_Gfx_Rectangle;
 typedef SDL_Color    HCS_Gfx_Color;
 
-#define HCS_MAX_NAMES 256
-#define HCS_MAX_ENTITIES 256
+#define HCS_MAX_NAMES 2000
+#define HCS_MAX_ENTITIES 2000
 
-#define HCS_MAX_BODIES 200
-#define HCS_MAX_SPRITES 200
-#define HCS_MAX_CLICKABLES 200
+#define HCS_MAX_BODIES 2000
+#define HCS_MAX_SPRITES 2000
+#define HCS_MAX_CLICKABLES 2000
 #define HCS_MAX_COLLIDERS 200
 #define HCS_MAX_MOVEMENTS 200
 #define HCS_MAX_GRAVITIES 200
@@ -132,9 +130,9 @@ typedef enum {
 
 typedef struct
 {
-    unsigned char RED[8][8];
-    unsigned char GRN[8][8];
-    unsigned char BLU[8][8];
+    unsigned char RED[16][16];
+    unsigned char GRN[16][16];
+    unsigned char BLU[16][16];
 } HCS_Sprite_raw;
 
 typedef struct

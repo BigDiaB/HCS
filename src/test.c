@@ -47,7 +47,7 @@ void cursor_event()
 
 struct HCS_editorData
 {
-    HCS_Sprite* Canvas[64];
+    HCS_Sprite* Canvas[16 * 16];
     HCS_Sprite_raw colours[NUM_COLOURS];
     HCS_Gfx_Texture colour_tex[NUM_COLOURS];
     unsigned char RED[NUM_COLOURS];
@@ -70,11 +70,11 @@ void sprite_editor_deinit(int nothing)
 void clear_canvas(int nothing)
 {
     int i,j;
-    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
+    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
     HCS_Sprite_raw spr = {0};
-    for (i = 0; i < 64; i++)
+    for (i = 0; i < 16 * 16; i++)
         editorData->Canvas[i]->raw = spr;
-    for (j = 0; j < 64; j++)
+    for (j = 0; j < 16 * 16; j++)
     {
         SDL_FillRect(temp,NULL,SDL_MapRGB(temp->format,0,0,0));
         SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
@@ -113,7 +113,7 @@ void on_canvas_click(int self)
         for (i = 0; i < 8; i++)
             this->raw = editorData->colours[index];
     
-    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
+    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
     SDL_FillRect(temp,NULL,SDL_MapRGB(temp->format,this->raw.RED[0][0],this->raw.GRN[0][0],this->raw.BLU[0][0]));
     SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
     this->tex = SDL_CreateTextureFromSurface(renderer,temp);
@@ -128,19 +128,20 @@ void text_box_event()
         HCS_TextInput[0] = 0;
         HCS_Entity e = HCS_Entity_create("Safe_Name");
         HCS_Body_add(e,HCS_Screen_size_get().x * STRETCH_WIDTH / 4,200,100,HCS_Screen_size_get().x * STRETCH_WIDTH / 24);
-        HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Decal);
+        HCS_Sprite_add(e,"assets/black.hgx",HCS_Draw_Decal);
         HCS_Sprite_use_text(HCS_Entity_get_by_name("Safe_Name"),HCS_TextInput,strlen(HCS_TextInput));
         strcpy(test,HCS_TextInput);
     }
     if (0 != strcmp(test,HCS_TextInput))
     {
-        HCS_Sprite_use_text(HCS_Entity_get_by_name("Safe_Name"),HCS_TextInput,strlen(HCS_TextInput));
         strcpy(test,HCS_TextInput);
         if (strlen(HCS_TextInput) > 12)
         {
             HCS_TextInput[12] = 0;
             HCS_TextSize = 11;
         }
+        else
+            HCS_Sprite_use_text(HCS_Entity_get_by_name("Safe_Name"),HCS_TextInput,strlen(HCS_TextInput));
     }
 }
 
@@ -152,12 +153,12 @@ void on_safe_click(int nothing)
     {
         HCS_Entity e = HCS_Entity_create("Safe_Background");
         HCS_Body_add(e,HCS_Screen_size_get().x * STRETCH_WIDTH / 4 - 20,100,HCS_Screen_size_get().x * STRETCH_WIDTH / 2 + 20,700);
-        HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Decal);
+        HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
 
 
         e = HCS_Entity_create("Done_Button");
         HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH) / 4, 650,100,HCS_Screen_size_get().x * STRETCH_WIDTH / 24);
-        HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Decal);
+        HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
         HCS_Sprite_use_text(e,"Done",4);
         HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_off,HCS_Trig_released);
         HCS_Clickable_add_func(e,on_safe_click,0);
@@ -165,7 +166,7 @@ void on_safe_click(int nothing)
         
         e = HCS_Entity_create("Cancel_Button");
         HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH) / 2, 650,100,HCS_Screen_size_get().x * STRETCH_WIDTH / 24);
-        HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Decal);
+        HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
         HCS_Sprite_use_text(e,"Cancel",6);
         HCS_Clickable_add(e,&editorData->save_for_real,HCS_Click_off,HCS_Trig_released);
         HCS_Clickable_add_func(e,cancel_safe,69420);
@@ -183,38 +184,37 @@ void on_safe_click(int nothing)
     
     if (nothing != 69420)
     {
+        char* imng_data_format_string = "%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n";
         char* img_data;
-        char* format_string = "%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu\n%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu";
-        img_data = malloc(strlen(format_string));
+
+        img_data = malloc(strlen(imng_data_format_string) * 3 * 16);
 #define CANVAS editorData->Canvas
-        sprintf(img_data,format_string,
-                CANVAS[0]->raw.RED[0][0],CANVAS[1]->raw.RED[0][0],CANVAS[2]->raw.RED[0][0],CANVAS[3]->raw.RED[0][0],CANVAS[4]->raw.RED[0][0],CANVAS[5]->raw.RED[0][0],CANVAS[6]->raw.RED[0][0],CANVAS[7]->raw.RED[0][0],
-                CANVAS[8]->raw.RED[0][0],CANVAS[9]->raw.RED[0][0],CANVAS[10]->raw.RED[0][0],CANVAS[11]->raw.RED[0][0],CANVAS[12]->raw.RED[0][0],CANVAS[13]->raw.RED[0][0],CANVAS[14]->raw.RED[0][0],CANVAS[15]->raw.RED[0][0],
-                CANVAS[16]->raw.RED[0][0],CANVAS[17]->raw.RED[0][0],CANVAS[18]->raw.RED[0][0],CANVAS[19]->raw.RED[0][0],CANVAS[20]->raw.RED[0][0],CANVAS[21]->raw.RED[0][0],CANVAS[22]->raw.RED[0][0],CANVAS[23]->raw.RED[0][0],
-                CANVAS[24]->raw.RED[0][0],CANVAS[25]->raw.RED[0][0],CANVAS[26]->raw.RED[0][0],CANVAS[27]->raw.RED[0][0],CANVAS[28]->raw.RED[0][0],CANVAS[29]->raw.RED[0][0],CANVAS[30]->raw.RED[0][0],CANVAS[31]->raw.RED[0][0],
-                CANVAS[32]->raw.RED[0][0],CANVAS[33]->raw.RED[0][0],CANVAS[34]->raw.RED[0][0],CANVAS[35]->raw.RED[0][0],CANVAS[36]->raw.RED[0][0],CANVAS[37]->raw.RED[0][0],CANVAS[38]->raw.RED[0][0],CANVAS[39]->raw.RED[0][0],
-                CANVAS[40]->raw.RED[0][0],CANVAS[41]->raw.RED[0][0],CANVAS[42]->raw.RED[0][0],CANVAS[43]->raw.RED[0][0],CANVAS[44]->raw.RED[0][0],CANVAS[45]->raw.RED[0][0],CANVAS[46]->raw.RED[0][0],CANVAS[47]->raw.RED[0][0],
-                CANVAS[48]->raw.RED[0][0],CANVAS[49]->raw.RED[0][0],CANVAS[50]->raw.RED[0][0],CANVAS[51]->raw.RED[0][0],CANVAS[52]->raw.RED[0][0],CANVAS[53]->raw.RED[0][0],CANVAS[54]->raw.RED[0][0],CANVAS[55]->raw.RED[0][0],
-                CANVAS[56]->raw.RED[0][0],CANVAS[57]->raw.RED[0][0],CANVAS[58]->raw.RED[0][0],CANVAS[59]->raw.RED[0][0],CANVAS[60]->raw.RED[0][0],CANVAS[61]->raw.RED[0][0],CANVAS[62]->raw.RED[0][0],CANVAS[63]->raw.RED[0][0],
-                
-                CANVAS[0]->raw.GRN[0][0],CANVAS[1]->raw.GRN[0][0],CANVAS[2]->raw.GRN[0][0],CANVAS[3]->raw.GRN[0][0],CANVAS[4]->raw.GRN[0][0],CANVAS[5]->raw.GRN[0][0],CANVAS[6]->raw.GRN[0][0],CANVAS[7]->raw.GRN[0][0],
-                CANVAS[8]->raw.GRN[0][0],CANVAS[9]->raw.GRN[0][0],CANVAS[10]->raw.GRN[0][0],CANVAS[11]->raw.GRN[0][0],CANVAS[12]->raw.GRN[0][0],CANVAS[13]->raw.GRN[0][0],CANVAS[14]->raw.GRN[0][0],CANVAS[15]->raw.GRN[0][0],
-                CANVAS[16]->raw.GRN[0][0],CANVAS[17]->raw.GRN[0][0],CANVAS[18]->raw.GRN[0][0],CANVAS[19]->raw.GRN[0][0],CANVAS[20]->raw.GRN[0][0],CANVAS[21]->raw.GRN[0][0],CANVAS[22]->raw.GRN[0][0],CANVAS[23]->raw.GRN[0][0],
-                CANVAS[24]->raw.GRN[0][0],CANVAS[25]->raw.GRN[0][0],CANVAS[26]->raw.GRN[0][0],CANVAS[27]->raw.GRN[0][0],CANVAS[28]->raw.GRN[0][0],CANVAS[29]->raw.GRN[0][0],CANVAS[30]->raw.GRN[0][0],CANVAS[31]->raw.GRN[0][0],
-                CANVAS[32]->raw.GRN[0][0],CANVAS[33]->raw.GRN[0][0],CANVAS[34]->raw.GRN[0][0],CANVAS[35]->raw.GRN[0][0],CANVAS[36]->raw.GRN[0][0],CANVAS[37]->raw.GRN[0][0],CANVAS[38]->raw.GRN[0][0],CANVAS[39]->raw.GRN[0][0],
-                CANVAS[40]->raw.GRN[0][0],CANVAS[41]->raw.GRN[0][0],CANVAS[42]->raw.GRN[0][0],CANVAS[43]->raw.GRN[0][0],CANVAS[44]->raw.GRN[0][0],CANVAS[45]->raw.GRN[0][0],CANVAS[46]->raw.GRN[0][0],CANVAS[47]->raw.GRN[0][0],
-                CANVAS[48]->raw.GRN[0][0],CANVAS[49]->raw.GRN[0][0],CANVAS[50]->raw.GRN[0][0],CANVAS[51]->raw.GRN[0][0],CANVAS[52]->raw.GRN[0][0],CANVAS[53]->raw.GRN[0][0],CANVAS[54]->raw.GRN[0][0],CANVAS[55]->raw.GRN[0][0],
-                CANVAS[56]->raw.GRN[0][0],CANVAS[57]->raw.GRN[0][0],CANVAS[58]->raw.GRN[0][0],CANVAS[59]->raw.GRN[0][0],CANVAS[60]->raw.GRN[0][0],CANVAS[61]->raw.GRN[0][0],CANVAS[62]->raw.GRN[0][0],CANVAS[63]->raw.GRN[0][0],
-                
-                CANVAS[0]->raw.BLU[0][0],CANVAS[1]->raw.BLU[0][0],CANVAS[2]->raw.BLU[0][0],CANVAS[3]->raw.BLU[0][0],CANVAS[4]->raw.BLU[0][0],CANVAS[5]->raw.BLU[0][0],CANVAS[06]->raw.BLU[0][0],CANVAS[7]->raw.BLU[0][0],
-                CANVAS[8]->raw.BLU[0][0],CANVAS[9]->raw.BLU[0][0],CANVAS[10]->raw.BLU[0][0],CANVAS[11]->raw.BLU[0][0],CANVAS[12]->raw.BLU[0][0],CANVAS[13]->raw.BLU[0][0],CANVAS[14]->raw.BLU[0][0],CANVAS[15]->raw.BLU[0][0],
-                CANVAS[16]->raw.BLU[0][0],CANVAS[17]->raw.BLU[0][0],CANVAS[18]->raw.BLU[0][0],CANVAS[19]->raw.BLU[0][0],CANVAS[20]->raw.BLU[0][0],CANVAS[21]->raw.BLU[0][0],CANVAS[22]->raw.BLU[0][0],CANVAS[23]->raw.BLU[0][0],
-                CANVAS[24]->raw.BLU[0][0],CANVAS[25]->raw.BLU[0][0],CANVAS[26]->raw.BLU[0][0],CANVAS[27]->raw.BLU[0][0],CANVAS[28]->raw.BLU[0][0],CANVAS[29]->raw.BLU[0][0],CANVAS[30]->raw.BLU[0][0],CANVAS[31]->raw.BLU[0][0],
-                CANVAS[32]->raw.BLU[0][0],CANVAS[33]->raw.BLU[0][0],CANVAS[34]->raw.BLU[0][0],CANVAS[35]->raw.BLU[0][0],CANVAS[36]->raw.BLU[0][0],CANVAS[37]->raw.BLU[0][0],CANVAS[38]->raw.BLU[0][0],CANVAS[39]->raw.BLU[0][0],
-                CANVAS[40]->raw.BLU[0][0],CANVAS[41]->raw.BLU[0][0],CANVAS[42]->raw.BLU[0][0],CANVAS[43]->raw.BLU[0][0],CANVAS[44]->raw.BLU[0][0],CANVAS[45]->raw.BLU[0][0],CANVAS[46]->raw.BLU[0][0],CANVAS[47]->raw.BLU[0][0],
-                CANVAS[48]->raw.BLU[0][0],CANVAS[49]->raw.BLU[0][0],CANVAS[50]->raw.BLU[0][0],CANVAS[51]->raw.BLU[0][0],CANVAS[52]->raw.BLU[0][0],CANVAS[53]->raw.BLU[0][0],CANVAS[54]->raw.BLU[0][0],CANVAS[55]->raw.BLU[0][0],
-                CANVAS[56]->raw.BLU[0][0],CANVAS[57]->raw.BLU[0][0],CANVAS[58]->raw.BLU[0][0],CANVAS[59]->raw.BLU[0][0],CANVAS[60]->raw.BLU[0][0],CANVAS[61]->raw.BLU[0][0],CANVAS[62]->raw.BLU[0][0],CANVAS[63]->raw.BLU[0][0]
-                );
+        int i;
+        int img_data_offset = 0;
+        for (i = 0; i < 256; i+=16)
+        {
+            char temp[200000];
+            sprintf(temp,imng_data_format_string,CANVAS[i]->raw.RED[0][0],CANVAS[i+1]->raw.RED[0][0],CANVAS[i+2]->raw.RED[0][0],CANVAS[i+3]->raw.RED[0][0],CANVAS[i+4]->raw.RED[0][0],CANVAS[i+5]->raw.RED[0][0],CANVAS[i+6]->raw.RED[0][0],CANVAS[i+7]->raw.RED[0][0],CANVAS[i+8]->raw.RED[0][0],CANVAS[i+9]->raw.RED[0][0],CANVAS[i+10]->raw.RED[0][0],CANVAS[i+11]->raw.RED[0][0],CANVAS[i+12]->raw.RED[0][0],CANVAS[i+13]->raw.RED[0][0],CANVAS[i+14]->raw.RED[0][0],CANVAS[i+15]->raw.RED[0][0]);
+            strcat(img_data,temp);
+        }
+
+        img_data_offset = strlen(img_data);
+
+        for (i = 0; i < 256; i+=16)
+        {
+            char temp[200000];
+            sprintf(temp,imng_data_format_string,CANVAS[i]->raw.GRN[0][0],CANVAS[i+1]->raw.GRN[0][0],CANVAS[i+2]->raw.GRN[0][0],CANVAS[i+3]->raw.GRN[0][0],CANVAS[i+4]->raw.GRN[0][0],CANVAS[i+5]->raw.GRN[0][0],CANVAS[i+6]->raw.GRN[0][0],CANVAS[i+7]->raw.GRN[0][0],CANVAS[i+8]->raw.GRN[0][0],CANVAS[i+9]->raw.GRN[0][0],CANVAS[i+10]->raw.GRN[0][0],CANVAS[i+11]->raw.GRN[0][0],CANVAS[i+12]->raw.GRN[0][0],CANVAS[i+13]->raw.GRN[0][0],CANVAS[i+14]->raw.GRN[0][0],CANVAS[i+15]->raw.GRN[0][0]);
+            strcat(img_data,temp);
+        }
+
+        img_data_offset = strlen(img_data);
+
+        for (i = 0; i < 256; i+=16)
+        {
+            char temp[200000];
+            sprintf(temp,imng_data_format_string,CANVAS[i]->raw.BLU[0][0],CANVAS[i+1]->raw.BLU[0][0],CANVAS[i+2]->raw.BLU[0][0],CANVAS[i+3]->raw.BLU[0][0],CANVAS[i+4]->raw.BLU[0][0],CANVAS[i+5]->raw.BLU[0][0],CANVAS[i+6]->raw.BLU[0][0],CANVAS[i+7]->raw.BLU[0][0],CANVAS[i+8]->raw.BLU[0][0],CANVAS[i+9]->raw.BLU[0][0],CANVAS[i+10]->raw.BLU[0][0],CANVAS[i+11]->raw.BLU[0][0],CANVAS[i+12]->raw.BLU[0][0],CANVAS[i+13]->raw.BLU[0][0],CANVAS[i+14]->raw.BLU[0][0],CANVAS[i+15]->raw.BLU[0][0]);
+            strcat(img_data,temp);
+        }
         
         strcpy(editorData->save_file_name,"touch assets/");
         strcat(editorData->save_file_name,HCS_TextInput);
@@ -341,20 +341,25 @@ int main(int argc, char* argv[])
     
     SDL_FreeSurface(temp);
     
+
+    HCS_Entity e = HCS_Entity_create("Draw_Background");
+    HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH) / 2 - 320, 80, 100 * 8 + 40, 100 * 8 + 40);
+    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+
     int row = 0, collum = 0, index = 0;
     index = 0;
     char name[20] = {0};
     char name_num[4];
     index = 0;
-    for (collum = 0; collum < 8; collum++)
-        for (row = 0; row < 8; row++)
+    for (collum = 0; collum < 16; collum++)
+        for (row = 0; row < 16; row++)
         {
             strcpy(name,"canvas");
             sprintf(name_num, "%d", index);
             strcat(name,name_num);
             HCS_Entity e = HCS_Entity_create(name);
-            HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH) / 2 - 100 * (-4 + row), 100 + (collum) * 100, 95, 95);
-            HCS_Sprite_add(e,"assets/black.hgx",HCS_Draw_Decal);
+            HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH) / 2 - 50 * (-9 + row), 100 + (collum) * 50, 45, 45);
+            HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
             HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_down);
             HCS_Clickable_add_func(e,on_canvas_click,e);
             editorData->Canvas[index] = HCS_Sprite_get(e);
@@ -375,33 +380,33 @@ int main(int argc, char* argv[])
             strcat(name2,name_num2);
             HCS_Entity e = HCS_Entity_create(name2);
             HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH - 60 - 60 * row), 100 + (collum) * 60, 50, 50);
-            HCS_Sprite_add(e,"assets/black.hgx",HCS_Draw_Decal);
+            HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
             HCS_Sprite_get(e)->tex = editorData->colour_tex[index];
-            HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_down);
+            HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
             HCS_Clickable_add_func(e,on_menu_click,index);
             index++;
         }
     
     
     
-    HCS_Entity e = HCS_Entity_create("Save_Button");
-    HCS_Body_add(e,10,100 + 0 * 100,100,75);
-    HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Decal);
+    e = HCS_Entity_create("Save_Button");
+    HCS_Body_add(e,10,100,100,75);
+    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
     HCS_Sprite_use_text(e,"Safe",4);
     HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
     HCS_Clickable_add_func(e,on_safe_click,index);
     
     e = HCS_Entity_create("Clear_Button");
-    HCS_Body_add(e,10,100 + 1 * 100,100,75);
-    HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Decal);
+    HCS_Body_add(e,10,200,100,75);
+    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
     HCS_Sprite_use_text(e,"Clear",5);
     HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
     HCS_Clickable_add_func(e,clear_canvas,index);
     
     e = HCS_Entity_create("Quit_Button");
-    HCS_Body_add(e,10,100 + 2 * 100,100,75);
-    HCS_Sprite_add(e,"assets/box.hgx",HCS_Draw_Decal);
-        HCS_Sprite_use_text(e,"Quit",4);
+    HCS_Body_add(e,10,300,100,75);
+    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+    HCS_Sprite_use_text(e,"Quit",4);
     HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
     HCS_Clickable_add_func(e,sprite_editor_deinit,index);
     

@@ -112,14 +112,14 @@ void HCS_Init(char* argv[])
     
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
     {
-        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+        LSD_Log(LSD_ltERROR,"SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
         exit(1);
     }
     
     SDL_GetDisplayBounds(0,&WIN_SIZE);
     
-    WIN_SIZE.w *= 0.75;
     WIN_SIZE.h *= 0.75;
+    WIN_SIZE.w = WIN_SIZE.h  / 9 * 16;
     
     window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,WIN_SIZE.w ,WIN_SIZE.h ,SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -432,7 +432,7 @@ HCS_Sprite* HCS_Asset(char* path)
 {
     int j,line,collum;
     FILE* file;
-    char lines[24][34];
+    char lines[48][69 * 3];
     
     for (j = 0; j < runData->HCS_Managed_Asset_used; j++)
     {
@@ -444,23 +444,23 @@ HCS_Sprite* HCS_Asset(char* path)
     runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].path = path;
     
     file = fopen(path,"r");
-    for (line = 0; line < 24; line++)
-         fgets(lines[line],33,file);
+    for (line = 0; line < 48; line++)
+         fgets(lines[line],69 * 3,file);
     fclose(file);
-    for (line = 0; line < 8; line++)
+    for (line = 0; line < 16; line++)
     {
-        sscanf(lines[line +  0],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.RED[line][0],&spr->raw.RED[line][1],&spr->raw.RED[line][2],&spr->raw.RED[line][3],&spr->raw.RED[line][4],&spr->raw.RED[line][5],&spr->raw.RED[line][6],&spr->raw.RED[line][7]);
-        sscanf(lines[line +  8],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.GRN[line][0],&spr->raw.GRN[line][1],&spr->raw.GRN[line][2],&spr->raw.GRN[line][3],&spr->raw.GRN[line][4],&spr->raw.GRN[line][5],&spr->raw.GRN[line][6],&spr->raw.GRN[line][7]);
-        sscanf(lines[line + 16],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.BLU[line][0],&spr->raw.BLU[line][1],&spr->raw.BLU[line][2],&spr->raw.BLU[line][3],&spr->raw.BLU[line][4],&spr->raw.BLU[line][5],&spr->raw.BLU[line][6],&spr->raw.BLU[line][7]);
+        sscanf(lines[line +  0],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.RED[line][0],&spr->raw.RED[line][1],&spr->raw.RED[line][2],&spr->raw.RED[line][3],&spr->raw.RED[line][4],&spr->raw.RED[line][5],&spr->raw.RED[line][6],&spr->raw.RED[line][7],&spr->raw.RED[line][8],&spr->raw.RED[line][9],&spr->raw.RED[line][10],&spr->raw.RED[line][11],&spr->raw.RED[line][12],&spr->raw.RED[line][13],&spr->raw.RED[line][14],&spr->raw.RED[line][15]);
+        sscanf(lines[line + 16],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.GRN[line][0],&spr->raw.GRN[line][1],&spr->raw.GRN[line][2],&spr->raw.GRN[line][3],&spr->raw.GRN[line][4],&spr->raw.GRN[line][5],&spr->raw.GRN[line][6],&spr->raw.GRN[line][7],&spr->raw.GRN[line][8],&spr->raw.GRN[line][9],&spr->raw.GRN[line][10],&spr->raw.GRN[line][11],&spr->raw.GRN[line][12],&spr->raw.GRN[line][13],&spr->raw.GRN[line][14],&spr->raw.GRN[line][15]);
+        sscanf(lines[line + 32],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.BLU[line][0],&spr->raw.BLU[line][1],&spr->raw.BLU[line][2],&spr->raw.BLU[line][3],&spr->raw.BLU[line][4],&spr->raw.BLU[line][5],&spr->raw.BLU[line][6],&spr->raw.BLU[line][7],&spr->raw.BLU[line][8],&spr->raw.BLU[line][9],&spr->raw.BLU[line][10],&spr->raw.BLU[line][11],&spr->raw.BLU[line][12],&spr->raw.BLU[line][13],&spr->raw.BLU[line][14],&spr->raw.BLU[line][15]);
     }
-    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
+    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
     HCS_Gfx_Rectangle r;
     r.w = 1;
     r.h = 1;
-    for (line = 7; line > -1; line--)
-        for (collum = 0; collum < 8; collum++)
+    for (line = 15; line > -1; line--)
+        for (collum = 0; collum < 16; collum++)
         {
-            r.x = 7 - line;
+            r.x = 15 - line;
             r.y = collum;
             SDL_FillRect(temp,&r,SDL_MapRGB(temp->format,spr->raw.RED[collum][line],spr->raw.GRN[collum][line],spr->raw.BLU[collum][line]));
         }
