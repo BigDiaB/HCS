@@ -50,7 +50,8 @@ bool running;
 void HCS_Update(double delta)
 {
     SDL_Event event;
-    while( SDL_PollEvent(&event))
+    while(SDL_PollEvent(&event))
+    {
         if (event.type == SDL_QUIT)
             running = false;
         else if (event.type == SDL_WINDOWEVENT)
@@ -71,7 +72,6 @@ void HCS_Update(double delta)
         {
             if( event.key.keysym.sym == SDLK_BACKSPACE && HCS_TextSize > -1 )
             {
-                //Entferne den letzten char!
                 HCS_TextInput[HCS_TextSize] = 0;
                 HCS_TextSize--;
             }
@@ -85,12 +85,13 @@ void HCS_Update(double delta)
                 HCS_TextSize += strlen(SDL_GetClipboardText());
             }
         }
-    else if (event.type == SDL_TEXTINPUT)
-    {
-        if(!(SDL_GetModState() & KMOD_CTRL && (event.text.text[0] == 'c' || event.text.text[0] == 'C' || event.text.text[0] == 'v' || event.text.text[0] == 'V')))
+        else if (event.type == SDL_TEXTINPUT)
         {
-            strcat(HCS_TextInput,event.text.text);
-            HCS_TextSize += strlen(event.text.text);
+            if(!(SDL_GetModState() & KMOD_CTRL && (event.text.text[0] == 'c' || event.text.text[0] == 'C' || event.text.text[0] == 'v' || event.text.text[0] == 'V')))
+            {
+                strcat(HCS_TextInput,event.text.text);
+                HCS_TextSize += strlen(event.text.text);
+            }
         }
     }
     SDL_RenderPresent(renderer);
@@ -178,7 +179,6 @@ HCS_Entity HCS_Entity_get_by_name(char* n)
             return HCS_Entity_get_entity_id(i,HCS_cName);
     }
     LSD_Log(LSD_ltERROR,"Konnte Entity nicht nach Namen finden!: %s", n);
-    exit(1);
     return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
 }
 

@@ -413,6 +413,7 @@ int main(int argc, char* argv[])
     HCS_Event_add("cursor_event",cursor_event);
     
     editorData->save_for_real = false;
+    clear_canvas(0);
     
     HCS_CONTINUE();
 }

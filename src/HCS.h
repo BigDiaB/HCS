@@ -52,6 +52,7 @@
  -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!
  -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen die es brauchen!
  -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!
+ -Funktionen so benennen: HCS_EntityCreate("Ich");
  
  Very Nice To Haves™:
  
