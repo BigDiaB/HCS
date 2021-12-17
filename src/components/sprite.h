@@ -57,28 +57,28 @@ void HCS_Sprite_system(double delta)
     {
         for (i = 0; i < used_buffer[t]; i++)
         {
-             HCS_Gfx_Rectangle r;
+             SDL_Rect r;
              HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[t][i],HCS_cSprite));
-             r.x = b->pos.x - HCS_Gfx_Camera.x;
-             r.y = b->pos.y - HCS_Gfx_Camera.y;
+             r.x = b->pos.x - runData->HCS_Gfx_Camera.x;
+             r.y = b->pos.y - runData->HCS_Gfx_Camera.y;
              r.w = b->size.x;
              r.h = b->size.y;
              HCS_Drawable_translate_rect(&r);
-             HCS_Gfx_Texture_draw(runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,r);
+             SDL_RenderCopy(runData->renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
         }
     }
     for (t = HCS_Drawable_Drawtype_UI; t < HCS_NUM_DRAWTYPES; t++)
     {
         for (i = 0; i < used_buffer[t]; i++)
         {
-            HCS_Gfx_Rectangle r;
+            SDL_Rect r;
             HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[t][i],HCS_cSprite));
-            r.x = b->pos.x * STRETCH_WIDTH;
+            r.x = b->pos.x * runData->STRETCH_WIDTH;
             r.y = b->pos.y;
-            r.w = b->size.x  * STRETCH_WIDTH;
+            r.w = b->size.x  * runData->STRETCH_WIDTH;
             r.h = b->size.y;
             HCS_Drawable_translate_rect(&r);
-            HCS_Gfx_Texture_draw(runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,r);
+            SDL_RenderCopy(runData->renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
         }
     }
 }
@@ -100,19 +100,19 @@ void HCS_Sprite_use_text(HCS_Entity e, char* n, int length)
         temp[i] = toupper(n[i]);
     FILE* file;
     HCS_Sprite* spr;
-    HCS_Gfx_Rectangle re;
+    SDL_Rect re;
     re.w = 1;
     re.h = 1;
-    HCS_Gfx_Rectangle r;
+    SDL_Rect r;
     r.w = 16;
     r.h = 16;
     r.y = 0;
     
     SDL_DestroyTexture(HCS_Sprite_get(e)->tex);
-    HCS_Sprite_get(e)->tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, len * 18, 16);
+    HCS_Sprite_get(e)->tex = SDL_CreateTexture(runData->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, len * 18, 16);
     SDL_SetTextureBlendMode( HCS_Sprite_get(e)->tex, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderTarget(renderer,HCS_Sprite_get(e)->tex);
-//    SDL_RenderClear(renderer);
+    SDL_SetRenderTarget(runData->renderer,HCS_Sprite_get(e)->tex);
+//    SDL_RenderClear(runData->renderer);
     for (i = 0; i < len; i++)
     {
         if (temp[i] != ' ')
@@ -125,8 +125,8 @@ void HCS_Sprite_use_text(HCS_Entity e, char* n, int length)
             strcat(path,".hgx");
             r.x = i * 18;
             spr = HCS_Asset(path);
-            SDL_RenderCopy(renderer,spr->tex,NULL,&r);
+            SDL_RenderCopy(runData->renderer,spr->tex,NULL,&r);
         }
     }
-    SDL_SetRenderTarget(renderer,NULL);
+    SDL_SetRenderTarget(runData->renderer,NULL);
 }

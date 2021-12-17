@@ -69,17 +69,6 @@
 
 #define AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
 
-#define HCS_Gfx_Texture_color_mod(X,R,G,B)          SDL_SetTextureColorMod(X,R,G,B)
-#define HCS_Gfx_Texture_alpha_mod(X,A)              SDL_SetTextureAlphaMod(X,Y)
-
-#define HCS_Gfx_Texture_draw(X,Y,Z)                 SDL_RenderCopy(renderer,X,Y,&Z)
-#define HCS_Gfx_Rectangle_fill(X)                   SDL_RenderFillRect(renderer,&X)
-#define HCS_Gfx_Rectangle_draw(X)                   SDL_RenderDrawRect(renderer,&X)
-#define HCS_Gfx_DrawColor_set(R,G,B,A)              SDL_SetRenderDrawColor(renderer,R,G,B,A)
-
-#define HCS_Gfx_Surface_to_texture(X)               SDL_CreateTextureFromSurface(renderer,X)
-#define HCS_Gfx_Texture_destroy(X)                  SDL_DestroyTexture(X)
-
 #define HCS_INPUT_UP                                SDLK_w
 #define HCS_INPUT_DOWN                              SDLK_s
 #define HCS_INPUT_LEFT                              SDLK_a
@@ -87,13 +76,10 @@
 #define HCS_INPUT_A                                 SDLK_c
 #define HCS_INPUT_B                                 SDLK_SPACE
 
-typedef SDL_Texture* HCS_Gfx_Texture;
-typedef SDL_Surface* HCS_Gfx_Surface;
-typedef SDL_Rect     HCS_Gfx_Rectangle;
-typedef SDL_Color    HCS_Gfx_Color;
-
 #define HCS_MAX_NAMES 2000
 #define HCS_MAX_ENTITIES 2000
+#define HCS_MAX_ASSETS 4000
+#define HCS_MAX_TEXTINPUT 2000
 
 #define HCS_MAX_BODIES 2000
 #define HCS_MAX_SPRITES 2000
@@ -139,8 +125,8 @@ typedef struct
 typedef struct
 {
     HCS_Drawtype type;
-    HCS_Gfx_Rectangle body;
-    HCS_Gfx_Texture tex;
+    SDL_Rect body;
+    SDL_Texture* tex;
     HCS_Sprite_raw raw;
     char* path;
 } HCS_Sprite;
@@ -219,14 +205,36 @@ typedef struct {
     void (*event)(void);
 } HCS_Event;
 
+typedef struct {
+    bool down;
+    bool last_down;
+    bool pressed;
+    bool released;
+} HCS_Button;
+
 LSD_Vec2i HCS_Screen_size_get();
 HCS_Sprite* HCS_Asset(char* path);
 void HCS_Void_func();
 void HCS_Init(char* argv[]);
 void HCS_Deinit();
+void HCS_Stop();
 void HCS_Update(double delta);
 void HCS_Gfx_Fullscreen_toggle();
 int HCS_Main(int argc, char* argv[]);
+
+LSD_Vec2f* HCS_Camera_get();
+LSD_Vec2i* HCS_Cursor_position_get();
+HCS_Button* HCS_Cursor_button_get();
+HCS_Button* HCS_Button_A_get();
+HCS_Button* HCS_Button_B_get();
+bool HCS_running_get();
+
+SDL_Renderer* HCS_Gfx_renderer_get();
+SDL_Window* HCS_Gfx_window_get();
+LSD_Vec2d HCS_Gfx_stretch_get();
+
+char* HCS_Text_input_get();
+int* HCS_Text_input_length_get();
 
 void sprite_new(HCS_Sprite* spr, char* filename);
 
@@ -277,7 +285,7 @@ HCS_Movement* HCS_Movement_get(HCS_Entity e);
 void HCS_Movement_remove(HCS_Entity e);
 void HCS_Movement_system();
 
-void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r);
+void HCS_Drawable_translate_rect(SDL_Rect* r);
 int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t);
 void HCS_Sprite_use_text(HCS_Entity e, char* n, int length);
 HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
@@ -294,9 +302,41 @@ HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();
 
-struct HCS_runData {
 
-    HCS_Managed_Asset HCS_Managed_Assets[HCS_MAX_SPRITES];
+struct HCS_runData {
+    SDL_Color color;
+    SDL_Color std;
+
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    SDL_Event event;
+    SDL_Rect WIN_SIZE;
+
+    double WORLD_TO_SCREEN_X;
+    double WORLD_TO_SCREEN_Y;
+
+    double DRAW_OFFSET;
+    double STRETCH_WIDTH;
+    double STRETCH_HEIGHT;
+
+    bool fullscreen;
+
+    bool HCS_running;
+    bool HCS_Input_disabled;
+
+    char HCS_Text_input[HCS_MAX_TEXTINPUT];
+    int HCS_Text_input_size;
+
+    HCS_Button HCS_Input_A;
+    HCS_Button HCS_Input_B;
+    LSD_Vec2i HCS_Input_Pad;
+
+    HCS_Button HCS_Input_Cursor_button;
+    LSD_Vec2i HCS_Input_Cursor_position;
+
+    LSD_Vec2f HCS_Gfx_Camera;
+
+    HCS_Managed_Asset HCS_Managed_Assets[HCS_MAX_ASSETS];
     int HCS_Managed_Asset_used;
     
     HCS_Event HCS_Events[HCS_MAX_EVENTS];

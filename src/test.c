@@ -3,40 +3,10 @@
 #include <LSD/LSD.h>//<- "Logging" System
 #include "HCS.h"	//<- Entity Component System
 
-extern struct HCS_runData* runData;
-extern HCS_Gfx_Color color;
-extern HCS_Gfx_Color std;
-extern SDL_Window* window;
-extern SDL_Renderer* renderer;
-extern HCS_Gfx_Rectangle WIN_SIZE;
-extern bool HCS_Gfx_Mouse_clicked;
-extern bool HCS_Gfx_Mouse_last_clicked;
-extern bool HCS_Input_A_Ldown;
-extern bool HCS_Input_A_down;
-extern bool HCS_Input_A_pressed;
-extern bool HCS_Input_A_released;
-extern bool HCS_Input_B_Ldown;
-extern bool HCS_Input_B_down;
-extern bool HCS_Input_B_pressed;
-extern bool HCS_Input_B_released;
-extern LSD_Vec2i HCS_Input_Pad;
-extern bool HCS_Input_Menu;
-extern LSD_Vec2f HCS_Gfx_Camera;
-extern LSD_Vec2i HCS_Gfx_Mouse_pos;
-extern double WORLD_TO_SCREEN_X;
-extern double WORLD_TO_SCREEN_Y;
-extern double DRAW_OFFSET;
-extern double STRETCH_WIDTH;
-extern double STRETCH_HEIGHT;
-extern bool fullscreen;
-extern bool running;
-extern char HCS_TextInput[2056];
-extern int HCS_TextSize;
-
 void cursor_event()
 {
-    HCS_Gfx_Mouse_last_clicked = HCS_Gfx_Mouse_clicked;
-    HCS_Gfx_Mouse_clicked = SDL_GetMouseState(&HCS_Gfx_Mouse_pos.x,&HCS_Gfx_Mouse_pos.y) & SDL_BUTTON_LMASK;
+    HCS_Cursor_button_get()->last_down = HCS_Cursor_button_get()->down;
+    HCS_Cursor_button_get()->down = SDL_GetMouseState(&HCS_Cursor_position_get()->x,&HCS_Cursor_position_get()->y) & SDL_BUTTON_LMASK;
 }
 
 
@@ -49,7 +19,7 @@ struct HCS_editorData
 {
     HCS_Sprite* Canvas[16 * 16];
     HCS_Sprite_raw colours[NUM_COLOURS];
-    HCS_Gfx_Texture colour_tex[NUM_COLOURS];
+    SDL_Texture* colour_tex[NUM_COLOURS];
     unsigned char RED[NUM_COLOURS];
     unsigned char GRN[NUM_COLOURS];
     unsigned char BLU[NUM_COLOURS];
@@ -64,13 +34,13 @@ static struct HCS_editorData* editorData;
 
 void sprite_editor_deinit(int nothing)
 {
-    running = false;
+    HCS_Stop();
 }
 
 void clear_canvas(int nothing)
 {
     int i,j;
-    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
+    SDL_Surface* temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
     HCS_Sprite_raw spr = {0};
     for (i = 0; i < 16 * 16; i++)
         editorData->Canvas[i]->raw = spr;
@@ -78,7 +48,7 @@ void clear_canvas(int nothing)
     {
         SDL_FillRect(temp,NULL,SDL_MapRGB(temp->format,0,0,0));
         SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
-        editorData->Canvas[j]->tex = SDL_CreateTextureFromSurface(renderer,temp);
+        editorData->Canvas[j]->tex = SDL_CreateTextureFromSurface(HCS_Gfx_renderer_get(),temp);
     }
     SDL_FreeSurface(temp);
     LSD_Log(LSD_ltMESSAGE,"Canvas erfolgreich zurückgesetzt!");
@@ -113,10 +83,10 @@ void on_canvas_click(int self)
         for (i = 0; i < 8; i++)
             this->raw = editorData->colours[index];
     
-    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
+    SDL_Surface* temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
     SDL_FillRect(temp,NULL,SDL_MapRGB(temp->format,this->raw.RED[0][0],this->raw.GRN[0][0],this->raw.BLU[0][0]));
     SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
-    this->tex = SDL_CreateTextureFromSurface(renderer,temp);
+    this->tex = SDL_CreateTextureFromSurface(HCS_Gfx_renderer_get(),temp);
     SDL_FreeSurface(temp);
 }
 
@@ -125,23 +95,23 @@ void text_box_event()
     static char test[2056];
     if (!HCS_Entity_exist("Safe_Name"))
     {
-        HCS_TextInput[0] = 0;
+        HCS_Text_input_get()[0] = 0;
         HCS_Entity e = HCS_Entity_create("Safe_Name");
-        HCS_Body_add(e,HCS_Screen_size_get().x * STRETCH_WIDTH / 4,200,100,HCS_Screen_size_get().x * STRETCH_WIDTH / 24);
+        HCS_Body_add(e,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 4,200,100,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 24);
         HCS_Sprite_add(e,"assets/black.hgx",HCS_Draw_Decal);
-        HCS_Sprite_use_text(HCS_Entity_get_by_name("Safe_Name"),HCS_TextInput,strlen(HCS_TextInput));
-        strcpy(test,HCS_TextInput);
+        HCS_Sprite_use_text(HCS_Entity_get_by_name("Safe_Name"),HCS_Text_input_get(),*HCS_Text_input_length_get());
+        strcpy(test,HCS_Text_input_get());
     }
-    if (0 != strcmp(test,HCS_TextInput))
+    if (0 != strcmp(test,HCS_Text_input_get()))
     {
-        strcpy(test,HCS_TextInput);
-        if (strlen(HCS_TextInput) > 12)
+        strcpy(test,HCS_Text_input_get());
+        if (*HCS_Text_input_length_get() > 12)
         {
-            HCS_TextInput[12] = 0;
-            HCS_TextSize = 11;
+            HCS_Text_input_get()[12] = 0;
+            *HCS_Text_input_length_get() = 11;
         }
         else
-            HCS_Sprite_use_text(HCS_Entity_get_by_name("Safe_Name"),HCS_TextInput,strlen(HCS_TextInput));
+            HCS_Sprite_use_text(HCS_Entity_get_by_name("Safe_Name"),HCS_Text_input_get(),*HCS_Text_input_length_get());
     }
 }
 
@@ -152,12 +122,12 @@ void on_safe_click(int nothing)
     if (editorData->save_for_real == false)
     {
         HCS_Entity e = HCS_Entity_create("Safe_Background");
-        HCS_Body_add(e,HCS_Screen_size_get().x * STRETCH_WIDTH / 4 - 20,100,HCS_Screen_size_get().x * STRETCH_WIDTH / 2 + 20,700);
+        HCS_Body_add(e,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 4 - 20,100,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 2 + 20,700);
         HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
 
 
         e = HCS_Entity_create("Done_Button");
-        HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH) / 4, 650,100,HCS_Screen_size_get().x * STRETCH_WIDTH / 24);
+        HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 4, 650,100,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 24);
         HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
         HCS_Sprite_use_text(e,"Done",4);
         HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_off,HCS_Trig_released);
@@ -165,7 +135,7 @@ void on_safe_click(int nothing)
         HCS_Event_add("Safe_Name",text_box_event);
         
         e = HCS_Entity_create("Cancel_Button");
-        HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH) / 2, 650,100,HCS_Screen_size_get().x * STRETCH_WIDTH / 24);
+        HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2, 650,100,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 24);
         HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
         HCS_Sprite_use_text(e,"Cancel",6);
         HCS_Clickable_add(e,&editorData->save_for_real,HCS_Click_off,HCS_Trig_released);
@@ -217,12 +187,12 @@ void on_safe_click(int nothing)
         }
         
         strcpy(editorData->save_file_name,"touch assets/");
-        strcat(editorData->save_file_name,HCS_TextInput);
+        strcat(editorData->save_file_name,HCS_Text_input_get());
         strcat(editorData->save_file_name,".hgx");
         system(editorData->save_file_name);
         
         strcpy(editorData->save_file_name,"assets/");
-        strcat(editorData->save_file_name,HCS_TextInput);
+        strcat(editorData->save_file_name,HCS_Text_input_get());
         strcat(editorData->save_file_name,".hgx");
         LSD_File* save_file = LSD_File_open(editorData->save_file_name);
         
@@ -230,7 +200,7 @@ void on_safe_click(int nothing)
         
         LSD_File_close(save_file);
         free(img_data);
-        LSD_Log(LSD_ltMESSAGE,"Canvas erfolgreich als Datei gespeichert!: %s",HCS_TextInput);
+        LSD_Log(LSD_ltMESSAGE,"Canvas erfolgreich als Datei gespeichert!: %s",HCS_Text_input_get());
     }
 }
 
@@ -320,8 +290,8 @@ int main(int argc, char* argv[])
             }
     }
     
-    HCS_Gfx_Rectangle r;
-    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
+    SDL_Rect r;
+    SDL_Surface* temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
     r.w = 1;
     r.h = 1;
     for (k = 0; k < NUM_COLOURS; k++)
@@ -336,14 +306,14 @@ int main(int argc, char* argv[])
         
         SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
         
-        editorData->colour_tex[k] = SDL_CreateTextureFromSurface(renderer,temp);
+        editorData->colour_tex[k] = SDL_CreateTextureFromSurface(HCS_Gfx_renderer_get(),temp);
     }
     
     SDL_FreeSurface(temp);
     
 
     HCS_Entity e = HCS_Entity_create("Draw_Background");
-    HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH) / 2 - 320, 80, 100 * 8 + 40, 100 * 8 + 40);
+    HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2 - 320, 80, 100 * 8 + 40, 100 * 8 + 40);
     HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
 
     int row = 0, collum = 0, index = 0;
@@ -358,7 +328,7 @@ int main(int argc, char* argv[])
             sprintf(name_num, "%d", index);
             strcat(name,name_num);
             HCS_Entity e = HCS_Entity_create(name);
-            HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH) / 2 - 50 * (-9 + row), 100 + (collum) * 50, 45, 45);
+            HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2 - 50 * (-9 + row), 100 + (collum) * 50, 45, 45);
             HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
             HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_down);
             HCS_Clickable_add_func(e,on_canvas_click,e);
@@ -379,7 +349,7 @@ int main(int argc, char* argv[])
             sprintf(name_num2, "%d", index);
             strcat(name2,name_num2);
             HCS_Entity e = HCS_Entity_create(name2);
-            HCS_Body_add(e,(HCS_Screen_size_get().x * STRETCH_WIDTH - 60 - 60 * row), 100 + (collum) * 60, 50, 50);
+            HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x - 60 - 60 * row), 100 + (collum) * 60, 50, 50);
             HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
             HCS_Sprite_get(e)->tex = editorData->colour_tex[index];
             HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);

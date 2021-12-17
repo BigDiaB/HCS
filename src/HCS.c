@@ -7,95 +7,73 @@
 #endif
 
 struct HCS_runData* runData;
-HCS_Gfx_Color color = {255,255,255,255};
-HCS_Gfx_Color std = {125,125,125,255};
-
-SDL_Window* window;
-SDL_Renderer* renderer;
-HCS_Gfx_Rectangle WIN_SIZE;
-
-char HCS_TextInput[2046];
-int HCS_TextSize = 0;
-
-bool HCS_Gfx_Mouse_clicked;
-bool HCS_Gfx_Mouse_last_clicked;
-
-bool HCS_Input_A_Ldown;
-bool HCS_Input_A_down;
-bool HCS_Input_A_pressed;
-bool HCS_Input_A_released;
-
-bool HCS_Input_B_Ldown;
-bool HCS_Input_B_down;
-bool HCS_Input_B_pressed;
-bool HCS_Input_B_released;
-
-LSD_Vec2i HCS_Input_Pad;
-
-bool HCS_Input_Menu = true;
-
-LSD_Vec2f HCS_Gfx_Camera = {0,0};
-LSD_Vec2i HCS_Gfx_Mouse_pos;
-
-double WORLD_TO_SCREEN_X = 1000;
-double WORLD_TO_SCREEN_Y = 1000;
-
-double DRAW_OFFSET = 0;
-double STRETCH_WIDTH = 1;
-double STRETCH_HEIGHT = 1;
-
-bool fullscreen = false;
-bool running;
 
 void HCS_Update(double delta)
 {
-    SDL_Event event;
-    while(SDL_PollEvent(&event))
+    while(SDL_PollEvent(&runData->event))
     {
-        if (event.type == SDL_QUIT)
-            running = false;
-        else if (event.type == SDL_WINDOWEVENT)
+        if (runData->event.type == SDL_QUIT)
+            runData->HCS_running = false;
+        else if (runData->event.type == SDL_WINDOWEVENT)
         {
-            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                SDL_GetWindowSize(window, &WIN_SIZE.w,&WIN_SIZE.h);
-                STRETCH_WIDTH = (double)WIN_SIZE.w / (double)WIN_SIZE.h;
-                STRETCH_HEIGHT = (double)WIN_SIZE.h / (double)WIN_SIZE.w;
+            if (runData->event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 HCS_Entity_clear();
+
+                SDL_Window* win = runData->window;
+                SDL_Renderer* ren = runData->renderer;
                 free(runData);
                 runData = malloc(sizeof(struct HCS_runData));
                 struct HCS_runData zero = {0};
                 *runData = zero;
-                running = HCS_Main(0,NULL);
+
+                runData->DRAW_OFFSET = 0;
+                runData->STRETCH_HEIGHT = 1;
+                runData->STRETCH_WIDTH = 1;
+                runData->WORLD_TO_SCREEN_X = 1000;
+                runData->WORLD_TO_SCREEN_Y = 1000;
+                runData->std.r = 125;
+                runData->std.g = 125;
+                runData->std.b = 125;
+                runData->color.r = 255;
+                runData->color.g = 255;
+                runData->color.b = 255;
+                runData->renderer = ren;
+                runData->window = win;
+                runData->fullscreen = false;
+                SDL_GetWindowSize(runData->window, &runData->WIN_SIZE.w,&runData->WIN_SIZE.h);
+                runData->STRETCH_WIDTH = (double)runData->WIN_SIZE.w / (double)runData->WIN_SIZE.h;
+                runData->STRETCH_HEIGHT = (double)runData->WIN_SIZE.h / (double)runData->WIN_SIZE.w;
+                runData->HCS_running = HCS_Main(0,NULL);
             }
         }
-        else if (event.type == SDL_KEYDOWN)
+        else if (runData->event.type == SDL_KEYDOWN)
         {
-            if( event.key.keysym.sym == SDLK_BACKSPACE && HCS_TextSize > -1 )
+            if( runData->event.key.keysym.sym == SDLK_BACKSPACE && runData->HCS_Text_input_size > -1 )
             {
-                HCS_TextInput[HCS_TextSize] = 0;
-                HCS_TextSize--;
+                runData->HCS_Text_input[runData->HCS_Text_input_size] = 0;
+                runData->HCS_Text_input_size--;
             }
-            else if( event.key.keysym.sym == SDLK_c && SDL_GetModState() & KMOD_CTRL )
+            else if( runData->event.key.keysym.sym == SDLK_c && SDL_GetModState() & KMOD_CTRL )
             {
-                SDL_SetClipboardText(HCS_TextInput);
+                SDL_SetClipboardText(runData->HCS_Text_input);
             }
-            else if( event.key.keysym.sym == SDLK_v && SDL_GetModState() & KMOD_CTRL )
+            else if( runData->event.key.keysym.sym == SDLK_v && SDL_GetModState() & KMOD_CTRL )
             {
-                strcat(HCS_TextInput,SDL_GetClipboardText());
-                HCS_TextSize += strlen(SDL_GetClipboardText());
+                strcat(runData->HCS_Text_input,SDL_GetClipboardText());
+                runData->HCS_Text_input_size += strlen(SDL_GetClipboardText());
             }
         }
-        else if (event.type == SDL_TEXTINPUT)
+        else if (runData->event.type == SDL_TEXTINPUT)
         {
-            if(!(SDL_GetModState() & KMOD_CTRL && (event.text.text[0] == 'c' || event.text.text[0] == 'C' || event.text.text[0] == 'v' || event.text.text[0] == 'V')))
+            if(!(SDL_GetModState() & KMOD_CTRL && (runData->event.text.text[0] == 'c' || runData->event.text.text[0] == 'C' || runData->event.text.text[0] == 'v' || runData->event.text.text[0] == 'V')))
             {
-                strcat(HCS_TextInput,event.text.text);
-                HCS_TextSize += strlen(event.text.text);
+                strcat(runData->HCS_Text_input,runData->event.text.text);
+                runData->HCS_Text_input_size += strlen(runData->event.text.text);
             }
         }
     }
-    SDL_RenderPresent(renderer);
-    SDL_RenderClear(renderer);
+    SDL_RenderPresent(runData->renderer);
+    SDL_RenderClear(runData->renderer);
 }
 
 
@@ -106,10 +84,24 @@ void HCS_Update(double delta)
 void HCS_Init(char* argv[])
 {
     LSD_File_path_prepare(argv,6);
-    
+
     runData = malloc(sizeof(struct HCS_runData));
     struct HCS_runData zero = {0};
     *runData = zero;
+
+    runData->DRAW_OFFSET = 0;
+    runData->STRETCH_HEIGHT = 1;
+    runData->STRETCH_WIDTH = 1;
+    runData->WORLD_TO_SCREEN_X = 1000;
+    runData->WORLD_TO_SCREEN_Y = 1000;
+    runData->std.r = 125;
+    runData->std.g = 125;
+    runData->std.b = 125;
+    runData->color.r = 255;
+    runData->color.g = 255;
+    runData->color.b = 255;
+    runData->fullscreen = false;
+
     
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
     {
@@ -117,26 +109,28 @@ void HCS_Init(char* argv[])
         exit(1);
     }
     
-    SDL_GetDisplayBounds(0,&WIN_SIZE);
+    SDL_GetDisplayBounds(0,&runData->WIN_SIZE);
     
-    WIN_SIZE.h *= 0.75;
-    WIN_SIZE.w = WIN_SIZE.h  / 9 * 16;
+    runData->WIN_SIZE.h *= 0.75;
+    runData->WIN_SIZE.w = runData->WIN_SIZE.h  / 9 * 16;
     
-    window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,WIN_SIZE.w ,WIN_SIZE.h ,SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    SDL_SetRenderDrawColor(renderer,std.r,std.g,std.b,std.a);
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    runData->window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,runData->WIN_SIZE.w ,runData->WIN_SIZE.h ,SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
+    runData->renderer = SDL_CreateRenderer(runData->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_SetRenderDrawColor(runData->renderer,runData->std.r,runData->std.g,runData->std.b,runData->std.a);
+    SDL_RenderClear(runData->renderer);
+    SDL_SetRenderDrawBlendMode(runData->renderer, SDL_BLENDMODE_BLEND);
     
-    STRETCH_WIDTH = (double)WIN_SIZE.w / (double)WIN_SIZE.h;
-    STRETCH_HEIGHT = (double)WIN_SIZE.h / (double)WIN_SIZE.w;
-    SDL_SetWindowSize(window, WIN_SIZE.w,WIN_SIZE.h);
-    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    runData->STRETCH_WIDTH = (double)runData->WIN_SIZE.w / (double)runData->WIN_SIZE.h;
+    runData->STRETCH_HEIGHT = (double)runData->WIN_SIZE.h / (double)runData->WIN_SIZE.w;
+    SDL_SetWindowSize(runData->window, runData->WIN_SIZE.w,runData->WIN_SIZE.h);
+    SDL_SetWindowPosition(runData->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 }
 
 
 void HCS_Deinit()
 {
+    SDL_DestroyWindow(runData->window);
+    SDL_DestroyRenderer(runData->renderer);
     SDL_Quit();
     free(runData);
 }
@@ -296,13 +290,13 @@ void HCS_Entity_remove(HCS_Entity ent)
     LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d erfolgreicht entfernt!",ent);
 }
 
-void HCS_Drawable_translate_rect(HCS_Gfx_Rectangle* r)
+void HCS_Drawable_translate_rect(SDL_Rect* r)
 {
     
-    r->y = LSD_Math_map(r->y,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
-    r->h = LSD_Math_map(r->h,0,WORLD_TO_SCREEN_Y,0,WIN_SIZE.h);
-    r->x = LSD_Math_map(r->x,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
-    r->w = LSD_Math_map(r->w,0,WORLD_TO_SCREEN_X * STRETCH_WIDTH,0,WIN_SIZE.w);
+    r->y = LSD_Math_map(r->y,0,runData->WORLD_TO_SCREEN_Y,0,runData->WIN_SIZE.h);
+    r->h = LSD_Math_map(r->h,0,runData->WORLD_TO_SCREEN_Y,0,runData->WIN_SIZE.h);
+    r->x = LSD_Math_map(r->x,0,runData->WORLD_TO_SCREEN_X * runData->STRETCH_WIDTH,0,runData->WIN_SIZE.w);
+    r->w = LSD_Math_map(r->w,0,runData->WORLD_TO_SCREEN_X * runData->STRETCH_WIDTH,0,runData->WIN_SIZE.w);
     
 //    r->y = LSD_Math_map(r->y,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
 //    r->h = LSD_Math_map(r->h,0,WORLD_TO_SCREEN_Y * STRETCH_HEIGHT,0,WIN_SIZE.h);
@@ -328,7 +322,7 @@ void Controller_Server_POST(LSD_WebServer* server)
 {
     char* data_line = strstr(server->read_buffer,"Content-Type: ") + 14;
     data_line[(int)(strstr(data_line, "\n") - data_line)] = 0;
-    sscanf(data_line, "%d %d %d %d",&HCS_Input_A_down, &HCS_Input_B_down, &HCS_Input_Pad.x, &HCS_Input_Pad.y);
+    sscanf(data_line, "%d %d %d %d",&runData->HCS_Input_A.down, &runData->HCS_Input_B.down, &runData->HCS_Input_Pad.x, &runData->HCS_Input_Pad.y);
 }
 
 
@@ -337,7 +331,7 @@ LSD_Thread_function(Controller_Server)
     LSD_Thread_init();
 
     LSD_WebServer* server = LSD_WebServer_open("server",LSD_WebServer_STD_GET,Controller_Server_POST);
-    while(running)
+    while(runData->HCS_running)
         LSD_WebServer_serve_once(server);
     LSD_WebServer_close(server);
 
@@ -348,7 +342,7 @@ LSD_Thread_function(Controller_Server)
 LSD_Thread_function(Misc_Wrapper)
 {
     LSD_Thread_init();
-    while(running)
+    while(runData->HCS_running)
     {
         HCS_Collider_system(LSD_Delta_none);
         HCS_Input_system(LSD_Delta_none);
@@ -361,7 +355,7 @@ LSD_Thread_function(Move_Wrapper)
     LSD_Thread_init();
     LSD_Delta_add("Movement_Wrapper");
     double delta;
-    while(running)
+    while(runData->HCS_running)
     {
         LSD_Delta_tick("Movement_Wrapper");
         delta = LSD_Delta_get("Movement_Wrapper")->delta;
@@ -376,7 +370,7 @@ LSD_Thread_function(Move_Wrapper)
 /* !!!NUR FÜR UI-ELEMENTE!!! */
 LSD_Vec2i HCS_Screen_size_get()
 {
-    LSD_Vec2i size = {WORLD_TO_SCREEN_X,WORLD_TO_SCREEN_Y};
+    LSD_Vec2i size = {runData->WORLD_TO_SCREEN_X,runData->WORLD_TO_SCREEN_Y};
     return size;
 }
 void HCS_Void_func()
@@ -406,15 +400,15 @@ int main(int argc, char* argv[])
     //Library-Initialisierung
     HCS_Init(argv);
     LSD_Log_level_set(LSD_llALL);
-    running = HCS_Main(argc,argv);
+    runData->HCS_running = HCS_Main(argc,argv);
 //    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
 //    LSD_Thread_add("Movement",Move_Wrapper);
 //    LSD_Thread_add("Controller",Controller_Server);
     //Game-Loop
-    while(running || LSD_Thread_used > 0)
+    while(runData->HCS_running || LSD_Thread_used > 0)
     {
         // LSD_Thread_system();
-        if (running)
+        if (runData->HCS_running)
         {
             HCS_Sprite_system(LSD_Delta_none);
             HCS_Clickable_system(LSD_Delta_none);
@@ -439,6 +433,9 @@ HCS_Sprite* HCS_Asset(char* path)
         if (0 == strcmp(path,runData->HCS_Managed_Assets[j].path))
             return &runData->HCS_Managed_Assets[j].spr;
     }
+
+    if (runData->HCS_Managed_Asset_used >= HCS_MAX_ASSETS)
+        LSD_Log(LSD_ltERROR,"Keine freien Assets mehr!\nHatte keinen Platz mehr für: %s",path);
     
     HCS_Sprite* spr = &runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].spr;
     runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].path = path;
@@ -453,8 +450,8 @@ HCS_Sprite* HCS_Asset(char* path)
         sscanf(lines[line + 16],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.GRN[line][0],&spr->raw.GRN[line][1],&spr->raw.GRN[line][2],&spr->raw.GRN[line][3],&spr->raw.GRN[line][4],&spr->raw.GRN[line][5],&spr->raw.GRN[line][6],&spr->raw.GRN[line][7],&spr->raw.GRN[line][8],&spr->raw.GRN[line][9],&spr->raw.GRN[line][10],&spr->raw.GRN[line][11],&spr->raw.GRN[line][12],&spr->raw.GRN[line][13],&spr->raw.GRN[line][14],&spr->raw.GRN[line][15]);
         sscanf(lines[line + 32],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.BLU[line][0],&spr->raw.BLU[line][1],&spr->raw.BLU[line][2],&spr->raw.BLU[line][3],&spr->raw.BLU[line][4],&spr->raw.BLU[line][5],&spr->raw.BLU[line][6],&spr->raw.BLU[line][7],&spr->raw.BLU[line][8],&spr->raw.BLU[line][9],&spr->raw.BLU[line][10],&spr->raw.BLU[line][11],&spr->raw.BLU[line][12],&spr->raw.BLU[line][13],&spr->raw.BLU[line][14],&spr->raw.BLU[line][15]);
     }
-    HCS_Gfx_Surface temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
-    HCS_Gfx_Rectangle r;
+    SDL_Surface* temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
+    SDL_Rect r;
     r.w = 1;
     r.h = 1;
     for (line = 15; line > -1; line--)
@@ -467,8 +464,60 @@ HCS_Sprite* HCS_Asset(char* path)
     
     SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
     
-    spr->tex = SDL_CreateTextureFromSurface(renderer,temp);
+    spr->tex = SDL_CreateTextureFromSurface(runData->renderer,temp);
     SDL_FreeSurface(temp);
     
     return spr;
+}
+
+LSD_Vec2f* HCS_Camera_get()
+{
+    return &runData->HCS_Gfx_Camera;
+}
+LSD_Vec2i* HCS_Cursor_position_get()
+{
+    return &runData->HCS_Input_Cursor_position;
+}
+HCS_Button* HCS_Cursor_button_get()
+{
+    return &runData->HCS_Input_Cursor_button;
+}
+HCS_Button* HCS_Button_A_get()
+{
+    return &runData->HCS_Input_A;
+}
+HCS_Button* HCS_Button_B_get()
+{
+    return &runData->HCS_Input_B;
+}
+bool HCS_running_get()
+{
+    return runData->HCS_running;
+}
+
+SDL_Renderer* HCS_Gfx_renderer_get()
+{
+    return runData->renderer;
+}
+SDL_Window* HCS_Gfx_window_get()
+{
+    return runData->window;
+}
+LSD_Vec2d HCS_Gfx_stretch_get()
+{
+    return LSD_Vec_new_double(runData->STRETCH_WIDTH,runData->STRETCH_HEIGHT);
+}
+
+char* HCS_Text_input_get()
+{
+    return runData->HCS_Text_input;
+}
+int* HCS_Text_input_length_get()
+{
+    return &runData->HCS_Text_input_size;
+}
+
+void HCS_Stop()
+{
+    runData->HCS_running = false;
 }
