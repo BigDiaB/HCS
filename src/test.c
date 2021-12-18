@@ -214,177 +214,188 @@ struct HCS_editorData HCS_editorData;
 static struct HCS_editorData* editorData = &HCS_editorData;
 int main(int argc, char* argv[])
 {
-    editorData->RED[0] = 0;
-    editorData->GRN[0] = 0;
-    editorData->BLU[0] = 0;
+    // editorData->RED[0] = 0;
+    // editorData->GRN[0] = 0;
+    // editorData->BLU[0] = 0;
     
-    editorData->RED[1] = 255;
-    editorData->GRN[1] = 255;
-    editorData->BLU[1] = 255;
+    // editorData->RED[1] = 255;
+    // editorData->GRN[1] = 255;
+    // editorData->BLU[1] = 255;
     
-    editorData->RED[2] = 255;
-    editorData->GRN[2] = 0;
-    editorData->BLU[2] = 0;
+    // editorData->RED[2] = 255;
+    // editorData->GRN[2] = 0;
+    // editorData->BLU[2] = 0;
     
-    editorData->RED[3] = 255;
-    editorData->GRN[3] = 255;
-    editorData->BLU[3] = 0;
+    // editorData->RED[3] = 255;
+    // editorData->GRN[3] = 255;
+    // editorData->BLU[3] = 0;
     
-    editorData->RED[4] = 255;
-    editorData->GRN[4] = 0;
-    editorData->BLU[4] = 255;
+    // editorData->RED[4] = 255;
+    // editorData->GRN[4] = 0;
+    // editorData->BLU[4] = 255;
     
-    editorData->RED[5] = 0;
-    editorData->GRN[5] = 255;
-    editorData->BLU[5] = 0;
+    // editorData->RED[5] = 0;
+    // editorData->GRN[5] = 255;
+    // editorData->BLU[5] = 0;
     
-    editorData->RED[6] = 0;
-    editorData->GRN[6] = 255;
-    editorData->BLU[6] = 255;
+    // editorData->RED[6] = 0;
+    // editorData->GRN[6] = 255;
+    // editorData->BLU[6] = 255;
     
-    editorData->RED[7] = 0;
-    editorData->GRN[7] = 0;
-    editorData->BLU[7] = 255;
+    // editorData->RED[7] = 0;
+    // editorData->GRN[7] = 0;
+    // editorData->BLU[7] = 255;
     
-    editorData->RED[8] = 20;
-    editorData->GRN[8] = 20;
-    editorData->BLU[8] = 20;
+    // editorData->RED[8] = 20;
+    // editorData->GRN[8] = 20;
+    // editorData->BLU[8] = 20;
     
-    editorData->RED[9] = 100;
-    editorData->GRN[9] = 20;
-    editorData->BLU[9] = 20;
+    // editorData->RED[9] = 100;
+    // editorData->GRN[9] = 20;
+    // editorData->BLU[9] = 20;
     
-    editorData->RED[10] = 20;
-    editorData->GRN[10] = 100;
-    editorData->BLU[10] = 20;
+    // editorData->RED[10] = 20;
+    // editorData->GRN[10] = 100;
+    // editorData->BLU[10] = 20;
     
-    editorData->RED[11] = 20;
-    editorData->GRN[11] = 20;
-    editorData->BLU[11] = 100;
+    // editorData->RED[11] = 20;
+    // editorData->GRN[11] = 20;
+    // editorData->BLU[11] = 100;
     
-    editorData->RED[12] = 100;
-    editorData->GRN[12] = 100;
-    editorData->BLU[12] = 20;
+    // editorData->RED[12] = 100;
+    // editorData->GRN[12] = 100;
+    // editorData->BLU[12] = 20;
     
-    editorData->RED[13] = 100;
-    editorData->GRN[13] = 20;
-    editorData->BLU[13] = 100;
+    // editorData->RED[13] = 100;
+    // editorData->GRN[13] = 20;
+    // editorData->BLU[13] = 100;
     
-    editorData->RED[14] = 20;
-    editorData->GRN[14] = 100;
-    editorData->BLU[14] = 100;
+    // editorData->RED[14] = 20;
+    // editorData->GRN[14] = 100;
+    // editorData->BLU[14] = 100;
     
-    editorData->RED[15] = 254;
-    editorData->GRN[15] = 0;
-    editorData->BLU[15] = 0;
-    int i,j,k;
+    // editorData->RED[15] = 254;
+    // editorData->GRN[15] = 0;
+    // editorData->BLU[15] = 0;
+    // int i,j,k;
     
-    for (k = 0; k < NUM_COLOURS; k++)
-    {
-        for (j = 0; j < 8; j++)
-            for (i = 0; i < 8; i++)
-            {
-                editorData->colours[k].RED[j][i] = editorData->RED[k];
-                editorData->colours[k].GRN[j][i] = editorData->GRN[k];
-                editorData->colours[k].BLU[j][i] = editorData->BLU[k];
-            }
-    }
+    // for (k = 0; k < NUM_COLOURS; k++)
+    // {
+    //     for (j = 0; j < 8; j++)
+    //         for (i = 0; i < 8; i++)
+    //         {
+    //             editorData->colours[k].RED[j][i] = editorData->RED[k];
+    //             editorData->colours[k].GRN[j][i] = editorData->GRN[k];
+    //             editorData->colours[k].BLU[j][i] = editorData->BLU[k];
+    //         }
+    // }
     
-    SDL_Rect r;
-    SDL_Surface* temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
-    r.w = 1;
-    r.h = 1;
-    for (k = 0; k < NUM_COLOURS; k++)
-    {
-        for (i = 0; i < 8; i++)
-            for (j = 0; j < 8; j++)
-            {
-                r.x = j;
-                r.y = i;
-                SDL_FillRect(temp,&r,SDL_MapRGB(temp->format,editorData->colours[k].RED[j][i],editorData->colours[k].GRN[j][i],editorData->colours[k].BLU[j][i]));
-            }
+    // SDL_Rect r;
+    // SDL_Surface* temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
+    // r.w = 1;
+    // r.h = 1;
+    // for (k = 0; k < NUM_COLOURS; k++)
+    // {
+    //     for (i = 0; i < 8; i++)
+    //         for (j = 0; j < 8; j++)
+    //         {
+    //             r.x = j;
+    //             r.y = i;
+    //             SDL_FillRect(temp,&r,SDL_MapRGB(temp->format,editorData->colours[k].RED[j][i],editorData->colours[k].GRN[j][i],editorData->colours[k].BLU[j][i]));
+    //         }
         
-        SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
+    //     SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
         
-        editorData->colour_tex[k] = SDL_CreateTextureFromSurface(HCS_Gfx_renderer_get(),temp);
-    }
+    //     editorData->colour_tex[k] = SDL_CreateTextureFromSurface(HCS_Gfx_renderer_get(),temp);
+    // }
     
-    SDL_FreeSurface(temp);
+    // SDL_FreeSurface(temp);
     
 
-    HCS_Entity e = HCS_Entity_create("Draw_Background");
-    HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2 - 320, 80, 100 * 8 + 40, 100 * 8 + 40);
-    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+    // HCS_Entity e = HCS_Entity_create("Draw_Background");
+    // HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2 - 320, 80, 100 * 8 + 40, 100 * 8 + 40);
+    // HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
 
-    int row = 0, collum = 0, index = 0;
-    index = 0;
-    char name[20] = {0};
-    char name_num[4];
-    index = 0;
-    for (collum = 0; collum < 16; collum++)
-        for (row = 0; row < 16; row++)
-        {
-            strcpy(name,"canvas");
-            sprintf(name_num, "%d", index);
-            strcat(name,name_num);
-            HCS_Entity e = HCS_Entity_create(name);
-            HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2 - 50 * (-9 + row), 100 + (collum) * 50, 45, 45);
-            HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-            HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_down);
-            HCS_Clickable_add_func(e,on_canvas_click,e);
-            editorData->Canvas[index] = HCS_Sprite_get(e);
-            index++;
-        }
+    // int row = 0, collum = 0, index = 0;
+    // index = 0;
+    // char name[20] = {0};
+    // char name_num[4];
+    // index = 0;
+    // for (collum = 0; collum < 16; collum++)
+    //     for (row = 0; row < 16; row++)
+    //     {
+    //         strcpy(name,"canvas");
+    //         sprintf(name_num, "%d", index);
+    //         strcat(name,name_num);
+    //         HCS_Entity e = HCS_Entity_create(name);
+    //         HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2 - 50 * (-9 + row), 100 + (collum) * 50, 45, 45);
+    //         HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+    //         HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_down);
+    //         HCS_Clickable_add_func(e,on_canvas_click,e);
+    //         editorData->Canvas[index] = HCS_Sprite_get(e);
+    //         index++;
+    //     }
 
-    row = 0;
-    collum = 0;
-    index = 0;
-    char name2[20] = {0};
-    char name_num2[4];
-    index = 0;
-    for (collum = 0; collum < 4; collum++)
-        for (row = 0; row < 4; row++)
-        {
-            strcpy(name2,"colour");
-            sprintf(name_num2, "%d", index);
-            strcat(name2,name_num2);
-            HCS_Entity e = HCS_Entity_create(name2);
-            HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x - 60 - 60 * row), 100 + (collum) * 60, 50, 50);
-            HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-            HCS_Sprite_get(e)->tex = editorData->colour_tex[index];
-            HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
-            HCS_Clickable_add_func(e,on_menu_click,index);
-            index++;
-        }
+    // row = 0;
+    // collum = 0;
+    // index = 0;
+    // char name2[20] = {0};
+    // char name_num2[4];
+    // index = 0;
+    // for (collum = 0; collum < 4; collum++)
+    //     for (row = 0; row < 4; row++)
+    //     {
+    //         strcpy(name2,"colour");
+    //         sprintf(name_num2, "%d", index);
+    //         strcat(name2,name_num2);
+    //         HCS_Entity e = HCS_Entity_create(name2);
+    //         HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x - 60 - 60 * row), 100 + (collum) * 60, 50, 50);
+    //         HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+    //         HCS_Sprite_get(e)->tex = editorData->colour_tex[index];
+    //         HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
+    //         HCS_Clickable_add_func(e,on_menu_click,index);
+    //         index++;
+    //     }
     
     
     
-    e = HCS_Entity_create("Save_Button");
-    HCS_Body_add(e,10,100,100,75);
-    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-    HCS_Sprite_use_text(e,"Safe",4);
-    HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
-    HCS_Clickable_add_func(e,on_safe_click,index);
+    // e = HCS_Entity_create("Save_Button");
+    // HCS_Body_add(e,10,100,100,75);
+    // HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+    // HCS_Sprite_use_text(e,"Safe",4);
+    // HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
+    // HCS_Clickable_add_func(e,on_safe_click,index);
     
-    e = HCS_Entity_create("Clear_Button");
-    HCS_Body_add(e,10,200,100,75);
-    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-    HCS_Sprite_use_text(e,"Clear",5);
-    HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
-    HCS_Clickable_add_func(e,clear_canvas,index);
+    // e = HCS_Entity_create("Clear_Button");
+    // HCS_Body_add(e,10,200,100,75);
+    // HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+    // HCS_Sprite_use_text(e,"Clear",5);
+    // HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
+    // HCS_Clickable_add_func(e,clear_canvas,index);
     
-    e = HCS_Entity_create("Quit_Button");
-    HCS_Body_add(e,10,300,100,75);
-    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-    HCS_Sprite_use_text(e,"Quit",4);
-    HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
-    HCS_Clickable_add_func(e,sprite_editor_deinit,index);
+    // e = HCS_Entity_create("Quit_Button");
+    // HCS_Body_add(e,10,300,100,75);
+    // HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+    // HCS_Sprite_use_text(e,"Quit",4);
+    // HCS_Clickable_add(e,&editorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
+    // HCS_Clickable_add_func(e,sprite_editor_deinit,index);
     
-    HCS_Event_add("cursor_event",cursor_event);
+    // HCS_Event_add("cursor_event",cursor_event);
     
-    editorData->save_for_real = false;
-    clear_canvas(0);
-    
+    // editorData->save_for_real = false;
+    // clear_canvas(0);
+
+    HCS_Entity e = HCS_Entity_create("Ground");
+    HCS_Body_add(e,0,HCS_Screen_size_get().y * HCS_Gfx_stretch_get().y,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x,400);
+    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Sprite);
+    HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0),HCS_Collider_STD_callback);
+    e = HCS_Entity_create("Player");
+    HCS_State_add(e);
+    HCS_Body_add(e,0,0,400,400);
+    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Sprite);
+    HCS_Input_add(e);
+    HCS_Movement_add(e,4000,4000);
+    HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0),HCS_Collider_STD_callback);
     HCS_CONTINUE();
 }
 

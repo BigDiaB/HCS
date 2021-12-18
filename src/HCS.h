@@ -188,6 +188,7 @@ typedef struct{
     bool on_ground;
     bool last_on_ground;
     bool active;
+    void (*func)(HCS_Entity,HCS_Entity);
 } HCS_Collider;
 
 typedef struct {
@@ -297,7 +298,8 @@ void HCS_Clickable_add_func(HCS_Entity e,void(*func)(int),int func_data);
 HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
 
-int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod);
+void HCS_Collider_STD_callback(HCS_Entity this, HCS_Entity other);
+int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod,void (*func)(HCS_Entity, HCS_Entity));
 HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();

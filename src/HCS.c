@@ -401,13 +401,13 @@ int main(int argc, char* argv[])
     HCS_Init(argv);
     LSD_Log_level_set(LSD_llALL);
     runData->HCS_running = HCS_Main(argc,argv);
-//    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
-//    LSD_Thread_add("Movement",Move_Wrapper);
-//    LSD_Thread_add("Controller",Controller_Server);
+   LSD_Thread_add("Miscellaneous",Misc_Wrapper);
+   LSD_Thread_add("Movement",Move_Wrapper);
+   LSD_Thread_add("Controller",Controller_Server);
     //Game-Loop
     while(runData->HCS_running || LSD_Thread_used > 0)
     {
-        // LSD_Thread_system();
+        LSD_Thread_system();
         if (runData->HCS_running)
         {
             HCS_Sprite_system(LSD_Delta_none);
