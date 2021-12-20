@@ -29,8 +29,8 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#include <arpa/inet.h> 
+#include <netdb.h>   
 
 typedef int bool;
 
@@ -69,7 +69,7 @@ enum LSD_Log_type
 
 enum LSD_Log_level
 {
-    LSD_llALL, LSD_llBAD, LSD_llERROR
+    LSD_llALL, LSD_llBAD, LSD_llERROR, LSD_llNONE
 };
 
 struct LSD_File
@@ -98,6 +98,7 @@ struct LSD_Delta
 
 struct LSD_WebServer
 {
+    int port;
     int server_fd, client_fd;
     int addrlen;
     struct sockaddr_in address;
@@ -190,7 +191,7 @@ float LSD_Math_map(float num, float min1, float max1, float min2, float max2);
 void LSD_File_path_prepare(char* argv[], int setback);
 
 /* Bereitet einen Webserver vor, um später mit LSD_WebServer_serve_while() zu serven */
-LSD_WebServer* LSD_WebServer_open(const char* dp,void (*GET)(struct LSD_WebServer* server),void (*POST)(struct LSD_WebServer* server));
+LSD_WebServer* LSD_WebServer_open(const char* dp, int port,void (*GET)(struct LSD_WebServer* server),void (*POST)(struct LSD_WebServer* server));
 
 /* Beendet jegliche Kommunikation mit Klienten und free'd den Speicherplatz des Servers */
 void LSD_WebServer_close(LSD_WebServer* server);

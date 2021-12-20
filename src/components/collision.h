@@ -115,26 +115,26 @@ void HCS_Collider_system(double delta)
                     if (runData->HCS_Colliders[i].active && runData->HCS_Colliders[j].active)
                     {
                         {
-                            HCS_Body* one = (HCS_Body_get((HCS_Entity_get_entity_id(i, HCS_cCollider))));
+                            HCS_Body* t_one = (HCS_Body_get((HCS_Entity_get_entity_id(i, HCS_cCollider))));
                             HCS_Body* t_two = (HCS_Body_get((HCS_Entity_get_entity_id(j, HCS_cCollider))));
                             HCS_Body* two = &runData->HCS_Colliders[j].collider;
-                            HCS_Body* test = &runData->HCS_Colliders[i].collider;
-                            *test = *one;
+                            HCS_Body* one = &runData->HCS_Colliders[i].collider;
+                            *one = *t_one;
                             *two = *t_two;
                             
                             if (runData->HCS_Colliders[i].offset.size.x != 0)
-                                test->size.x -= (double)(one->size.x / 8) * (double)runData->HCS_Colliders[i].offset.size.x;
+                                one->size.x -= (double)(t_one->size.x / 8) * (double)runData->HCS_Colliders[i].offset.size.x;
                             if (runData->HCS_Colliders[i].offset.size.y != 0)
-                                test->size.y -= (double)(one->size.y / 8) * (double)runData->HCS_Colliders[i].offset.size.y;
+                                one->size.y -= (double)(t_one->size.y / 8) * (double)runData->HCS_Colliders[i].offset.size.y;
                             if (runData->HCS_Colliders[i].offset.pos.x != 0)
                             {
-                                test->pos.x += runData->HCS_Colliders[i].offset.pos.x * (one->size.x / 8);
-                                test->size.x -= 3;
+                                one->pos.x += runData->HCS_Colliders[i].offset.pos.x * (t_one->size.x / 8);
+                                one->size.x -= 3;
                             }
                             if (runData->HCS_Colliders[i].offset.pos.y != 0)
                             {
-                                test->pos.y += runData->HCS_Colliders[i].offset.pos.y * (one->size.y / 8);
-                                test->size.y -= 3;
+                                one->pos.y += runData->HCS_Colliders[i].offset.pos.y * (t_one->size.y / 8);
+                                one->size.y -= 3;
                             }
 
                             if (runData->HCS_Colliders[i].offset.size.x != 0)
@@ -156,7 +156,7 @@ void HCS_Collider_system(double delta)
                             }
                             
                             
-                            if (AABB(test->pos,two->pos,test->size,two->size))
+                            if (AABB(one->pos,two->pos,one->size,two->size))
                                 runData->HCS_Colliders[i].func(HCS_Entity_get_entity_id(i,HCS_cCollider),HCS_Entity_get_entity_id(j,HCS_cCollider));
                         }
                     }

@@ -46,8 +46,63 @@ void HCS_Update(double delta)
                 runData->HCS_running = HCS_Main(0,NULL);
             }
         }
+        #ifdef HCS_DEBUG
+        else if (runData->event.type == SDL_KEYUP)
+        {
+            switch(runData->event.key.keysym.sym)
+            {
+                case HCS_INPUT_UP:
+                    runData->HCS_Input_Pad.y = 0;
+                    break;
+                case HCS_INPUT_DOWN:
+                    runData->HCS_Input_Pad.y = 0;
+                    break;
+                case HCS_INPUT_LEFT:
+                    runData->HCS_Input_Pad.x = 0;
+                    break;
+                case HCS_INPUT_RIGHT:
+                    runData->HCS_Input_Pad.x = 0;
+                    break;
+                case HCS_INPUT_A:
+                    runData->HCS_Input_A.down = false;
+                    break;
+                case HCS_INPUT_B:
+                    runData->HCS_Input_B.down = false;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        #endif
         else if (runData->event.type == SDL_KEYDOWN)
         {
+            #ifdef HCS_DEBUG
+            switch(runData->event.key.keysym.sym)
+            {
+                case HCS_INPUT_UP:
+                    runData->HCS_Input_Pad.y = -50;
+                    break;
+                case HCS_INPUT_DOWN:
+                    runData->HCS_Input_Pad.y = 50;
+                    break;
+                case HCS_INPUT_LEFT:
+                    runData->HCS_Input_Pad.x = -50;
+                    break;
+                case HCS_INPUT_RIGHT:
+                    runData->HCS_Input_Pad.x = 50;
+                    break;
+                case HCS_INPUT_A:
+                    runData->HCS_Input_A.down = true;
+                    break;
+                case HCS_INPUT_B:
+                    runData->HCS_Input_B.down = true;
+                    break;
+
+                default:
+                    break;
+            }
+            #endif
             if( runData->event.key.keysym.sym == SDLK_BACKSPACE && runData->HCS_Text_input_size > -1 )
             {
                 runData->HCS_Text_input[runData->HCS_Text_input_size] = 0;
@@ -105,7 +160,9 @@ void HCS_Init(char* argv[])
     
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
     {
+        #ifdef HCS_DEBUG
         LSD_Log(LSD_ltERROR,"SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+        #endif
         exit(1);
     }
     
@@ -114,7 +171,7 @@ void HCS_Init(char* argv[])
     runData->WIN_SIZE.h *= 0.75;
     runData->WIN_SIZE.w = runData->WIN_SIZE.h  / 9 * 16;
     
-    runData->window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,runData->WIN_SIZE.w ,runData->WIN_SIZE.h ,SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
+    runData->window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,runData->WIN_SIZE.w ,runData->WIN_SIZE.h ,SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     runData->renderer = SDL_CreateRenderer(runData->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_SetRenderDrawColor(runData->renderer,runData->std.r,runData->std.g,runData->std.b,runData->std.a);
     SDL_RenderClear(runData->renderer);
@@ -159,7 +216,9 @@ HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component componen
         if (runData->HCS_Entities[i][component] == comp_list_number)
             return i;
     }
+    #ifdef HCS_DEBUG
     LSD_Log(LSD_ltERROR,"Entity konnte nicht nach Komponenten gefunden werden!");
+    #endif
     return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
 }
 
@@ -172,7 +231,9 @@ HCS_Entity HCS_Entity_get_by_name(char* n)
         if (0 == strcmp(runData->HCS_Names[i].name,n))
             return HCS_Entity_get_entity_id(i,HCS_cName);
     }
+    #ifdef HCS_DEBUG
     LSD_Log(LSD_ltERROR,"Konnte Entity nicht nach Namen finden!: %s", n);
+    #endif
     return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
 }
 
@@ -216,7 +277,9 @@ void HCS_Event_add(char* n,void (*sys))
     runData->HCS_Event_list[runData->HCS_Event_used] = id;
     runData->HCS_Events[id].event = sys;
     runData->HCS_Events[id].name = n;
+    #ifdef HCS_DEBUG
     LSD_Log(LSD_ltCUSTOM,"HCS: Event %s erfolgreich hinzugefügt!",n);
+    #endif
 }
 
 void HCS_Event_remove(char* n)
@@ -229,12 +292,16 @@ void HCS_Event_remove(char* n)
         {
             runData->HCS_Events[i].event = HCS_Void_func;
             LSD_Math_remove_object_from_array(runData->HCS_Event_list,&runData->HCS_Event_used,&j);
+            #ifdef HCS_DEBUG
             LSD_Log(LSD_ltCUSTOM,"HCS: Event %s erfolgreich entfernt!",n);
+            #endif
             return;
         }
     }
+    #ifdef HCS_DEBUG
     LSD_Log(LSD_ltCUSTOM,"HCS: %s",n);
     LSD_Log(LSD_ltERROR,"Event konnte nicht entfernt werden, Name wurde nicht gefunden!");
+    #endif
 }
 
 void HCS_Event_run()
@@ -255,6 +322,7 @@ void HCS_Name_add(HCS_Entity ent, char* n)
 {
     int index = LSD_Math_get_id_from_array(runData->HCS_Name_list,&runData->HCS_Name_used, HCS_MAX_NAMES);
     runData->HCS_Entities[ent][HCS_cName] = index;
+    runData->HCS_Names[index].name = malloc(strlen(n) + 1);
     strcpy(runData->HCS_Names[index].name,n);
 }
 
@@ -265,6 +333,7 @@ HCS_Name* HCS_Name_get(HCS_Entity ent)
 
 void HCS_Name_remove(HCS_Entity ent)
 {
+    free(runData->HCS_Names[HCS_Entity_get_component_id(ent,HCS_cName)].name);
     LSD_Math_remove_object_from_array(runData->HCS_Name_list, &runData->HCS_Name_used, &runData->HCS_Entities[ent][HCS_cName]);
 }
 
@@ -275,7 +344,9 @@ HCS_Entity HCS_Entity_create(char* n)
     for (i = 0; i < HCS_NUM_COMPONENTS; i++)
         runData->HCS_Entities[ent][i] = -1;
     HCS_Name_add(ent,n);
+    #ifdef HCS_DEBUG
     LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s erfolgreicht erstellt!",ent,n);
+    #endif
     return ent;
 }
 
@@ -287,7 +358,9 @@ void HCS_Entity_remove(HCS_Entity ent)
         if (runData->HCS_Entity_list[i] == ent)
             index = i;
     LSD_Math_remove_object_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, &index);
+    #ifdef HCS_DEBUG
     LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d erfolgreicht entfernt!",ent);
+    #endif
 }
 
 void HCS_Drawable_translate_rect(SDL_Rect* r)
@@ -330,7 +403,7 @@ LSD_Thread_function(Controller_Server)
 {
     LSD_Thread_init();
 
-    LSD_WebServer* server = LSD_WebServer_open("server",LSD_WebServer_STD_GET,Controller_Server_POST);
+    LSD_WebServer* server = LSD_WebServer_open("server",1234,LSD_WebServer_STD_GET,Controller_Server_POST);
     while(runData->HCS_running)
         LSD_WebServer_serve_once(server);
     LSD_WebServer_close(server);
@@ -375,7 +448,9 @@ LSD_Vec2i HCS_Screen_size_get()
 }
 void HCS_Void_func()
 {
+    #ifdef HCS_DEBUG
     LSD_Log(LSD_ltERROR,"Du solltest das hier niemals sehen können!");
+    #endif
     return;
 }
 
@@ -399,11 +474,15 @@ int main(int argc, char* argv[])
 {
     //Library-Initialisierung
     HCS_Init(argv);
+    #ifdef HCS_DEBUG
     LSD_Log_level_set(LSD_llALL);
+    #endif
     runData->HCS_running = HCS_Main(argc,argv);
-   LSD_Thread_add("Miscellaneous",Misc_Wrapper);
-   LSD_Thread_add("Movement",Move_Wrapper);
-   LSD_Thread_add("Controller",Controller_Server);
+    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
+    LSD_Thread_add("Movement",Move_Wrapper);
+    #ifndef HCS_DEBUG
+    LSD_Thread_add("Controller",Controller_Server);
+    #endif
     //Game-Loop
     while(runData->HCS_running || LSD_Thread_used > 0)
     {
@@ -435,7 +514,11 @@ HCS_Sprite* HCS_Asset(char* path)
     }
 
     if (runData->HCS_Managed_Asset_used >= HCS_MAX_ASSETS)
+    {
+        #ifdef HCS_DEBUG
         LSD_Log(LSD_ltERROR,"Keine freien Assets mehr!\nHatte keinen Platz mehr für: %s",path);
+        #endif
+    }
     
     HCS_Sprite* spr = &runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].spr;
     runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].path = path;

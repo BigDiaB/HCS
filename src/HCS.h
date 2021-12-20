@@ -43,16 +43,16 @@
  -Wrapper um den Webserver schreiben (LSD_Server?)                              FERTIG!           -> LSD_WebServer
  -Coole Dateiendung überlegen!                                                  FERTIG!           -> .hgx
  -Sprite Editor + Exporteur damit wir SDL(2)_image los werden!                  YESSSSS!          -> Es ist fertig!
- 
- -Sprite-Data Cachen (Esentially Managed-Assets)!
+ -Managed Asset für Sprites... Ughh...                                          FERTIG!           -> HCS_Asset()- Funktion und HCS_Managed_Asset struct
+ -Sprite-Data Cachen (Esentially Managed-Assets)!                               FERTIG!           -> HCS_Asset()- Funktion und HCS_Managed_Asset struct
+ -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!              FERTIG!           -> HCS_Sprite_use_text() und die Buchstaben-Abbilder in Assets/Font
+ -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen die es brauchen!   FERTIG!           -> Halt da wo es nötig ist
+
+ -Namen der Sprite-Editor-Funktionen ändern (evtl. mit SPREDIT-Präfix)
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
- -Managed Asset für Sprites... Ughh...
  -Cap für Threads
- -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!
- -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen die es brauchen!
  -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!
- -Funktionen so benennen: HCS_EntityCreate("Ich");
  
  Very Nice To Haves™:
  
@@ -60,6 +60,8 @@
 
 #ifndef HCS_H
 #define HCS_H
+
+#define HCS_DEBUG
 
 #include <SDL2/SDL.h>
 
@@ -132,7 +134,7 @@ typedef struct
 } HCS_Sprite;
 
 typedef struct {
-    char name[100];
+    char* name;
 } HCS_Name;
 
 typedef struct {
