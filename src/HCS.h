@@ -47,9 +47,10 @@
  -Sprite-Data Cachen (Esentially Managed-Assets)!                               FERTIG!           -> HCS_Asset()- Funktion und HCS_Managed_Asset struct
  -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!              FERTIG!           -> HCS_Sprite_use_text() und die Buchstaben-Abbilder in Assets/Font
  -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen die es brauchen!   FERTIG!           -> Halt da wo es nötig ist
+ -Clickables blockieren, wenn ein body darüber liegt                            SEMI FERTIG!      -> Mit HCS_Clickable_active_toggle() kann jetzt die funltionalität getoggled werden
+ -Animationen für Drawables (Timer + Quad und States oder sowas kp...)          FERTIG!           -> Halt überall in test.c
 
  -Namen der Sprite-Editor-Funktionen ändern (evtl. mit SPREDIT-Präfix)
- -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
  -Cap für Threads
  -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!
@@ -159,6 +160,7 @@ typedef struct {
 typedef struct{
     HCS_Clicktype type;
     HCS_Triggertype trigger;
+    bool active;
     bool down;
     bool old_down;
     bool* action;
@@ -299,6 +301,7 @@ int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type, HCS_Trigge
 void HCS_Clickable_add_func(HCS_Entity e,void(*func)(int),int func_data);
 HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
+bool HCS_Clickable_active_toggle(HCS_Entity e);
 
 void HCS_Collider_STD_callback(HCS_Entity this, HCS_Entity other);
 int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod,void (*func)(HCS_Entity, HCS_Entity));
