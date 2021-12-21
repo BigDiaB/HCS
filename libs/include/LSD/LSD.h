@@ -188,7 +188,7 @@ int LSD_Math_get_id_from_array(int black_list[], int* black_fill, int max_id);
 float LSD_Math_map(float num, float min1, float max1, float min2, float max2);
 
 /* Setzt die Working-Directory um setback Chars zurück */
-void LSD_File_path_prepare(char* argv[], int setback);
+void LSD_File_path_prepare(char* argv[], int setback, char* path_return);
 
 /* Bereitet einen Webserver vor, um später mit LSD_WebServer_serve_while() zu serven */
 LSD_WebServer* LSD_WebServer_open(const char* dp, int port,void (*GET)(struct LSD_WebServer* server),void (*POST)(struct LSD_WebServer* server));

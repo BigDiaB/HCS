@@ -138,7 +138,7 @@ void HCS_Update(double delta)
 
 void HCS_Init(char* argv[])
 {
-    LSD_File_path_prepare(argv,6);
+    LSD_File_path_prepare(argv,6,NULL);
 
     runData = malloc(sizeof(struct HCS_runData));
     struct HCS_runData zero = {0};
