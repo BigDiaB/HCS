@@ -7,6 +7,6 @@ source:  ../src/HCS.c ../src/test.c
 
 gxx: clang
 gxxflags: -Wall -O2
-cxxflags: -g -std=c89
+cxxflags: -std=c89
 
-out: HCS
+out: game
