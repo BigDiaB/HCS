@@ -48,10 +48,10 @@
  -Font als "System-Sprites" speichern um SDL(2)_ttf los zu werden!              FERTIG!           -> HCS_Sprite_use_text() und die Buchstaben-Abbilder in Assets/Font
  -"exit(X)" hinter allen LSD_Log(LSD_ltERROR,...) hinzufügen die es brauchen!   FERTIG!           -> Halt da wo es nötig ist
  -Clickables blockieren, wenn ein body darüber liegt                            SEMI FERTIG!      -> Mit HCS_Clickable_active_toggle() kann jetzt die funltionalität getoggled werden
- -Animationen für Drawables (Timer + Quad und States oder sowas kp...)          FERTIG!           -> Halt überall in test.c
+ -Namen der Sprite-Editor-Funktionen ändern (evtl. mit SPREDIT-Präfix)          FERTIG!           -> Halt überall in test.c
+ -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!              FERTIG!           -> Im HCS_Sprite_system() mit AABB()s um zu gucken, ob die Sprites mit dem Bildschirm überlappen!
 
- -Namen der Sprite-Editor-Funktionen ändern (evtl. mit SPREDIT-Präfix)
- -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!
+ -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -Cap für Threads
  -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!
  
