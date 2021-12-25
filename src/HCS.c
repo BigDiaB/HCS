@@ -120,7 +120,7 @@ void HCS_Update(double delta)
         }
         else if (runData->event.type == SDL_TEXTINPUT)
         {
-            if(!(SDL_GetModState() & KMOD_CTRL && (runData->event.text.text[0] == 'c' || runData->event.text.text[0] == 'C' || runData->event.text.text[0] == 'v' || runData->event.text.text[0] == 'V')))
+            if(!(SDL_GetModState() & KMOD_CTRL && (runData->event.text.text[0] == 'c'|| runData->event.text.text[0] == 'C'|| runData->event.text.text[0] == 'v'|| runData->event.text.text[0] == 'V')))
             {
                 strcat(runData->HCS_Text_input,runData->event.text.text);
                 runData->HCS_Text_input_size += strlen(runData->event.text.text);
@@ -186,6 +186,9 @@ void HCS_Init(char* argv[])
 
 void HCS_Deinit()
 {
+    int i;
+    for (i = 0; i < runData->HCS_Managed_Asset_used; i++)
+        free(runData->HCS_Managed_Assets[i].path);
     SDL_DestroyWindow(runData->window);
     SDL_DestroyRenderer(runData->renderer);
     SDL_Quit();
@@ -476,6 +479,8 @@ int main(int argc, char* argv[])
     HCS_Init(argv);
     #ifdef HCS_DEBUG
     LSD_Log_level_set(LSD_llALL);
+    #else
+    LSD_Log_level_set(LSD_llNONE);
     #endif
     runData->HCS_running = HCS_Main(argc,argv);
     LSD_Thread_add("Miscellaneous",Misc_Wrapper);
@@ -521,7 +526,8 @@ HCS_Sprite* HCS_Asset(char* path)
     }
     
     HCS_Sprite* spr = &runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].spr;
-    runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].path = path;
+    runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].path = malloc(strlen(path) + 1);
+    strcpy(runData->HCS_Managed_Assets[runData->HCS_Managed_Asset_used].path,path);
     
     file = fopen(path,"r");
     for (line = 0; line < 48; line++)
@@ -529,9 +535,18 @@ HCS_Sprite* HCS_Asset(char* path)
     fclose(file);
     for (line = 0; line < 16; line++)
     {
-        sscanf(lines[line +  0],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.RED[line][0],&spr->raw.RED[line][1],&spr->raw.RED[line][2],&spr->raw.RED[line][3],&spr->raw.RED[line][4],&spr->raw.RED[line][5],&spr->raw.RED[line][6],&spr->raw.RED[line][7],&spr->raw.RED[line][8],&spr->raw.RED[line][9],&spr->raw.RED[line][10],&spr->raw.RED[line][11],&spr->raw.RED[line][12],&spr->raw.RED[line][13],&spr->raw.RED[line][14],&spr->raw.RED[line][15]);
-        sscanf(lines[line + 16],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.GRN[line][0],&spr->raw.GRN[line][1],&spr->raw.GRN[line][2],&spr->raw.GRN[line][3],&spr->raw.GRN[line][4],&spr->raw.GRN[line][5],&spr->raw.GRN[line][6],&spr->raw.GRN[line][7],&spr->raw.GRN[line][8],&spr->raw.GRN[line][9],&spr->raw.GRN[line][10],&spr->raw.GRN[line][11],&spr->raw.GRN[line][12],&spr->raw.GRN[line][13],&spr->raw.GRN[line][14],&spr->raw.GRN[line][15]);
-        sscanf(lines[line + 32],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",&spr->raw.BLU[line][0],&spr->raw.BLU[line][1],&spr->raw.BLU[line][2],&spr->raw.BLU[line][3],&spr->raw.BLU[line][4],&spr->raw.BLU[line][5],&spr->raw.BLU[line][6],&spr->raw.BLU[line][7],&spr->raw.BLU[line][8],&spr->raw.BLU[line][9],&spr->raw.BLU[line][10],&spr->raw.BLU[line][11],&spr->raw.BLU[line][12],&spr->raw.BLU[line][13],&spr->raw.BLU[line][14],&spr->raw.BLU[line][15]);
+        sscanf(lines[line +  0],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",
+            &spr->raw.RED[line][0],&spr->raw.RED[line][1],&spr->raw.RED[line][2],&spr->raw.RED[line][3],&spr->raw.RED[line][4],&spr->raw.RED[line][5],&spr->raw.RED[line][6],&spr->raw.RED[line][7],
+            &spr->raw.RED[line][8],&spr->raw.RED[line][9],&spr->raw.RED[line][10],&spr->raw.RED[line][11],&spr->raw.RED[line][12],&spr->raw.RED[line][13],&spr->raw.RED[line][14],
+            &spr->raw.RED[line][15]);
+        sscanf(lines[line + 16],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",
+            &spr->raw.GRN[line][0],&spr->raw.GRN[line][1],&spr->raw.GRN[line][2],&spr->raw.GRN[line][3],&spr->raw.GRN[line][4],&spr->raw.GRN[line][5],&spr->raw.GRN[line][6],&spr->raw.GRN[line][7],
+            &spr->raw.GRN[line][8],&spr->raw.GRN[line][9],&spr->raw.GRN[line][10],&spr->raw.GRN[line][11],&spr->raw.GRN[line][12],&spr->raw.GRN[line][13],&spr->raw.GRN[line][14],
+            &spr->raw.GRN[line][15]);
+        sscanf(lines[line + 32],"%hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",
+            &spr->raw.BLU[line][0],&spr->raw.BLU[line][1],&spr->raw.BLU[line][2],&spr->raw.BLU[line][3],&spr->raw.BLU[line][4],&spr->raw.BLU[line][5],&spr->raw.BLU[line][6],&spr->raw.BLU[line][7],
+            &spr->raw.BLU[line][8],&spr->raw.BLU[line][9],&spr->raw.BLU[line][10],&spr->raw.BLU[line][11],&spr->raw.BLU[line][12],&spr->raw.BLU[line][13],&spr->raw.BLU[line][14],
+            &spr->raw.BLU[line][15]);
     }
     SDL_Surface* temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
     SDL_Rect r;
@@ -577,7 +592,6 @@ bool HCS_running_get()
 {
     return runData->HCS_running;
 }
-
 SDL_Renderer* HCS_Gfx_renderer_get()
 {
     return runData->renderer;
@@ -590,7 +604,6 @@ LSD_Vec2d HCS_Gfx_stretch_get()
 {
     return LSD_Vec_new_double(runData->STRETCH_WIDTH,runData->STRETCH_HEIGHT);
 }
-
 char* HCS_Text_input_get()
 {
     return runData->HCS_Text_input;
@@ -599,7 +612,6 @@ int* HCS_Text_input_length_get()
 {
     return &runData->HCS_Text_input_size;
 }
-
 void HCS_Stop()
 {
     runData->HCS_running = false;

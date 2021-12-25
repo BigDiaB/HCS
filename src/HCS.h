@@ -62,7 +62,7 @@
 #ifndef HCS_H
 #define HCS_H
 
-#define HCS_DEBUG
+#define HCS_DEBUG  
 
 #include <SDL2/SDL.h>
 
@@ -103,7 +103,8 @@ typedef enum {
 } HCS_Component;
 
 typedef enum {
-    HCS_Draw_Background0, HCS_Draw_Background1, HCS_Draw_Background2, HCS_Draw_Sprite, HCS_Draw_Decal, HCS_Draw_Effect, HCS_Draw_Debug, HCS_Draw_Menu0, HCS_Draw_Menu1, HCS_Draw_Menu2, HCS_Draw_DebugUI, HCS_NUM_DRAWTYPES
+    HCS_Draw_Background0, HCS_Draw_Background1, HCS_Draw_Background2, HCS_Draw_Sprite, HCS_Draw_Decal, HCS_Draw_Effect, HCS_Draw_Debug, HCS_Draw_Menu0, 
+    HCS_Draw_Menu1, HCS_Draw_Menu2, HCS_Draw_DebugUI, HCS_NUM_DRAWTYPES
 } HCS_Drawtype;
 
 typedef enum {

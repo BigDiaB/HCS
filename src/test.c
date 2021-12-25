@@ -13,17 +13,15 @@ void cursor_event()
     HCS_Cursor_button_get()->down = SDL_GetMouseState(&HCS_Cursor_position_get()->x,&HCS_Cursor_position_get()->y) & SDL_BUTTON_LMASK;
 }
 
-#define NUM_COLOURS 16
-
 struct HCS_SpriteEditorData
 {
     HCS_Sprite* Canvas[16 * 16];
-    HCS_Sprite_raw colours[NUM_COLOURS];
-    SDL_Texture* colour_tex[NUM_COLOURS];
-    unsigned char RED[NUM_COLOURS];
-    unsigned char GRN[NUM_COLOURS];
-    unsigned char BLU[NUM_COLOURS];
-    bool colour_selected[NUM_COLOURS];
+    HCS_Sprite_raw colours[16];
+    SDL_Texture* colour_tex[16];
+    unsigned char RED[16];
+    unsigned char GRN[16];
+    unsigned char BLU[16];
+    bool colour_selected[16];
     bool dummy_bool;
     bool save_for_real;
     char save_file_name[2200];
@@ -61,7 +59,7 @@ void on_menu_click(int who)
     if (editorData->save_for_real)
         return;
     int i;
-    for (i = 0; i < NUM_COLOURS; i++)
+    for (i = 0; i < 16; i++)
         editorData->colour_selected[i] = false;
     editorData->colour_selected[who] = true;
 }
@@ -72,7 +70,7 @@ void on_canvas_click(int self)
         return;
     HCS_Sprite* this = HCS_Sprite_get(self);
     int i,j,index = -1;
-    for (i = 0; i < NUM_COLOURS; i++)
+    for (i = 0; i < 16; i++)
         if (editorData->colour_selected[i])
             index = i;
     if (index == -1)
@@ -168,7 +166,9 @@ void on_safe_click(int nothing)
         for (i = 0; i < 256; i+=16)
         {
             char temp[200000];
-            sprintf(temp,imng_data_format_string,CANVAS[i]->raw.RED[0][0],CANVAS[i+1]->raw.RED[0][0],CANVAS[i+2]->raw.RED[0][0],CANVAS[i+3]->raw.RED[0][0],CANVAS[i+4]->raw.RED[0][0],CANVAS[i+5]->raw.RED[0][0],CANVAS[i+6]->raw.RED[0][0],CANVAS[i+7]->raw.RED[0][0],CANVAS[i+8]->raw.RED[0][0],CANVAS[i+9]->raw.RED[0][0],CANVAS[i+10]->raw.RED[0][0],CANVAS[i+11]->raw.RED[0][0],CANVAS[i+12]->raw.RED[0][0],CANVAS[i+13]->raw.RED[0][0],CANVAS[i+14]->raw.RED[0][0],CANVAS[i+15]->raw.RED[0][0]);
+            sprintf(temp,imng_data_format_string,CANVAS[i]->raw.RED[0][0],CANVAS[i+1]->raw.RED[0][0],CANVAS[i+2]->raw.RED[0][0],CANVAS[i+3]->raw.RED[0][0],CANVAS[i+4]->raw.RED[0][0],
+                    CANVAS[i+5]->raw.RED[0][0],CANVAS[i+6]->raw.RED[0][0],CANVAS[i+7]->raw.RED[0][0],CANVAS[i+8]->raw.RED[0][0],CANVAS[i+9]->raw.RED[0][0],CANVAS[i+10]->raw.RED[0][0],
+                    CANVAS[i+11]->raw.RED[0][0],CANVAS[i+12]->raw.RED[0][0],CANVAS[i+13]->raw.RED[0][0],CANVAS[i+14]->raw.RED[0][0],CANVAS[i+15]->raw.RED[0][0]);
             strcat(img_data,temp);
         }
 
@@ -177,7 +177,9 @@ void on_safe_click(int nothing)
         for (i = 0; i < 256; i+=16)
         {
             char temp[200000];
-            sprintf(temp,imng_data_format_string,CANVAS[i]->raw.GRN[0][0],CANVAS[i+1]->raw.GRN[0][0],CANVAS[i+2]->raw.GRN[0][0],CANVAS[i+3]->raw.GRN[0][0],CANVAS[i+4]->raw.GRN[0][0],CANVAS[i+5]->raw.GRN[0][0],CANVAS[i+6]->raw.GRN[0][0],CANVAS[i+7]->raw.GRN[0][0],CANVAS[i+8]->raw.GRN[0][0],CANVAS[i+9]->raw.GRN[0][0],CANVAS[i+10]->raw.GRN[0][0],CANVAS[i+11]->raw.GRN[0][0],CANVAS[i+12]->raw.GRN[0][0],CANVAS[i+13]->raw.GRN[0][0],CANVAS[i+14]->raw.GRN[0][0],CANVAS[i+15]->raw.GRN[0][0]);
+            sprintf(temp,imng_data_format_string,CANVAS[i]->raw.GRN[0][0],CANVAS[i+1]->raw.GRN[0][0],CANVAS[i+2]->raw.GRN[0][0],CANVAS[i+3]->raw.GRN[0][0],CANVAS[i+4]->raw.GRN[0][0],
+                    CANVAS[i+5]->raw.GRN[0][0],CANVAS[i+6]->raw.GRN[0][0],CANVAS[i+7]->raw.GRN[0][0],CANVAS[i+8]->raw.GRN[0][0],CANVAS[i+9]->raw.GRN[0][0],CANVAS[i+10]->raw.GRN[0][0],
+                    CANVAS[i+11]->raw.GRN[0][0],CANVAS[i+12]->raw.GRN[0][0],CANVAS[i+13]->raw.GRN[0][0],CANVAS[i+14]->raw.GRN[0][0],CANVAS[i+15]->raw.GRN[0][0]);
             strcat(img_data,temp);
         }
 
@@ -186,7 +188,9 @@ void on_safe_click(int nothing)
         for (i = 0; i < 256; i+=16)
         {
             char temp[200000];
-            sprintf(temp,imng_data_format_string,CANVAS[i]->raw.BLU[0][0],CANVAS[i+1]->raw.BLU[0][0],CANVAS[i+2]->raw.BLU[0][0],CANVAS[i+3]->raw.BLU[0][0],CANVAS[i+4]->raw.BLU[0][0],CANVAS[i+5]->raw.BLU[0][0],CANVAS[i+6]->raw.BLU[0][0],CANVAS[i+7]->raw.BLU[0][0],CANVAS[i+8]->raw.BLU[0][0],CANVAS[i+9]->raw.BLU[0][0],CANVAS[i+10]->raw.BLU[0][0],CANVAS[i+11]->raw.BLU[0][0],CANVAS[i+12]->raw.BLU[0][0],CANVAS[i+13]->raw.BLU[0][0],CANVAS[i+14]->raw.BLU[0][0],CANVAS[i+15]->raw.BLU[0][0]);
+            sprintf(temp,imng_data_format_string,CANVAS[i]->raw.BLU[0][0],CANVAS[i+1]->raw.BLU[0][0],CANVAS[i+2]->raw.BLU[0][0],CANVAS[i+3]->raw.BLU[0][0],CANVAS[i+4]->raw.BLU[0][0],
+                    CANVAS[i+5]->raw.BLU[0][0],CANVAS[i+6]->raw.BLU[0][0],CANVAS[i+7]->raw.BLU[0][0],CANVAS[i+8]->raw.BLU[0][0],CANVAS[i+9]->raw.BLU[0][0],CANVAS[i+10]->raw.BLU[0][0],
+                    CANVAS[i+11]->raw.BLU[0][0],CANVAS[i+12]->raw.BLU[0][0],CANVAS[i+13]->raw.BLU[0][0],CANVAS[i+14]->raw.BLU[0][0],CANVAS[i+15]->raw.BLU[0][0]);
             strcat(img_data,temp);
         }
         
@@ -285,7 +289,7 @@ int main(int argc, char* argv[])
     editorData->BLU[15] = 0;
     int i,j,k;
     
-    for (k = 0; k < NUM_COLOURS; k++)
+    for (k = 0; k < 16; k++)
     {
         for (j = 0; j < 8; j++)
             for (i = 0; i < 8; i++)
@@ -300,7 +304,7 @@ int main(int argc, char* argv[])
     SDL_Surface* temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
     r.w = 1;
     r.h = 1;
-    for (k = 0; k < NUM_COLOURS; k++)
+    for (k = 0; k < 16; k++)
     {
         for (i = 0; i < 8; i++)
             for (j = 0; j < 8; j++)

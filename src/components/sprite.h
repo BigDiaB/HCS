@@ -24,7 +24,9 @@ int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t)
 
     
 
+    #ifdef HCS_DEBUG
     LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Sprite hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    #endif
     
     return index;
 }
@@ -37,7 +39,9 @@ HCS_Sprite* HCS_Sprite_get(HCS_Entity e)
 void HCS_Sprite_remove(HCS_Entity e)
 {
     LSD_Math_remove_object_from_array(runData->HCS_Sprite_list, &runData->HCS_Sprite_used, &runData->HCS_Entities[e][HCS_cSprite]);
+    #ifdef HCS_DEBUG    
     LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Sprite entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    #endif
 }
 
 void HCS_Sprite_system(double delta)

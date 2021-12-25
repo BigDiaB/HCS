@@ -19,6 +19,12 @@
 #define LSD_WEBSERVER_PORT 1234
 #define LSD_WEBSERVER_MAX_READBUFFER_SIZE 1024
 
+#ifdef LSD_Debugmem
+    #define malloc(X) LSD_Debugmem_malloc(X,__FILE__,__LINE__)
+    #define realloc(X,Y) LSD_Debugmem_realloc(X,Y,__FILE__,__LINE__)
+    #define free(X) LSD_Debugmem_free(X,__FILE__,__LINE__)
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -113,10 +119,6 @@ struct LSD_WebServer
     char* response_message;
 };
 
-
-
-
-
 typedef struct LSD_Vec2i LSD_Vec2i;
 typedef struct LSD_Vec2f LSD_Vec2f;
 typedef struct LSD_Vec2d LSD_Vec2d;
@@ -131,11 +133,6 @@ typedef struct LSD_WebServer LSD_WebServer;
 LSD_Thread LSD_Threads[LSD_THREADS_MAX];
 int LSD_Thread_list[LSD_THREADS_MAX];
 int LSD_Thread_used;
-LSD_Delta LSD_Deltas[LSD_DELTAS_MAX];
-int LSD_Delta_list[LSD_DELTAS_MAX];
-int LSD_Delta_used;
-LSD_Log_level LSD_Log_level_now;
-
 
 /* Hiermit kann das Level gesetzt werden, bei dem Logs tatsächlich in stdout angezeigt werden */
 void LSD_Log_level_set(LSD_Log_level level);
@@ -205,5 +202,15 @@ void LSD_WebServer_serve_while(LSD_WebServer* server, bool* running);
 
 /* Lässt den Webserver eine POST-, bzw. GET-Request bearbeiten */
 void LSD_WebServer_serve_once(LSD_WebServer* server);
+
+/* Malloc-, realloc- und free- Ersatz für einfaches Memory-Debugging */
+void* LSD_Debugmem_malloc(size_t size, char* FILE, int LINE);
+void* LSD_Debugmem_realloc(void* ptr, size_t size, char* FILE, int LINE);
+void  LSD_Debugmem_free(void* ptr, char* FILE, int LINE);
+
+/* Init- und Deinit- Funktionen für LSD_Debugmem- Funktionen */
+void  LSD_Debugmem_init(int backlog);
+void  LSD_Debugmem_deinit();
+
 
 #endif
