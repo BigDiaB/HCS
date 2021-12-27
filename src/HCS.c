@@ -202,12 +202,12 @@ void HCS_Deinit()
 
 bool HCS_Entity_has_component(HCS_Entity ent, HCS_Component comp)
 {
-    return (-1 != runData->HCS_Entities[ent][comp]);
+    return (-1 != runData->HCS_Entities[ent].comp_ids[comp]);
 }
 
 int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp)
 {
-    return runData->HCS_Entities[ent][comp];
+    return runData->HCS_Entities[ent].comp_ids[comp];
 }
 
 HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component component)
@@ -216,7 +216,7 @@ HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component componen
     for (j = 0; j < runData->HCS_Entity_used; j++)
     {
         int i = runData->HCS_Entity_list[j];
-        if (runData->HCS_Entities[i][component] == comp_list_number)
+        if (runData->HCS_Entities[i].comp_ids[component] == comp_list_number)
             return i;
     }
     #ifdef HCS_DEBUG
@@ -228,11 +228,11 @@ HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component componen
 HCS_Entity HCS_Entity_get_by_name(char* n)
 {
     int i,j;
-    for (j = 0; j < runData->HCS_Name_used; j++)
+    for (j = 0; j < runData->HCS_Entity_used; j++)
     {
-        i = runData->HCS_Name_list[j];
-        if (0 == strcmp(runData->HCS_Names[i].name,n))
-            return HCS_Entity_get_entity_id(i,HCS_cName);
+        i = runData->HCS_Entity_list[j];
+        if (0 == strcmp(runData->HCS_Entities[i].tag,n))
+            return i;
     }
     #ifdef HCS_DEBUG
     LSD_Log(LSD_ltERROR,"Konnte Entity nicht nach Namen finden!: %s", n);
@@ -260,7 +260,7 @@ void HCS_Entity_kill(HCS_Entity e)
         HCS_Body_remove(e);
     if (HCS_Entity_has_component(e,HCS_cState))
         HCS_State_remove(e);
-    HCS_Name_remove(e);
+    // HCS_Name_remove(e);
     HCS_Entity_remove(e);
 }
 
@@ -317,27 +317,11 @@ void HCS_Event_run()
     }
 }
 
-/*
- Namen-Funktionen, für das Hinzufügen, Suchen und Entfernen von Namen
- */
+#define HCS_Entity_tag_get(e) HCS_Entity_data_get(e)->tag
 
-void HCS_Name_add(HCS_Entity ent, char* n)
+HCS_Entity_data* HCS_Entity_data_get(HCS_Entity e)
 {
-    int index = LSD_Math_get_id_from_array(runData->HCS_Name_list,&runData->HCS_Name_used, HCS_MAX_NAMES);
-    runData->HCS_Entities[ent][HCS_cName] = index;
-    runData->HCS_Names[index].name = malloc(strlen(n) + 1);
-    strcpy(runData->HCS_Names[index].name,n);
-}
-
-HCS_Name* HCS_Name_get(HCS_Entity ent)
-{
-    return &runData->HCS_Names[HCS_Entity_get_component_id(ent,HCS_cName)];
-}
-
-void HCS_Name_remove(HCS_Entity ent)
-{
-    free(runData->HCS_Names[HCS_Entity_get_component_id(ent,HCS_cName)].name);
-    LSD_Math_remove_object_from_array(runData->HCS_Name_list, &runData->HCS_Name_used, &runData->HCS_Entities[ent][HCS_cName]);
+    return &runData->HCS_Entities[e];
 }
 
 HCS_Entity HCS_Entity_create(char* n)
@@ -345,10 +329,11 @@ HCS_Entity HCS_Entity_create(char* n)
     HCS_Entity ent = LSD_Math_get_id_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, HCS_MAX_ENTITIES);
     int i;
     for (i = 0; i < HCS_NUM_COMPONENTS; i++)
-        runData->HCS_Entities[ent][i] = -1;
-    HCS_Name_add(ent,n);
+        runData->HCS_Entities[ent].comp_ids[i] = -1;
+    runData->HCS_Entities[ent].tag = malloc(strlen(n) + 1);
+    strcpy(runData->HCS_Entities[ent].tag,n);
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s erfolgreicht erstellt!",ent,n);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s erfolgreicht erstellt!",ent,runData->HCS_Entities[ent].tag);
     #endif
     return ent;
 }
@@ -362,7 +347,8 @@ void HCS_Entity_remove(HCS_Entity ent)
             index = i;
     LSD_Math_remove_object_from_array(runData->HCS_Entity_list, &runData->HCS_Entity_used, &index);
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d erfolgreicht entfernt!",ent);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s erfolgreicht entfernt!",ent,HCS_Entity_tag_get(ent));
+    free(HCS_Entity_tag_get(ent));
     #endif
 }
 
@@ -380,68 +366,19 @@ void HCS_Drawable_translate_rect(SDL_Rect* r)
 //    r->w = LSD_Math_map(r->w,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
 }
 
-// #include "components/input.h"
+#include "components/input.h"
 
-// #include "components/states.h"
-// #include "components/body.h"
+#include "components/states.h"
+#include "components/body.h"
 
-// #include "components/movement.h"
-// #include "components/collision.h"
-// #include "components/jump.h"
-// #include "components/gravity.h"
+#include "components/movement.h"
+#include "components/collision.h"
+#include "components/jump.h"
+#include "components/gravity.h"
 
-// #include "components/sprite.h"
-// //#include "components/drawable.h"
-// #include "components/clickable.h"
-
-void Controller_Server_POST(LSD_WebServer* server)
-{
-    char* data_line = strstr(server->read_buffer,"Content-Type: ") + 14;
-    data_line[(int)(strstr(data_line, "\n") - data_line)] = 0;
-    sscanf(data_line, "%d %d %d %d",&runData->HCS_Input_A.down, &runData->HCS_Input_B.down, &runData->HCS_Input_Pad.x, &runData->HCS_Input_Pad.y);
-}
-
-
-LSD_Thread_function(Controller_Server)
-{
-    LSD_Thread_init();
-
-    LSD_WebServer* server = LSD_WebServer_open("server",1234,LSD_WebServer_STD_GET,Controller_Server_POST);
-    while(runData->HCS_running)
-        LSD_WebServer_serve_once(server);
-    LSD_WebServer_close(server);
-
-    LSD_Thread_finish();
-}
-
-
-LSD_Thread_function(Misc_Wrapper)
-{
-    LSD_Thread_init();
-    while(runData->HCS_running)
-    {
-        HCS_Collider_system(LSD_Delta_none);
-        HCS_Input_system(LSD_Delta_none);
-    }
-    LSD_Thread_finish();
-}
-
-LSD_Thread_function(Move_Wrapper)
-{
-    LSD_Thread_init();
-    LSD_Delta_add("Movement_Wrapper");
-    double delta;
-    while(runData->HCS_running)
-    {
-        LSD_Delta_tick("Movement_Wrapper");
-        delta = LSD_Delta_get("Movement_Wrapper")->delta;
-        HCS_Jump_system(delta);
-        HCS_Gravity_system(delta);
-        HCS_Movement_system(delta);
-    }
-    LSD_Delta_remove("Movement_Wrapper");
-    LSD_Thread_finish();
-}
+#include "components/sprite.h"
+//#include "components/drawable.h"
+#include "components/clickable.h"
 
 /* !!!NUR FÜR UI-ELEMENTE!!! */
 LSD_Vec2i HCS_Screen_size_get()
@@ -460,10 +397,10 @@ void HCS_Void_func()
 bool HCS_Entity_exist(char* n)
 {
     int i,j;
-    for (j = 0; j < runData->HCS_Name_used; j++)
+    for (j = 0; j < runData->HCS_Entity_used; j++)
     {
-        i = runData->HCS_Name_list[j];
-        if (0 == strcmp(n,runData->HCS_Names[i].name))
+        i = runData->HCS_Entity_list[j];
+        if (0 == strcmp(n,HCS_Entity_tag_get(i)))
         {
             return true;
         }
@@ -471,40 +408,6 @@ bool HCS_Entity_exist(char* n)
     return false;
 }
 
-
-//Main-Loop mit Game-Loop:
-int main(int argc, char* argv[])
-{
-    //Library-Initialisierung
-    HCS_Init(argv);
-    #ifdef HCS_DEBUG
-    LSD_Log_level_set(LSD_llALL);
-    #else
-    LSD_Log_level_set(LSD_llNONE);
-    #endif
-    runData->HCS_running = HCS_Main(argc,argv);
-    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
-    LSD_Thread_add("Movement",Move_Wrapper);
-    #ifndef HCS_DEBUG
-    LSD_Thread_add("Controller",Controller_Server);
-    #endif
-    //Game-Loop
-    while(runData->HCS_running || LSD_Thread_used > 0)
-    {
-        LSD_Thread_system();
-        if (runData->HCS_running)
-        {
-            HCS_Sprite_system(LSD_Delta_none);
-            HCS_Clickable_system(LSD_Delta_none);
-            HCS_Event_run();
-        }
-        HCS_Update(LSD_Delta_none);
-    }
-    HCS_Entity_clear();
-    //Library-Deinitialisierung
-    HCS_Deinit();
-    exit(0);
-}
 
 HCS_Sprite* HCS_Asset(char* path)
 {
@@ -615,4 +518,91 @@ int* HCS_Text_input_length_get()
 void HCS_Stop()
 {
     runData->HCS_running = false;
+}
+
+
+
+
+void Controller_Server_POST(LSD_WebServer* server)
+{
+    char* data_line = strstr(server->read_buffer,"Content-Type: ") + 14;
+    data_line[(int)(strstr(data_line, "\n") - data_line)] = 0;
+    sscanf(data_line, "%d %d %d %d",&runData->HCS_Input_A.down, &runData->HCS_Input_B.down, &runData->HCS_Input_Pad.x, &runData->HCS_Input_Pad.y);
+}
+
+
+LSD_Thread_function(Controller_Server)
+{
+    LSD_Thread_init();
+
+    LSD_WebServer* server = LSD_WebServer_open("server",1234,LSD_WebServer_STD_GET,Controller_Server_POST);
+    while(runData->HCS_running)
+        LSD_WebServer_serve_once(server);
+    LSD_WebServer_close(server);
+
+    LSD_Thread_finish();
+}
+
+
+LSD_Thread_function(Misc_Wrapper)
+{
+    LSD_Thread_init();
+    while(runData->HCS_running)
+    {
+        HCS_Collider_system(LSD_Delta_none);
+        HCS_Input_system(LSD_Delta_none);
+    }
+    LSD_Thread_finish();
+}
+
+LSD_Thread_function(Move_Wrapper)
+{
+    LSD_Thread_init();
+    LSD_Delta_add("Movement_Wrapper");
+    double delta;
+    while(runData->HCS_running)
+    {
+        LSD_Delta_tick("Movement_Wrapper");
+        delta = LSD_Delta_get("Movement_Wrapper")->delta;
+        HCS_Jump_system(delta);
+        HCS_Gravity_system(delta);
+        HCS_Movement_system(delta);
+    }
+    LSD_Delta_remove("Movement_Wrapper");
+    LSD_Thread_finish();
+}
+
+
+//Main-Loop mit Game-Loop:
+int main(int argc, char* argv[])
+{
+    //Library-Initialisierung
+    HCS_Init(argv);
+    #ifdef HCS_DEBUG
+    LSD_Log_level_set(LSD_llALL);
+    #else
+    LSD_Log_level_set(LSD_llNONE);
+    #endif
+    runData->HCS_running = HCS_Main(argc,argv);
+    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
+    LSD_Thread_add("Movement",Move_Wrapper);
+    #ifndef HCS_DEBUG
+    LSD_Thread_add("Controller",Controller_Server);
+    #endif
+    //Game-Loop
+    while(runData->HCS_running || LSD_Thread_used > 0)
+    {
+        LSD_Thread_system();
+        if (runData->HCS_running)
+        {
+            HCS_Sprite_system(LSD_Delta_none);
+            HCS_Clickable_system(LSD_Delta_none);
+            HCS_Event_run();
+        }
+        HCS_Update(LSD_Delta_none);
+    }
+    HCS_Entity_clear();
+    //Library-Deinitialisierung
+    HCS_Deinit();
+    exit(0);
 }

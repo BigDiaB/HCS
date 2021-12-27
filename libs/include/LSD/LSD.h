@@ -186,6 +186,9 @@ int LSD_Math_get_id_from_array(int black_list[], int* black_fill, int max_id);
 /* Streckt / Quetscht eine Zahl mit angegebenem Zahlenbereich auf einen neuen Zahlenbereich */
 float LSD_Math_map(float num, float min1, float max1, float min2, float max2);
 
+/* Zufallsgenerator, der Zahlen zwischen 0 und RAND_MAX ausgibt (RAND_MAX ist eine Konstante, die in der C-Stdlib definiert ist) */
+int LSD_Math_random_get();
+
 /* Setzt die Working-Directory um setback Chars zurück */
 void LSD_File_path_prepare(char* argv[], int setback, char* path_return);
 

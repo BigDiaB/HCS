@@ -9,13 +9,13 @@ int HCS_Gravity_add(HCS_Entity e, double n, double m)
         LSD_Log(LSD_ltERROR,"Entity fehlen vorausgesetzte Komponente für Gravity!");
         #endif
     }
-    runData->HCS_Entities[e][HCS_cGravity] = LSD_Math_get_id_from_array(runData->HCS_Gravity_list, &runData->HCS_Gravity_used, HCS_MAX_GRAVITIES);
+    runData->HCS_Entities[e].comp_ids[HCS_cGravity] = LSD_Math_get_id_from_array(runData->HCS_Gravity_list, &runData->HCS_Gravity_used, HCS_MAX_GRAVITIES);
     runData->HCS_Gravities[HCS_Entity_get_component_id(e,HCS_cGravity)].force.x = n;
     runData->HCS_Gravities[HCS_Entity_get_component_id(e,HCS_cGravity)].force.y = m;
     runData->HCS_Gravities[HCS_Entity_get_component_id(e,HCS_cGravity)].active = true;
     
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Gravity hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Gravity hinzugefügt!",e,HCS_Entity_tag_get(e));
     #endif
     
     return HCS_Entity_get_component_id(e,HCS_cGravity);
@@ -28,9 +28,9 @@ HCS_Gravity* HCS_Gravity_get(HCS_Entity e)
 
 void HCS_Gravity_remove(HCS_Entity e)
 {
-    LSD_Math_remove_object_from_array(runData->HCS_Gravity_list,&runData->HCS_Gravity_used,&runData->HCS_Entities[e][HCS_cGravity]);
+    LSD_Math_remove_object_from_array(runData->HCS_Gravity_list,&runData->HCS_Gravity_used,&runData->HCS_Entities[e].comp_ids[HCS_cGravity]);
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Gravity entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Gravity entfernt!",e,HCS_Entity_tag_get(e));
     #endif
 }
 

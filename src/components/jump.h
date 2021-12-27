@@ -10,7 +10,7 @@ int HCS_Jump_add(HCS_Entity e, double n, bool m, double l)
         #endif
     }
     
-    runData->HCS_Entities[e][HCS_cJump] = LSD_Math_get_id_from_array(runData->HCS_Jump_list, &runData->HCS_Jump_used, HCS_MAX_JUMPS);
+    runData->HCS_Entities[e].comp_ids[HCS_cJump] = LSD_Math_get_id_from_array(runData->HCS_Jump_list, &runData->HCS_Jump_used, HCS_MAX_JUMPS);
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].strength = n;
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].needs_ground = m;
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].jump_time = l;
@@ -20,7 +20,7 @@ int HCS_Jump_add(HCS_Entity e, double n, bool m, double l)
     runData->HCS_Jumps[HCS_Entity_get_component_id(e,HCS_cJump)].jump_ground_timer = 0.0f;
     
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Jump hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Jump hinzugefügt!",e,HCS_Entity_tag_get(e));
     #endif
     
     return HCS_Entity_get_component_id(e,HCS_cJump);
@@ -33,9 +33,9 @@ HCS_Jump* HCS_Jump_get(HCS_Entity e)
 
 void HCS_Jump_remove(HCS_Entity e)
 {
-    LSD_Math_remove_object_from_array(runData->HCS_Jump_list,&runData->HCS_Jump_used,&runData->HCS_Entities[e][HCS_cJump]);
+    LSD_Math_remove_object_from_array(runData->HCS_Jump_list,&runData->HCS_Jump_used,&runData->HCS_Entities[e].comp_ids[HCS_cJump]);
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Jump entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht Jump entfernt!",e,HCS_Entity_tag_get(e));
     #endif
 }
 

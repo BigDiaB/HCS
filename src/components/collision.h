@@ -9,7 +9,7 @@ int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod, void (
         LSD_Log(LSD_ltERROR, "Entity hat nicht die vorausgesetzten Komponente für Collider");
         #endif
     }
-    runData->HCS_Entities[e][HCS_cCollider] = LSD_Math_get_id_from_array(runData->HCS_Collider_list, &runData->HCS_Collider_used, HCS_MAX_COLLIDERS);
+    runData->HCS_Entities[e].comp_ids[HCS_cCollider] = LSD_Math_get_id_from_array(runData->HCS_Collider_list, &runData->HCS_Collider_used, HCS_MAX_COLLIDERS);
     
     runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].active = true;
     
@@ -23,7 +23,7 @@ int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod, void (
     else
         runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].type = HCS_Col_Static;
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Collider hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Collider hinzugefügt!",e,HCS_Entity_tag_get(e));
     #endif
     return HCS_Entity_get_component_id(e,HCS_cCollider);
     
@@ -37,9 +37,9 @@ HCS_Collider* HCS_Collider_get(HCS_Entity e)
 
 void HCS_Collider_remove(HCS_Entity e)
 {
-    LSD_Math_remove_object_from_array(runData->HCS_Collider_list, &runData->HCS_Collider_used, &runData->HCS_Entities[e][HCS_cCollider]);
+    LSD_Math_remove_object_from_array(runData->HCS_Collider_list, &runData->HCS_Collider_used, &runData->HCS_Entities[e].comp_ids[HCS_cCollider]);
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Collider entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Collider entfernt!",e,HCS_Entity_tag_get(e));
     #endif
 }
 

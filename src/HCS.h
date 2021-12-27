@@ -50,9 +50,12 @@
  -Clickables blockieren, wenn ein body darüber liegt                            SEMI FERTIG!      -> Mit HCS_Clickable_active_toggle() kann jetzt die funltionalität getoggled werden
  -Namen der Sprite-Editor-Funktionen ändern (evtl. mit SPREDIT-Präfix)          FERTIG!           -> Halt überall in test.c
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!              FERTIG!           -> Im HCS_Sprite_system() mit AABB()s um zu gucken, ob die Sprites mit dem Bildschirm überlappen!
+ -AABB() mit nach LSD bringen!                                                  FERTIG!           -> LSD_Math_AABB() als #define damit man alle Datentypen benutzen kann (aka int, float, double, etc)
 
+
+ -Names zu Tags umbenennen und sie mit dem HCS_Entity_data-Struct mergen!
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
- -Cap für Threads
+ -Cycle-Speed-Cap für Threads
  -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!
  
  Very Nice To Haves™:
@@ -96,8 +99,6 @@
 
 #define HCS_MAX_EVENTS 20000
 
-typedef int HCS_Entity;
-
 typedef enum {
     HCS_cName, HCS_cState, HCS_cBody, HCS_cMovement,HCS_cClickable, HCS_cSprite, HCS_cCollider, HCS_cGravity, HCS_cJump, HCS_cInput, HCS_NUM_COMPONENTS
 } HCS_Component;
@@ -118,6 +119,14 @@ typedef enum {
 typedef enum {
     HCS_Col_Static, HCS_Col_Dynamic
 } HCS_Collisiontype;
+
+typedef int HCS_Entity;
+
+typedef struct
+{
+    char* tag;
+    int comp_ids[HCS_NUM_COMPONENTS];
+} HCS_Entity_data;
 
 typedef struct
 {
@@ -248,6 +257,7 @@ HCS_Entity HCS_Entity_create(char* n);
 void HCS_Entity_remove(HCS_Entity ent);
 void HCS_Entity_kill(HCS_Entity e);
 void HCS_Entity_clear();
+HCS_Entity_data* HCS_Entity_data_get(HCS_Entity e);
 
 bool HCS_Entity_has_component(HCS_Entity ent, HCS_Component comp);
 int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp);
@@ -303,6 +313,7 @@ void HCS_Clickable_add_func(HCS_Entity e,void(*func)(int),int func_data);
 HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
 bool HCS_Clickable_active_toggle(HCS_Entity e);
+void HCS_Clickable_system();
 
 void HCS_Collider_STD_callback(HCS_Entity this, HCS_Entity other);
 int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod,void (*func)(HCS_Entity, HCS_Entity));
@@ -312,6 +323,10 @@ void HCS_Collider_system();
 
 
 struct HCS_runData {
+
+    int HCS_Entity_ids_used;
+    int HCS_Entity_ids[HCS_MAX_ENTITIES];
+
     SDL_Color color;
     SDL_Color std;
 
@@ -344,55 +359,51 @@ struct HCS_runData {
 
     LSD_Vec2f HCS_Gfx_Camera;
 
+    HCS_Entity_data HCS_Entities[HCS_MAX_ENTITIES];
+    int HCS_Entity_list[HCS_MAX_ENTITIES];
+    int HCS_Entity_used;
+
     HCS_Managed_Asset HCS_Managed_Assets[HCS_MAX_ASSETS];
     int HCS_Managed_Asset_used;
     
     HCS_Event HCS_Events[HCS_MAX_EVENTS];
-    HCS_Entity HCS_Event_list[HCS_MAX_EVENTS];
+    int HCS_Event_list[HCS_MAX_EVENTS];
     int HCS_Event_used;
-
-    HCS_Entity HCS_Entities[HCS_MAX_ENTITIES][HCS_NUM_COMPONENTS];
-    HCS_Entity HCS_Entity_list[HCS_MAX_ENTITIES];
-    int HCS_Entity_used;
-    
-    HCS_Name HCS_Names[HCS_MAX_NAMES];
-    HCS_Entity HCS_Name_list[HCS_MAX_NAMES];
-    int HCS_Name_used;
     
     HCS_Body HCS_Bodies[HCS_MAX_BODIES];
-    HCS_Entity HCS_Body_list[HCS_MAX_BODIES];
+    int HCS_Body_list[HCS_MAX_BODIES];
     int HCS_Body_used;
     
     HCS_Sprite HCS_Sprites[HCS_MAX_SPRITES];
-    HCS_Entity HCS_Sprite_list[HCS_MAX_SPRITES];
+    int HCS_Sprite_list[HCS_MAX_SPRITES];
     int HCS_Sprite_used;
     
     HCS_Clickable HCS_Clickables[HCS_MAX_CLICKABLES];
-    HCS_Entity HCS_Clickable_list[HCS_MAX_CLICKABLES];
+    int HCS_Clickable_list[HCS_MAX_CLICKABLES];
     int HCS_Clickable_used;
     
     HCS_Collider HCS_Colliders[HCS_MAX_COLLIDERS];
-    HCS_Entity HCS_Collider_list[HCS_MAX_COLLIDERS];
+    int HCS_Collider_list[HCS_MAX_COLLIDERS];
     int HCS_Collider_used;
     
     HCS_Gravity HCS_Gravities[HCS_MAX_GRAVITIES];
-    HCS_Entity HCS_Gravity_list[HCS_MAX_GRAVITIES];
+    int HCS_Gravity_list[HCS_MAX_GRAVITIES];
     int HCS_Gravity_used;
     
     HCS_Movement HCS_Movements[HCS_MAX_MOVEMENTS];
-    HCS_Entity HCS_Movement_list[HCS_MAX_MOVEMENTS];
+    int HCS_Movement_list[HCS_MAX_MOVEMENTS];
     int HCS_Movement_used;
     
     HCS_State HCS_States[HCS_MAX_STATES];
-    HCS_Entity HCS_State_list[HCS_MAX_STATES];
+    int HCS_State_list[HCS_MAX_STATES];
     int HCS_State_used;
     
     HCS_Jump HCS_Jumps[HCS_MAX_JUMPS];
-    HCS_Entity HCS_Jump_list[HCS_MAX_JUMPS];
+    int HCS_Jump_list[HCS_MAX_JUMPS];
     int HCS_Jump_used;
     
     HCS_Input HCS_Inputs[HCS_MAX_INPUTS];
-    HCS_Entity HCS_Input_list[HCS_MAX_INPUTS];
+    int HCS_Input_list[HCS_MAX_INPUTS];
     int HCS_Input_used;
 };
 

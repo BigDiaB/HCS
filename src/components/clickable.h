@@ -14,7 +14,7 @@ int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type, HCS_Trigge
         LSD_Log(LSD_ltERROR,"Entity fehlen vorausgesetzte Komponente für Clickable!");
         #endif
     }
-    runData->HCS_Entities[e][HCS_cClickable] = LSD_Math_get_id_from_array(runData->HCS_Clickable_list, &runData->HCS_Clickable_used, HCS_MAX_CLICKABLES);
+    runData->HCS_Entities[e].comp_ids[HCS_cClickable] = LSD_Math_get_id_from_array(runData->HCS_Clickable_list, &runData->HCS_Clickable_used, HCS_MAX_CLICKABLES);
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].action = action;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].old_down = false;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].down = false;
@@ -23,7 +23,7 @@ int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type, HCS_Trigge
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].trigger = t;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].active = true;
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable hinzugefügt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable hinzugefügt!",e,HCS_Entity_tag_get(e));
     #endif
     return HCS_Entity_get_component_id(e,HCS_cClickable);
 }
@@ -44,9 +44,9 @@ HCS_Clickable* HCS_Clickable_get(HCS_Entity e)
 
 void HCS_Clickable_remove(HCS_Entity e)
 {
-    LSD_Math_remove_object_from_array(runData->HCS_Clickable_list,&runData->HCS_Clickable_used,&runData->HCS_Entities[e][HCS_cClickable]);
+    LSD_Math_remove_object_from_array(runData->HCS_Clickable_list,&runData->HCS_Clickable_used,&runData->HCS_Entities[e].comp_ids[HCS_cClickable]);
     #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable entfernt!",e,HCS_Name_get(HCS_Entity_get_component_id(e,HCS_cName))->name);
+    LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable entfernt!",e,HCS_Entity_tag_get(e));
     #endif
 }
 
