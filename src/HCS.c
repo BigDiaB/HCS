@@ -380,19 +380,19 @@ void HCS_Drawable_translate_rect(SDL_Rect* r)
 //    r->w = LSD_Math_map(r->w,0,WORLD_TO_SCREEN_X,0,WIN_SIZE.w);
 }
 
-#include "components/input.h"
+// #include "components/input.h"
 
-#include "components/states.h"
-#include "components/body.h"
+// #include "components/states.h"
+// #include "components/body.h"
 
-#include "components/movement.h"
-#include "components/collision.h"
-#include "components/jump.h"
-#include "components/gravity.h"
+// #include "components/movement.h"
+// #include "components/collision.h"
+// #include "components/jump.h"
+// #include "components/gravity.h"
 
-#include "components/sprite.h"
-//#include "components/drawable.h"
-#include "components/clickable.h"
+// #include "components/sprite.h"
+// //#include "components/drawable.h"
+// #include "components/clickable.h"
 
 void Controller_Server_POST(LSD_WebServer* server)
 {

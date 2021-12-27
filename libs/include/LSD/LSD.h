@@ -50,6 +50,8 @@ typedef int bool;
 #define LSD_Vec_mul(Z,X,Y) Z.x = X.x * Y.x; Z.y = X.y * Y.y;
 #define LSD_Vec_div(Z,X,Y) Z.x = X.x / Y.x; Z.y = X.y / Y.y;
 
+#define LSD_Math_AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
+
 #define true 1
 #define false 0
 
@@ -70,7 +72,7 @@ struct LSD_Vec2d
 
 enum LSD_Log_type
 {
-    LSD_ltMESSAGE,LSD_ltWARNING,LSD_ltERROR, LSD_ltCUSTOM
+    LSD_ltMESSAGE,LSD_ltWARNING,LSD_ltERROR, LSD_ltCUSTOM, LSD_ltINTERNAL
 };
 
 enum LSD_Log_level

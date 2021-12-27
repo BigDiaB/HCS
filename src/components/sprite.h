@@ -68,7 +68,7 @@ void HCS_Sprite_system(double delta)
              r.w = b->size.x;
              r.h = b->size.y;
              HCS_Drawable_translate_rect(&r);
-             if (AABB(LSD_Vec_new_float(r.x,r.y),LSD_Vec_new_float(0,0),LSD_Vec_new_int(r.w,r.h),LSD_Vec_new_int(runData->WIN_SIZE.w,runData->WIN_SIZE.h)))
+             if (LSD_Math_AABB(LSD_Vec_new_float(r.x,r.y),LSD_Vec_new_float(0,0),LSD_Vec_new_int(r.w,r.h),LSD_Vec_new_int(runData->WIN_SIZE.w,runData->WIN_SIZE.h)))
                 SDL_RenderCopy(runData->renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
         }
     }
@@ -83,7 +83,7 @@ void HCS_Sprite_system(double delta)
             r.w = b->size.x  * runData->STRETCH_WIDTH;
             r.h = b->size.y;
             HCS_Drawable_translate_rect(&r);
-            if (AABB(LSD_Vec_new_float(r.x,r.y),LSD_Vec_new_float(0,0),LSD_Vec_new_int(r.w,r.h),LSD_Vec_new_int(runData->WIN_SIZE.w,runData->WIN_SIZE.h)))
+            if (LSD_Math_AABB(LSD_Vec_new_float(r.x,r.y),LSD_Vec_new_float(0,0),LSD_Vec_new_int(r.w,r.h),LSD_Vec_new_int(runData->WIN_SIZE.w,runData->WIN_SIZE.h)))
                 SDL_RenderCopy(runData->renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
         }
     }

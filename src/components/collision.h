@@ -162,7 +162,7 @@ void HCS_Collider_system(double delta)
                             }
                             
                             
-                            if (AABB(one->pos,two->pos,one->size,two->size))
+                            if (LSD_Math_AABB(one->pos,two->pos,one->size,two->size))
                                 runData->HCS_Colliders[i].func(HCS_Entity_get_entity_id(i,HCS_cCollider),HCS_Entity_get_entity_id(j,HCS_cCollider));
                         }
                     }

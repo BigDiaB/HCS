@@ -70,7 +70,7 @@
 #define HCS_STOP()  return false
 #define main HCS_Main
 
-#define AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
+#define LSD_Math_AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
 
 #define HCS_INPUT_UP                                SDLK_w
 #define HCS_INPUT_DOWN                              SDLK_s

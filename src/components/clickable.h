@@ -79,7 +79,7 @@ void HCS_Clickable_system(double delta)
             temp_pos.x = LSD_Math_map(temp_pos.x,0,runData->WORLD_TO_SCREEN_X * runData->STRETCH_WIDTH,0,runData->WIN_SIZE.w);
             temp_bod_size.x = LSD_Math_map(temp_bod_size.x,0,runData->WORLD_TO_SCREEN_X * runData->STRETCH_WIDTH,0,runData->WIN_SIZE.w);
             hot = false;
-            if (AABB(runData->HCS_Input_Cursor_position,temp_pos,temp_size,temp_bod_size))
+            if (LSD_Math_AABB(runData->HCS_Input_Cursor_position,temp_pos,temp_size,temp_bod_size))
             {
                 runData->HCS_Clickables[i].old_down = runData->HCS_Clickables[i].down;
                 runData->HCS_Clickables[i].down = runData->HCS_Input_Cursor_button.down;
