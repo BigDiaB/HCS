@@ -51,6 +51,7 @@ typedef int bool;
 #define LSD_Vec_div(Z,X,Y) Z.x = X.x / Y.x; Z.y = X.y / Y.y;
 
 #define LSD_Sys_varname_get(var) (#var)
+#define LSD_Sys_strcmp(X,Y) (0 == strcmp(X,Y))
 
 #define LSD_Math_AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
 
