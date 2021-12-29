@@ -6,6 +6,8 @@
 #undef main
 #endif
 
+#define HCS_Entity_tag_get(e) HCS_Entity_data_get(e)->tag
+
 struct HCS_runData* runData;
 
 void HCS_Update(double delta)
@@ -138,7 +140,7 @@ void HCS_Update(double delta)
 
 void HCS_Init(char* argv[])
 {
-    LSD_File_path_prepare(argv,6,NULL);
+    LSD_Sys_path_change(argv,6,NULL);
 
     runData = malloc(sizeof(struct HCS_runData));
     struct HCS_runData zero = {0};
@@ -210,13 +212,13 @@ int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp)
     return runData->HCS_Entities[ent].comp_ids[comp];
 }
 
-HCS_Entity HCS_Entity_get_entity_id(int comp_list_number, HCS_Component component)
+HCS_Entity HCS_Entity_get_entity_id(int comp_id, HCS_Component comp)
 {
     int j;
     for (j = 0; j < runData->HCS_Entity_used; j++)
     {
         int i = runData->HCS_Entity_list[j];
-        if (runData->HCS_Entities[i].comp_ids[component] == comp_list_number)
+        if (runData->HCS_Entities[i].comp_ids[comp] == comp_id)
             return i;
     }
     #ifdef HCS_DEBUG
@@ -231,7 +233,7 @@ HCS_Entity HCS_Entity_get_by_name(char* n)
     for (j = 0; j < runData->HCS_Entity_used; j++)
     {
         i = runData->HCS_Entity_list[j];
-        if (0 == strcmp(runData->HCS_Entities[i].tag,n))
+        if (0 == strcmp(HCS_Entity_tag_get(i),n))
             return i;
     }
     #ifdef HCS_DEBUG
@@ -316,8 +318,6 @@ void HCS_Event_run()
         runData->HCS_Events[i].event();
     }
 }
-
-#define HCS_Entity_tag_get(e) HCS_Entity_data_get(e)->tag
 
 HCS_Entity_data* HCS_Entity_data_get(HCS_Entity e)
 {
@@ -583,9 +583,10 @@ int main(int argc, char* argv[])
     #else
     LSD_Log_level_set(LSD_llNONE);
     #endif
+    HCS_Collider_callback_list(HCS_Collider_STD_callback,"HCS_Collider_STD_callback");
     runData->HCS_running = HCS_Main(argc,argv);
-    LSD_Thread_add("Miscellaneous",Misc_Wrapper);
-    LSD_Thread_add("Movement",Move_Wrapper);
+    // LSD_Thread_add("Miscellaneous",Misc_Wrapper);
+    // LSD_Thread_add("Movement",Move_Wrapper);
     #ifndef HCS_DEBUG
     LSD_Thread_add("Controller",Controller_Server);
     #endif

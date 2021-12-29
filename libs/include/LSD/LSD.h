@@ -50,6 +50,8 @@ typedef int bool;
 #define LSD_Vec_mul(Z,X,Y) Z.x = X.x * Y.x; Z.y = X.y * Y.y;
 #define LSD_Vec_div(Z,X,Y) Z.x = X.x / Y.x; Z.y = X.y / Y.y;
 
+#define LSD_Sys_varname_get(var) (#var)
+
 #define LSD_Math_AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
 
 #define true 1
@@ -190,7 +192,7 @@ float LSD_Math_map(float num, float min1, float max1, float min2, float max2);
 int LSD_Math_random_get();
 
 /* Setzt die Working-Directory um setback Chars zurück */
-void LSD_File_path_prepare(char* argv[], int setback, char* path_return);
+void LSD_Sys_path_change(char* argv[], int setback, char* path_return);
 
 /* Bereitet einen Webserver vor, um später mit LSD_WebServer_serve_while() zu serven */
 LSD_WebServer* LSD_WebServer_open(const char* dp, int port,void (*GET)(struct LSD_WebServer* server),void (*POST)(struct LSD_WebServer* server));

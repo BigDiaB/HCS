@@ -52,7 +52,8 @@
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!              FERTIG!           -> Im HCS_Sprite_system() mit AABB()s um zu gucken, ob die Sprites mit dem Bildschirm überlappen!
  -AABB() mit nach LSD bringen!                                                  FERTIG!           -> LSD_Math_AABB() als #define damit man alle Datentypen benutzen kann (aka int, float, double, etc)
 
-
+ -Alle Komponenten sollten mit einer Funktion komplett initialisiert werden können!
+ -Alle Helper-Funcs müssen in einem Array sein! (Colliders,Clickables)
  -Names zu Tags umbenennen und sie mit dem HCS_Entity_data-Struct mergen!
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -Cycle-Speed-Cap für Threads
@@ -73,8 +74,6 @@
 #define HCS_STOP()  return false
 #define main HCS_Main
 
-#define LSD_Math_AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
-
 #define HCS_INPUT_UP                                SDLK_w
 #define HCS_INPUT_DOWN                              SDLK_s
 #define HCS_INPUT_LEFT                              SDLK_a
@@ -82,25 +81,26 @@
 #define HCS_INPUT_A                                 SDLK_c
 #define HCS_INPUT_B                                 SDLK_SPACE
 
-#define HCS_MAX_NAMES 2000
-#define HCS_MAX_ENTITIES 2000
-#define HCS_MAX_ASSETS 4000
-#define HCS_MAX_TEXTINPUT 2000
+#define HCS_MAX_ENTITIES 1000
 
-#define HCS_MAX_BODIES 2000
-#define HCS_MAX_SPRITES 2000
-#define HCS_MAX_CLICKABLES 2000
-#define HCS_MAX_COLLIDERS 200
-#define HCS_MAX_MOVEMENTS 200
-#define HCS_MAX_GRAVITIES 200
-#define HCS_MAX_STATES 200
-#define HCS_MAX_JUMPS 200
-#define HCS_MAX_INPUTS 200
+#define HCS_MAX_ASSETS 300
+#define HCS_MAX_SPRITES 300
+#define HCS_MAX_CLICKABLES 300
+#define HCS_MAX_COLLIDERS 300
 
-#define HCS_MAX_EVENTS 20000
+#define HCS_MAX_TEXTINPUT 300
+
+#define HCS_MAX_BODIES 500
+#define HCS_MAX_MOVEMENTS 500
+#define HCS_MAX_GRAVITIES 500
+#define HCS_MAX_STATES 500
+#define HCS_MAX_JUMPS 500
+#define HCS_MAX_INPUTS 500
+
+#define HCS_MAX_EVENTS 200
 
 typedef enum {
-    HCS_cName, HCS_cState, HCS_cBody, HCS_cMovement,HCS_cClickable, HCS_cSprite, HCS_cCollider, HCS_cGravity, HCS_cJump, HCS_cInput, HCS_NUM_COMPONENTS
+    HCS_cState, HCS_cBody, HCS_cMovement,HCS_cClickable, HCS_cSprite, HCS_cCollider, HCS_cGravity, HCS_cJump, HCS_cInput, HCS_NUM_COMPONENTS
 } HCS_Component;
 
 typedef enum {
@@ -141,6 +141,7 @@ typedef struct
     SDL_Rect body;
     SDL_Texture* tex;
     HCS_Sprite_raw raw;
+    bool use_text;
     char* path;
 } HCS_Sprite;
 
@@ -167,14 +168,17 @@ typedef struct {
     char* path;
 } HCS_Managed_Asset;
 
+typedef struct {
+    char* name;
+    void (*func)(int);
+} HCS_Clickable_helper_func;
+
 typedef struct{
     HCS_Clicktype type;
     HCS_Triggertype trigger;
     bool active;
     bool down;
     bool old_down;
-    bool* action;
-    bool use_func;
     int func_data;
     void (*func)(int);
 } HCS_Clickable;
@@ -194,6 +198,11 @@ typedef struct {
     LSD_Vec2f vel;
     LSD_Vec2f speed;
 } HCS_Movement;
+
+typedef struct {
+    char* name;
+    void (*func)(HCS_Entity, HCS_Entity);
+} HCS_Collider_helper_func;
 
 typedef struct{
     HCS_Collisiontype type;
@@ -269,10 +278,6 @@ void HCS_Event_add(char* n,void (*sys));
 void HCS_Event_remove(char* n);
 void HCS_Event_run();
 
-void HCS_Name_add(HCS_Entity ent, char* n);
-HCS_Name* HCS_Name_get(HCS_Entity ent);
-void HCS_Name_remove(HCS_Entity ent);
-
 int HCS_State_add(HCS_Entity e);
 HCS_State* HCS_State_get(HCS_Entity e);
 void HCS_State_remove(HCS_Entity e);
@@ -302,21 +307,20 @@ void HCS_Movement_remove(HCS_Entity e);
 void HCS_Movement_system();
 
 void HCS_Drawable_translate_rect(SDL_Rect* r);
-int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t);
-void HCS_Sprite_use_text(HCS_Entity e, char* n, int length);
+int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t, bool use_text);
 HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
 void HCS_Sprite_remove(HCS_Entity e);
 void HCS_Sprite_system();
 
-int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type, HCS_Triggertype t);
-void HCS_Clickable_add_func(HCS_Entity e,void(*func)(int),int func_data);
+void HCS_Clickable_callback_list(void (*func)(int),char* n);
+int HCS_Clickable_add(HCS_Entity e, HCS_Clicktype type, HCS_Triggertype t,char* n,int func_data);
 HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
-bool HCS_Clickable_active_toggle(HCS_Entity e);
 void HCS_Clickable_system();
 
+void HCS_Collider_callback_list(void (*func)(HCS_Entity,HCS_Entity),char* n);
 void HCS_Collider_STD_callback(HCS_Entity this, HCS_Entity other);
-int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod,void (*func)(HCS_Entity, HCS_Entity));
+int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod, char* n);
 HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();
@@ -381,10 +385,14 @@ struct HCS_runData {
     HCS_Clickable HCS_Clickables[HCS_MAX_CLICKABLES];
     int HCS_Clickable_list[HCS_MAX_CLICKABLES];
     int HCS_Clickable_used;
+    HCS_Clickable_helper_func HCS_Clickable_callbacks[HCS_MAX_CLICKABLES];
+    int HCS_Clickable_callback_used;
     
     HCS_Collider HCS_Colliders[HCS_MAX_COLLIDERS];
     int HCS_Collider_list[HCS_MAX_COLLIDERS];
     int HCS_Collider_used;
+    HCS_Collider_helper_func HCS_Collider_callbacks[HCS_MAX_COLLIDERS];
+    int HCS_Collider_callback_used;
     
     HCS_Gravity HCS_Gravities[HCS_MAX_GRAVITIES];
     int HCS_Gravity_list[HCS_MAX_GRAVITIES];

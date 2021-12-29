@@ -1,7 +1,21 @@
 
 #pragma once
 
-int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod, void (*func)(HCS_Entity, HCS_Entity))
+void HCS_Collider_callback_list(void (*func)(HCS_Entity,HCS_Entity),char* n)
+{
+    if (runData->HCS_Collider_callback_used >= HCS_MAX_COLLIDERS)
+    {
+        #ifdef HCS_DEBUG
+        LSD_Log(LSD_ltERROR,"Du kannst keine Collider-Callbacks mehr hinzufügen!");
+        #endif
+    }
+    runData->HCS_Collider_callbacks[runData->HCS_Collider_callback_used].func = func;
+    runData->HCS_Collider_callbacks[runData->HCS_Collider_callback_used].name = malloc(strlen(n) + 1);
+    strcpy(runData->HCS_Collider_callbacks[runData->HCS_Collider_callback_used].name,n);
+    runData->HCS_Collider_callback_used++;
+}
+
+int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod, char* n)
 {
     if (!HCS_Entity_has_component(e,HCS_cBody))
     {
@@ -15,7 +29,23 @@ int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod, void (
     
     runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].offset.size = size_mod;
     runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].offset.pos = pos_mod;
-    runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].func = func;
+    int i;
+    bool found = false;
+    for (i = 0; i < runData->HCS_Collider_callback_used; i++)
+        if (0 == strcmp(n,runData->HCS_Collider_callbacks[i].name))
+        {
+            runData->HCS_Colliders[HCS_Entity_get_component_id(e,HCS_cCollider)].func = runData->HCS_Collider_callbacks[i].func;
+            found = true;
+        }
+
+    if (!found)
+    {
+        for (i = 0; i < runData->HCS_Collider_callback_used; i++)
+            LSD_Log(LSD_ltWARNING,"%s",runData->HCS_Collider_callbacks[i].name);
+        #ifdef HCS_DEBUG
+        LSD_Log(LSD_ltERROR,"Collider-Callback konnte nicht gefunden werden: %s",n);
+        #endif
+    }
     
     
     if (HCS_Entity_has_component(e,HCS_cMovement))

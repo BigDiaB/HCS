@@ -1,12 +1,21 @@
 
 #pragma once
 
-bool HCS_Clickable_active_toggle(HCS_Entity e)
+void HCS_Clickable_callback_list(void (*func)(int),char* n)
 {
-    return runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].active = !runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].active;
+    if (runData->HCS_Clickable_callback_used >= HCS_MAX_CLICKABLES)
+    {
+        #ifdef HCS_DEBUG
+        LSD_Log(LSD_ltERROR,"Du kannst keine Clickable-Callbacks mehr hinzufügen!");
+        #endif
+    }
+    runData->HCS_Clickable_callbacks[runData->HCS_Clickable_callback_used].func = func;
+    runData->HCS_Clickable_callbacks[runData->HCS_Clickable_callback_used].name = malloc(strlen(n) + 1);
+    strcpy(runData->HCS_Clickable_callbacks[runData->HCS_Clickable_callback_used].name,n);
+    runData->HCS_Clickable_callback_used++;
 }
 
-int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type, HCS_Triggertype t)
+int HCS_Clickable_add(HCS_Entity e, HCS_Clicktype type, HCS_Triggertype t,char* n,int func_data)
 {
     if (!HCS_Entity_has_component(e,HCS_cBody) || !HCS_Entity_has_component(e,HCS_cSprite))
     {
@@ -15,25 +24,33 @@ int HCS_Clickable_add(HCS_Entity e, bool* action, HCS_Clicktype type, HCS_Trigge
         #endif
     }
     runData->HCS_Entities[e].comp_ids[HCS_cClickable] = LSD_Math_get_id_from_array(runData->HCS_Clickable_list, &runData->HCS_Clickable_used, HCS_MAX_CLICKABLES);
-    runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].action = action;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].old_down = false;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].down = false;
-    runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].use_func = false;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].type = type;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].trigger = t;
     runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].active = true;
+
+    int i;
+    bool found = false;
+    for (i = 0; i < runData->HCS_Clickable_callback_used; i++)
+        if (0 == strcmp(n, runData->HCS_Clickable_callbacks[i].name))
+        {
+            runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].func = runData->HCS_Clickable_callbacks[i].func;
+            found = true;
+        }
+    if (!found)
+    {
+        for (i = 0; i < runData->HCS_Clickable_callback_used; i++)
+            LSD_Log(LSD_ltWARNING,"%s",runData->HCS_Clickable_callbacks[i].name);
+        #ifdef HCS_DEBUG
+        LSD_Log(LSD_ltERROR,"Clickable-Callback konnte nicht gefunden werden: %s",n);
+        #endif
+    }
+    runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].func_data = func_data;
     #ifdef HCS_DEBUG
     LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Clickable hinzugefügt!",e,HCS_Entity_tag_get(e));
     #endif
     return HCS_Entity_get_component_id(e,HCS_cClickable);
-}
-
-void HCS_Clickable_add_func(HCS_Entity e,void(*func)(int),int func_data)
-{
-    runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].use_func = true;
-    runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].func = func;
-    runData->HCS_Clickables[HCS_Entity_get_component_id(e,HCS_cClickable)].func_data = func_data;
-
 }
 
 HCS_Clickable* HCS_Clickable_get(HCS_Entity e)
@@ -88,44 +105,12 @@ void HCS_Clickable_system(double delta)
                 {
                     case HCS_Trig_released:
                         if (runData->HCS_Clickables[i].old_down && !runData->HCS_Input_Cursor_button.down)
-                        {
-                            switch (runData->HCS_Clickables[i].type) {
-                                case HCS_Click_toggle:
-                                    *(runData->HCS_Clickables[i].action) = !*(runData->HCS_Clickables[i].action);
-                                    break;
-                                case HCS_Click_on:
-                                    *(runData->HCS_Clickables[i].action) = true;
-                                    break;
-                                case HCS_Click_off:
-                                    *(runData->HCS_Clickables[i].action) = false;
-                                default:
-                                    break;
-                            }
-                            if (runData->HCS_Clickables[i].use_func)
-                                runData->HCS_Clickables[i].func(runData->HCS_Clickables[i].func_data);
-                            return;
-                        }
+                            runData->HCS_Clickables[i].func(runData->HCS_Clickables[i].func_data);
                         break;
 
                     case HCS_Trig_down:
                         if (!runData->HCS_Clickables[i].old_down && runData->HCS_Input_Cursor_button.down)
-                        {
-                            switch (runData->HCS_Clickables[i].type) {
-                                case HCS_Click_toggle:
-                                    *(runData->HCS_Clickables[i].action) = !*(runData->HCS_Clickables[i].action);
-                                    break;
-                                case HCS_Click_on:
-                                    *(runData->HCS_Clickables[i].action) = true;
-                                    break;
-                                case HCS_Click_off:
-                                    *(runData->HCS_Clickables[i].action) = false;
-                                default:
-                                    break;
-                            }
-                            if (runData->HCS_Clickables[i].use_func)
-                                runData->HCS_Clickables[i].func(runData->HCS_Clickables[i].func_data);
-                            return;
-                        }
+                            runData->HCS_Clickables[i].func(runData->HCS_Clickables[i].func_data);
                         break;
 
 
@@ -135,27 +120,13 @@ void HCS_Clickable_system(double delta)
                 
             }
             else
-            {
                 runData->HCS_Clickables[i].down = false;
-                switch (runData->HCS_Clickables[i].type)
-                {
-                    case HCS_Click_on:
-                        *(runData->HCS_Clickables[i].action) = false;
-                        break;
-                    case HCS_Click_off:
-                        *(runData->HCS_Clickables[i].action) = true;
-                        break;
-                    default:
-                        break;
-                }
-            }
             if (runData->HCS_Clickables[i].down && hot)
                 SDL_SetTextureColorMod(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,75, 75, 75);
-            else if (hot && !runData->HCS_Clickables[i].down)
+            else if (hot && !runData->HCS_Clickables[i].down && !runData->HCS_Clickables[i].old_down)
                 SDL_SetTextureColorMod(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,150, 150, 150);
-            else if (!hot && !runData->HCS_Clickables[i].down)
+            else if (!hot)
                 SDL_SetTextureColorMod(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->tex,255, 255, 255);
-            
         }
     }
 }

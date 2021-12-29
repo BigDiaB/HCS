@@ -13,14 +13,62 @@ void sprite_new(HCS_Sprite* spr, char* filename)
     
 }
 
-int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t)
+int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t, bool use_text)
 {
     int index = LSD_Math_get_id_from_array(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
     runData->HCS_Entities[e].comp_ids[HCS_cSprite] = index;
     
-    runData->HCS_Sprites[index] = *HCS_Asset(n);
-
     runData->HCS_Sprites[index].type = t;
+
+    if (!use_text)
+        runData->HCS_Sprites[index] = *HCS_Asset(n);
+    else
+    {
+    int len = strlen(n);
+    if (len < 1)
+    {
+        n = " ";
+        len = 1;
+    }
+    HCS_Body_get(e)->size.x = HCS_Body_get(e)->size.y * len;
+    
+    char path[200];
+    char temp[len];
+    int i;
+    for (i = 0; i < len; i++)
+        temp[i] = toupper(n[i]);
+    FILE* file;
+    HCS_Sprite* spr;
+    SDL_Rect re;
+    re.w = 1;
+    re.h = 1;
+    SDL_Rect r;
+    r.w = 16;
+    r.h = 16;
+    r.y = 0;
+    
+    SDL_DestroyTexture(HCS_Sprite_get(e)->tex);
+    HCS_Sprite_get(e)->tex = SDL_CreateTexture(runData->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, len * 18, 16);
+    SDL_SetTextureBlendMode( HCS_Sprite_get(e)->tex, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderTarget(runData->renderer,HCS_Sprite_get(e)->tex);
+    for (i = 0; i < len; i++)
+    {
+        if (temp[i] != ' ')
+        {
+            strcpy(path,"assets/Font/");
+            char character[2];
+            character[0] = temp[i];
+            character[1] = 0;
+            strcat(path,character);
+            strcat(path,".hgx");
+            r.x = i * 18;
+            spr = HCS_Asset(path);
+            SDL_RenderCopy(runData->renderer,spr->tex,NULL,&r);
+        }
+    }
+    SDL_SetRenderTarget(runData->renderer,NULL);
+    }
+
 
     
 
@@ -53,7 +101,7 @@ void HCS_Sprite_system(double delta)
     for (t = 0; t < runData->HCS_Sprite_used; t++)
     {
         int i = runData->HCS_Sprite_list[t];
-        depth_buffer[runData->HCS_Sprites[i].type][used_buffer[runData->HCS_Sprites[i].type]] = HCS_Entity_get_entity_id(i,HCS_cSprite);
+        depth_buffer[runData->HCS_Sprites[i].type][used_buffer[runData->HCS_Sprites[i].type]] = i;
         used_buffer[runData->HCS_Sprites[i].type]++;
     }
 
@@ -87,52 +135,4 @@ void HCS_Sprite_system(double delta)
                 SDL_RenderCopy(runData->renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
         }
     }
-}
-
-void HCS_Sprite_use_text(HCS_Entity e, char* n, int length)
-{
-    int len = length;
-    if (len < 1)
-    {
-        n = " ";
-        len = 1;
-    }
-    HCS_Body_get(e)->size.x = HCS_Body_get(e)->size.y * len;
-    
-    char path[200];
-    char temp[len];
-    int i;
-    for (i = 0; i < len; i++)
-        temp[i] = toupper(n[i]);
-    FILE* file;
-    HCS_Sprite* spr;
-    SDL_Rect re;
-    re.w = 1;
-    re.h = 1;
-    SDL_Rect r;
-    r.w = 16;
-    r.h = 16;
-    r.y = 0;
-    
-    SDL_DestroyTexture(HCS_Sprite_get(e)->tex);
-    HCS_Sprite_get(e)->tex = SDL_CreateTexture(runData->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, len * 18, 16);
-    SDL_SetTextureBlendMode( HCS_Sprite_get(e)->tex, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderTarget(runData->renderer,HCS_Sprite_get(e)->tex);
-//    SDL_RenderClear(runData->renderer);
-    for (i = 0; i < len; i++)
-    {
-        if (temp[i] != ' ')
-        {
-            strcpy(path,"assets/Font/");
-            char character[2];
-            character[0] = temp[i];
-            character[1] = 0;
-            strcat(path,character);
-            strcat(path,".hgx");
-            r.x = i * 18;
-            spr = HCS_Asset(path);
-            SDL_RenderCopy(runData->renderer,spr->tex,NULL,&r);
-        }
-    }
-    SDL_SetRenderTarget(runData->renderer,NULL);
 }

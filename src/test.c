@@ -100,8 +100,7 @@ void SPREDITtext_box_event()
         HCS_Text_input_get()[0] = 0;
         HCS_Entity e = HCS_Entity_create("SPREDITSafe_Name");
         HCS_Body_add(e,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 4,200,100,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 24);
-        HCS_Sprite_add(e,"assets/black.hgx",HCS_Draw_Decal);
-        HCS_Sprite_use_text(HCS_Entity_get_by_name("SPREDITSafe_Name"),HCS_Text_input_get(),*HCS_Text_input_length_get());
+        HCS_Sprite_add(e,HCS_Text_input_get(),HCS_Draw_Decal, true);
         strcpy(test,HCS_Text_input_get());
     }
     if (0 != strcmp(test,HCS_Text_input_get()))
@@ -113,7 +112,10 @@ void SPREDITtext_box_event()
             *HCS_Text_input_length_get() = 12;
         }
         else
-            HCS_Sprite_use_text(HCS_Entity_get_by_name("SPREDITSafe_Name"),HCS_Text_input_get(),*HCS_Text_input_length_get());
+        {
+            HCS_Sprite_remove(HCS_Entity_get_by_name("SPREDITSafe_Name"));
+            HCS_Sprite_add(HCS_Entity_get_by_name("SPREDITSafe_Name"),HCS_Text_input_get(),HCS_Draw_Decal, true);
+        }
     }
 }
 
@@ -125,33 +127,33 @@ void SPREDITon_safe_click(int nothing)
     {
         HCS_Entity e = HCS_Entity_create("SPREDITSafe_Background");
         HCS_Body_add(e,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 4 - 20,100,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 2 + 20,700);
-        HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+        HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal,false);
 
 
         e = HCS_Entity_create("SPREDITDone_Button");
         HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 4, 650,100,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 24);
-        HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-        HCS_Sprite_use_text(e,"Done",4);
-        HCS_Clickable_add(e,&SPREDITeditorData->dummy_bool,HCS_Click_off,HCS_Trig_released);
-        HCS_Clickable_add_func(e,SPREDITon_safe_click,0);
+        HCS_Sprite_add(e,"Done",HCS_Draw_Decal,true);
+        HCS_Clickable_add(e,HCS_Click_off,HCS_Trig_released,"SPREDITon_safe_click",0);
         HCS_Event_add("SPREDITSafe_Name",SPREDITtext_box_event);
         
         e = HCS_Entity_create("SPREDITCancel_Button");
         HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2, 650,100,HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x / 24);
-        HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-        HCS_Sprite_use_text(e,"Cancel",6);
-        HCS_Clickable_add(e,&SPREDITeditorData->save_for_real,HCS_Click_off,HCS_Trig_released);
-        HCS_Clickable_add_func(e,SPREDITcancel_safe,69420);
+        HCS_Sprite_add(e,"Cancel",HCS_Draw_Decal,true);
+        HCS_Clickable_add(e,HCS_Click_off,HCS_Trig_released,"SPREDITcancel_safe",69420);
         
         SPREDITeditorData->save_for_real = true;
         
         return;
     }
     SPREDITeditorData->save_for_real = false;
-    HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITCancel_Button"));
-    HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITSafe_Name"));
-    HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITSafe_Background"));
-    HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITDone_Button"));
+    if (HCS_Entity_exist("SPREDITCancel_Button"))
+        HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITCancel_Button"));
+    if (HCS_Entity_exist("SPREDITSafe_Name"))
+        HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITSafe_Name"));
+    if (HCS_Entity_exist("SPREDITSafe_Background"))
+        HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITSafe_Background"));
+    if (HCS_Entity_exist("SPREDITDone_Button"))
+        HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITDone_Button"));
     HCS_Event_remove("SPREDITSafe_Name");
     
     if (nothing != 69420)
@@ -211,6 +213,7 @@ void SPREDITon_safe_click(int nothing)
         #ifdef HCS_DEBUG
         LSD_Log(LSD_ltMESSAGE,"Canvas erfolgreich als Datei gespeichert!: %s",HCS_Text_input_get());
         #endif
+#undef CANVAS
     }
 }
 
@@ -224,6 +227,14 @@ struct HCS_SpriteEditorData HCS_SpriteEditorData;
 static struct HCS_SpriteEditorData* SPREDITeditorData = &HCS_SpriteEditorData;
 int main(int argc, char* argv[])
 {
+    HCS_Clickable_callback_list(SPREDITsprite_editor_deinit,"SPREDITsprite_editor_deinit");
+    HCS_Clickable_callback_list(SPREDITclear_canvas,"SPREDITclear_canvas");
+    HCS_Clickable_callback_list(SPREDITon_menu_click,"SPREDITon_menu_click");
+    HCS_Clickable_callback_list(SPREDITon_canvas_click,"SPREDITon_canvas_click");
+    HCS_Clickable_callback_list(SPREDITcancel_safe,"SPREDITcancel_safe");
+    HCS_Clickable_callback_list(SPREDITon_safe_click,"SPREDITon_safe_click");
+
+
     SPREDITeditorData->RED[0] = 0;
     SPREDITeditorData->GRN[0] = 0;
     SPREDITeditorData->BLU[0] = 0;
@@ -324,7 +335,7 @@ int main(int argc, char* argv[])
 
     HCS_Entity e = HCS_Entity_create("SPREDITDraw_Background");
     HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2 - 320, 80, 100 * 8 + 40, 100 * 8 + 40);
-    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal,false);
 
     int row = 0, collum = 0, index = 0;
     index = 0;
@@ -339,9 +350,8 @@ int main(int argc, char* argv[])
             strcat(name,name_num);
             HCS_Entity e = HCS_Entity_create(name);
             HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2 - 50 * (-9 + row), 100 + (collum) * 50, 45, 45);
-            HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-            HCS_Clickable_add(e,&SPREDITeditorData->dummy_bool,HCS_Click_toggle,HCS_Trig_down);
-            HCS_Clickable_add_func(e,SPREDITon_canvas_click,e);
+            HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal,false);
+            HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_down,"SPREDITon_canvas_click",e);
             SPREDITeditorData->Canvas[index] = HCS_Sprite_get(e);
             index++;
         }
@@ -357,10 +367,9 @@ int main(int argc, char* argv[])
             strcat(name,name_num);
             HCS_Entity e = HCS_Entity_create(name);
             HCS_Body_add(e,(HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x - 60 - 60 * row), 100 + (collum) * 60, 50, 50);
-            HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
+            HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal,false);
             HCS_Sprite_get(e)->tex = SPREDITeditorData->colour_tex[index];
-            HCS_Clickable_add(e,&SPREDITeditorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
-            HCS_Clickable_add_func(e,SPREDITon_menu_click,index);
+            HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"SPREDITon_menu_click",index);
             index++;
         }
     
@@ -368,31 +377,25 @@ int main(int argc, char* argv[])
     
     e = HCS_Entity_create("SPREDITSave_Button");
     HCS_Body_add(e,10,100,100,75);
-    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-    HCS_Sprite_use_text(e,"Safe",4);
-    HCS_Clickable_add(e,&SPREDITeditorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
-    HCS_Clickable_add_func(e,SPREDITon_safe_click,index);
+    HCS_Sprite_add(e,"Safe",HCS_Draw_Decal,true);
+    HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"SPREDITon_safe_click",index);
     
     e = HCS_Entity_create("SPREDITClear_Button");
     HCS_Body_add(e,10,200,100,75);
-    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-    HCS_Sprite_use_text(e,"Clear",5);
-    HCS_Clickable_add(e,&SPREDITeditorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
-    HCS_Clickable_add_func(e,SPREDITclear_canvas,index);
+    HCS_Sprite_add(e,"Clear",HCS_Draw_Decal,true);
+    HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"SPREDITclear_canvas",index);
     
     e = HCS_Entity_create("SPREDITQuit_Button");
     HCS_Body_add(e,10,300,100,75);
-    HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Decal);
-    HCS_Sprite_use_text(e,"Quit",4);
-    HCS_Clickable_add(e,&SPREDITeditorData->dummy_bool,HCS_Click_toggle,HCS_Trig_released);
-    HCS_Clickable_add_func(e,SPREDITsprite_editor_deinit,index);
+    HCS_Sprite_add(e,"Quit",HCS_Draw_Decal,true);
+    HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"SPREDITsprite_editor_deinit",index);
     
     HCS_Event_add("cursor_event",cursor_event);
     
     SPREDITeditorData->save_for_real = false;
     SPREDITclear_canvas(0);
 
-    // e = HCS_Entity_create("Ground");
+    // HCS_Entity e = HCS_Entity_create("Ground");
     // HCS_Body_add(e,0,600,1000,400);
     // HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Sprite);
     // HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0),HCS_Collider_STD_callback);
@@ -404,6 +407,158 @@ int main(int argc, char* argv[])
     // HCS_Movement_add(e,4000,4000);
     // HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0),HCS_Collider_STD_callback);
 
+
+
+
+    /* Ziel: "Script" mit dem man Configs für HCS und evtl. sogar Entity-Inits laden und generieren kann
+
+    Im HCScript-Format gibt es:
+    [Felder]
+    Werte
+    (Objekte)
+    //Kommentare
+    Eine .HCScript Datei könnte so aussehen:
+    
+
+    //Konfiguration von HCS
+    [HCS_Res_X]:    1920;
+    [HCS_Res_Y]:    1080;
+    [HCS_Screen]:   0.75;
+    
+
+    //Zwei Entities, z.B. ein Spieler und ein Boden, auf dem der Spieler "laufen" kann
+    (Player)
+    [Input];
+    [States];
+    [Body]:         0,600,100,400;
+    [Sprite]:       assets/default.hgx,HCS_Draw_Sprite,false;
+    [Movement]:     4000,4000;
+    [Collider]:     Vec(0,0),Vec(0,0),HCS_Collider_STD_callback;
+
+    (Ground)
+    [Body]:         0,700,1000,100;
+    [Sprite]:       assets/default.hgx,HCS_DrawBackground,false;
+    [Collider]:     Vec(0,0),Vec(0,0),HCS_Collider_STD_callback;
+
+
+    */
+
+
+    HCS_Entity Entity;
+    char* entity_data = 
+    "(Player1)";
+    // "[Body]:    0,600,100,400;"
+    // "[State];"
+    // "[Input];";
+    const char* Body_format = "%f,%f,%d,%d";
+    const char* Clickable_format = "%d,%s,%s,%s,%d";
+
+#define LSD_Sys_strcmp(X,Y) (0 == strcmp(X,Y))
+
+    while(*entity_data)
+    {
+        if ('(' == *entity_data)
+        {
+            entity_data++;
+            int entity_name_allocated = 100;
+            char* entity_name = malloc(entity_name_allocated);
+            int entity_name_used = 0;
+            while(*entity_data != ')')
+            {
+                if (entity_name_used == entity_name_allocated - 1)
+                {
+                    entity_name_allocated += 100;
+                    entity_name = realloc(entity_name,entity_name_allocated);
+                }
+                entity_name[entity_name_used] = *entity_data;
+                entity_name_used++;
+                entity_data++;
+            }
+            Entity = HCS_Entity_create(entity_name);
+            free(entity_name);
+        }
+
+        if ('[' == *entity_data)
+        {
+            entity_data++;
+            char component_name[20] = {0};
+            int component_name_used = 0;
+            while(*entity_data != ']')
+            {
+                component_name[component_name_used] = *entity_data;
+                component_name_used++;
+                entity_data++;
+            }
+            entity_data++;
+
+            if (*entity_data == ':')
+            {
+                int i,arg_offset = 0;
+                while (*entity_data == '\t' || *entity_data == ' ')
+                    entity_data++;
+                while (*(entity_data + arg_offset) != '\n')
+                    arg_offset++;
+                char args[arg_offset + 1];
+                for (i = 0; i < arg_offset; i++)
+                {
+                    args[i] = *(entity_data + i);
+                }
+                args[i + 1] = 0;
+                if (LSD_Sys_strcmp(component_name,"Body"))
+                {
+                    float init_x;
+                    float init_y;
+                    int init_w;
+                    int init_h;
+                    sprintf(args,Body_format,&init_x, &init_y, &init_w, &init_h);
+                    HCS_Body_add(Entity,init_x,init_y,init_w,init_h);
+                }
+                else if (LSD_Sys_strcmp(component_name,"Clickable"))
+                {
+
+                }
+            }
+            else if (*entity_data == ';')
+            {
+                if (LSD_Sys_strcmp(component_name,"Input"))
+                {
+                    HCS_Input_add(Entity);
+                }
+                else if (LSD_Sys_strcmp(component_name,"State"))
+                {
+                    HCS_State_add(Entity);
+                }
+            }
+            else
+            {
+                LSD_Log(LSD_ltERROR,"Format Error!");
+            }
+
+            
+        }
+
+
+
+
+
+
+
+        entity_data++;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // HCS_STOP();
     HCS_CONTINUE();
 }
 
