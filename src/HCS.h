@@ -27,7 +27,7 @@
  -LSD_Log überarbeiten mit Format-String wie in printf()!                       FERTIG!           -> In LSD.h, greift aber immernoch auf LSD_Log_old() zurück!
  -LSD_Log mit LSD_Log_old mergen!                                               FERTIG!           -> In LSD.h, greift jetzt nicht mehr auf LSD_Log_old zurück!
  -Jump-Timer hinzufügen!                                                        FERTIG!           -> In jump.h
- -Collisions checken mit zu wenig overhead!                                     FERTIG!           -> In collision.h
+ -Collisions checken mit wenig overhead!                                        FERTIG!           -> In collision.h
  -Input überarbeiten, sodass nur noch UP,DOWN,LEFT,RIGHT,A,B,C,D existieren!    FERTIG!           -> in HCS.h
  -GFX fertig stellen, d.h. alles was mit Grafik und SDL2 zu tun hat wrappen!    FERTIG!           -> in HCS.h
  -Platform.h effektiv mit GFX ersetzen!                                         FERTIG!           -> HCS.h
@@ -51,13 +51,15 @@
  -Namen der Sprite-Editor-Funktionen ändern (evtl. mit SPREDIT-Präfix)          FERTIG!           -> Halt überall in test.c
  -In Drawable nur sachen drawen, die auch auf dem Bildschirm sind!              FERTIG!           -> Im HCS_Sprite_system() mit AABB()s um zu gucken, ob die Sprites mit dem Bildschirm überlappen!
  -AABB() mit nach LSD bringen!                                                  FERTIG!           -> LSD_Math_AABB() als #define damit man alle Datentypen benutzen kann (aka int, float, double, etc)
+ -Alle Komponenten sollten mit einer Funktion komplett initialisiert werden können! FERTIG!       -> Z.B. in HCS.h
+ -Alle Helper-Funcs müssen in einem Array sein! (Colliders,Clickables)          FERTIG!           -> HCS_Collider(bzw. Clickable)_callbacks in runData
+ -Names zu Tags umbenennen und sie mit dem HCS_Entity_data-Struct mergen!       FERTIG!           -> Entity-Data-Struct
+ -Entities aus Dateien laden (evtl mit eigener Script-Sprache (.hcscript))!     FERTIG!           -> HCS_Script_load()
 
- -Alle Komponenten sollten mit einer Funktion komplett initialisiert werden können!
- -Alle Helper-Funcs müssen in einem Array sein! (Colliders,Clickables)
- -Names zu Tags umbenennen und sie mit dem HCS_Entity_data-Struct mergen!
+
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
  -Cycle-Speed-Cap für Threads
- -Irgendwie Sound hinkriegen (Möglichst mit SDL_Mixer!)!
+ -Irgendwie Sound hinkriegen (Möglichst ohne SDL_Mixer (Siehe GitHub Star!)!)!
  
  Very Nice To Haves™:
  
@@ -245,6 +247,7 @@ void HCS_Stop();
 void HCS_Update(double delta);
 void HCS_Gfx_Fullscreen_toggle();
 int HCS_Main(int argc, char* argv[]);
+void HCS_Script_load(char* filename);
 
 LSD_Vec2f* HCS_Camera_get();
 LSD_Vec2i* HCS_Cursor_position_get();
@@ -267,6 +270,7 @@ void HCS_Entity_remove(HCS_Entity ent);
 void HCS_Entity_kill(HCS_Entity e);
 void HCS_Entity_clear();
 HCS_Entity_data* HCS_Entity_data_get(HCS_Entity e);
+#define HCS_Entity_tag_get(e) HCS_Entity_data_get(e)->tag
 
 bool HCS_Entity_has_component(HCS_Entity ent, HCS_Component comp);
 int HCS_Entity_get_component_id(HCS_Entity ent, HCS_Component comp);

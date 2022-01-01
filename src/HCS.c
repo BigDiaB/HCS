@@ -6,8 +6,6 @@
 #undef main
 #endif
 
-#define HCS_Entity_tag_get(e) HCS_Entity_data_get(e)->tag
-
 struct HCS_runData* runData;
 
 void HCS_Update(double delta)
@@ -21,27 +19,6 @@ void HCS_Update(double delta)
             if (runData->event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 HCS_Entity_clear();
 
-                SDL_Window* win = runData->window;
-                SDL_Renderer* ren = runData->renderer;
-                free(runData);
-                runData = malloc(sizeof(struct HCS_runData));
-                struct HCS_runData zero = {0};
-                *runData = zero;
-
-                runData->DRAW_OFFSET = 0;
-                runData->STRETCH_HEIGHT = 1;
-                runData->STRETCH_WIDTH = 1;
-                runData->WORLD_TO_SCREEN_X = 1000;
-                runData->WORLD_TO_SCREEN_Y = 1000;
-                runData->std.r = 125;
-                runData->std.g = 125;
-                runData->std.b = 125;
-                runData->color.r = 255;
-                runData->color.g = 255;
-                runData->color.b = 255;
-                runData->renderer = ren;
-                runData->window = win;
-                runData->fullscreen = false;
                 SDL_GetWindowSize(runData->window, &runData->WIN_SIZE.w,&runData->WIN_SIZE.h);
                 runData->STRETCH_WIDTH = (double)runData->WIN_SIZE.w / (double)runData->WIN_SIZE.h;
                 runData->STRETCH_HEIGHT = (double)runData->WIN_SIZE.h / (double)runData->WIN_SIZE.w;
@@ -183,6 +160,8 @@ void HCS_Init(char* argv[])
     runData->STRETCH_HEIGHT = (double)runData->WIN_SIZE.h / (double)runData->WIN_SIZE.w;
     SDL_SetWindowSize(runData->window, runData->WIN_SIZE.w,runData->WIN_SIZE.h);
     SDL_SetWindowPosition(runData->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+
+
 }
 
 
@@ -544,13 +523,12 @@ LSD_Thread_function(Controller_Server)
 }
 
 
-LSD_Thread_function(Misc_Wrapper)
+LSD_Thread_function(Collider_thread)
 {
     LSD_Thread_init();
     while(runData->HCS_running)
     {
         HCS_Collider_system(LSD_Delta_none);
-        HCS_Input_system(LSD_Delta_none);
     }
     LSD_Thread_finish();
 }
@@ -572,6 +550,289 @@ LSD_Thread_function(Move_Wrapper)
     LSD_Thread_finish();
 }
 
+void HCS_Script_load(char* filename)
+{
+    // #define LOAD_GEN_DEBUG
+
+    #define ENT_BEGIN       '{'
+    #define ENT_END         '}'    
+    #define COMP_BEGIN      '['
+    #define COMP_END        ']'
+    #define COMP_ARGS       ':'
+    #define COMP_NOARGS     ';'
+    #define ARG_DELIMITER   "|"
+
+    #define current *entity_data
+    #define advance() entity_data++
+
+
+    HCS_Entity current_entity;
+    char current_entity_name[10000];
+    char current_component_name[100];
+    char current_component_args[10000];
+
+    LSD_File* file = LSD_File_open(filename);
+
+    char* entity_data = file->data;
+
+    while (*entity_data)
+    {
+        if (current == ENT_BEGIN)
+        {
+            advance();
+            int ent_point = 0;
+            for (ent_point = 0; ent_point < 10000; ent_point++)
+                current_entity_name[ent_point] = 0;
+            ent_point = 0;
+            while (current != ENT_END)
+            {
+                current_entity_name[ent_point] = current;
+                ent_point++;
+                advance();
+            }
+            current_entity = HCS_Entity_create(current_entity_name);
+        }
+        else if (current == COMP_BEGIN)
+        {
+            advance();
+            int ent_point;
+            for (ent_point = 0; ent_point < 100; ent_point++)
+                current_component_name[ent_point] = 0;
+            ent_point = 0;
+            while (current != COMP_END)
+            {
+                current_component_name[ent_point] = current;
+                ent_point++;
+                advance();
+            }
+        }
+        else if (current == COMP_NOARGS)
+        {
+            if (LSD_Sys_strcmp(current_component_name,"Input"))
+                HCS_Input_add(current_entity);
+            else if (LSD_Sys_strcmp(current_component_name,"State"))
+                HCS_State_add(current_entity);
+            advance();
+        }
+        else if (current == COMP_ARGS)
+        {
+            advance();
+            while (current == ' ' || current == '\t')
+                advance();
+            int ent_point;
+            for (ent_point = 0; ent_point < 10000; ent_point++)
+                current_component_args[ent_point] = 0;
+            ent_point = 0;
+            while (current != COMP_NOARGS)
+            {
+                current_component_args[ent_point] = current;
+                ent_point++;
+                advance();
+            }
+
+
+            if (LSD_Sys_strcmp(current_component_name,"Body"))
+            {
+                const char* body_format = "%f|%f|%d|%d|";
+                float x,y;
+                int w,h;
+                sscanf(current_component_args,body_format,&x,&y,&w,&h);
+                #ifdef LOAD_GEN_DEBUG
+                LSD_Log(LSD_ltMESSAGE,"%s: Body:%f, %f, %d, %d",current_entity_name, x,y,w,h);
+                #endif
+                HCS_Body_add(current_entity,x,y,w,h);
+            }
+            else if (LSD_Sys_strcmp(current_component_name,"Movement"))
+            {
+                const char* movement_format = "%d|%d";
+                int sx,sy;
+                sscanf(current_component_args,movement_format,&sx,&sy);
+                #ifdef LOAD_GEN_DEBUG
+                LSD_Log(LSD_ltMESSAGE,"%s: Movement: %d, %d",current_entity_name, sx,sy);
+                #endif
+                HCS_Movement_add(current_entity,sx,sy);
+            }
+            else if (LSD_Sys_strcmp(current_component_name,"Sprite"))
+            {
+                char path[100];
+                HCS_Drawtype type;
+                char type_text[100];
+                bool use_text;
+                char* token = strtok(current_component_args,ARG_DELIMITER);
+                strcpy(path,token);
+                token = strtok(NULL,ARG_DELIMITER);
+                strcpy(type_text,token);
+                if (LSD_Sys_strcmp(type_text,"HCS_Draw_Background0"))
+                {
+                    type = HCS_Draw_Background0;
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Background1"))
+                {
+                    type = HCS_Draw_Background1;   
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Background2"))
+                {
+                    type = HCS_Draw_Background2;   
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Sprite"))
+                {
+                    type = HCS_Draw_Sprite;
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Decal"))
+                {
+                    type = HCS_Draw_Decal;   
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Effect"))
+                {
+                    type = HCS_Draw_Effect;
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Debug"))
+                {
+                    type = HCS_Draw_Debug;
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Menu0"))
+                {
+                    type = HCS_Draw_Menu0;
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Menu1"))
+                {
+                    type = HCS_Draw_Menu1;
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Menu2"))
+                {
+                    type = HCS_Draw_Menu2;
+                }
+                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_DebugUI"))
+                {
+                    type = HCS_Draw_DebugUI;
+                }
+                token = strtok(NULL,ARG_DELIMITER);
+                if (LSD_Sys_strcmp(token,"false"))
+                {
+                    use_text = false;
+                }
+                else if (LSD_Sys_strcmp(token,"true"))
+                {
+                    use_text = true;
+                }
+
+                #ifdef LOAD_GEN_DEBUG
+                LSD_Log(LSD_ltMESSAGE,"%s: Sprite: %s, %s, %d",current_entity_name, path, type_text, use_text);
+                #endif
+                HCS_Sprite_add(current_entity,path,type,use_text);
+            }
+            else if (LSD_Sys_strcmp(current_component_name,"Collider"))
+            {
+                LSD_Vec2f pos_mod;
+                LSD_Vec2i size_mod;
+                char* token = strtok(current_component_args,ARG_DELIMITER);
+                sscanf(token,"Vec(%f,%f)",&pos_mod.x,&pos_mod.y);
+                token = strtok(NULL,ARG_DELIMITER);
+                sscanf(token,"Vec(%d,%d)",&size_mod.x,&size_mod.y);
+                token = strtok(NULL,ARG_DELIMITER);
+
+
+                #ifdef LOAD_GEN_DEBUG
+                LSD_Log(LSD_ltMESSAGE,"%s: Collider: Vec(%f,%f), Vec(%d,%d), %s",current_entity_name, pos_mod.x,pos_mod.y,size_mod.x,size_mod.y,token);
+                #endif
+                HCS_Collider_add(current_entity,pos_mod,size_mod,token);
+            }
+            else if (LSD_Sys_strcmp(current_component_name,"Gravity"))
+            {
+                const char* gravity_format = "%f|%f|";
+                float n,m;
+                sscanf(current_component_args,gravity_format,&n,&m);
+                #ifdef LOAD_GEN_DEBUG
+                LSD_Log(LSD_ltMESSAGE,"%s: Gravity: %f, %f",current_entity_name, n,m);
+                #endif
+                HCS_Gravity_add(current_entity,n,m);
+            }
+            else if (LSD_Sys_strcmp(current_component_name,"Jump"))
+            {
+                float n,l;
+                bool m;
+
+                char* token = strtok(current_component_args,ARG_DELIMITER);
+
+                sscanf(token,"%f",&n);
+
+                token = strtok(NULL,ARG_DELIMITER);
+
+                if (LSD_Sys_strcmp(token,"false"))
+                {
+                    m = false;
+                }
+                else if (LSD_Sys_strcmp(token,"true"))
+                {
+                    m = true;
+                }
+
+                token = strtok(NULL,ARG_DELIMITER);
+
+                sscanf(token,"%f",&l);
+
+                #ifdef LOAD_GEN_DEBUG
+                LSD_Log(LSD_ltMESSAGE,"%s: Jump: %f, %d, %f",current_entity_name, n,m,l);
+                #endif
+                HCS_Jump_add(current_entity,n,m,l);
+            }
+            else if (LSD_Sys_strcmp(current_component_name,"Clickable"))
+            {
+                char clicktype_text[100];
+                char trigtype_text[100];
+                char callback_name[1000];
+                int func_data;
+                HCS_Clicktype clicktype;
+                HCS_Triggertype trigtype;
+
+
+                char* token = strtok(current_component_args,ARG_DELIMITER);
+                strcpy(clicktype_text,token);
+                token = strtok(NULL,ARG_DELIMITER);
+                strcpy(trigtype_text,token);
+                token = strtok(NULL,ARG_DELIMITER);
+                strcpy(callback_name,token);
+                token = strtok(NULL,ARG_DELIMITER);
+                sscanf(token,"%d",&func_data);
+
+
+                if (LSD_Sys_strcmp(clicktype_text,"HCS_Click_on"))
+                {
+                    clicktype = HCS_Click_on;
+                }
+                else if (LSD_Sys_strcmp(clicktype_text,"HCS_Click_off"))
+                {
+                    clicktype = HCS_Click_off;
+                }
+                else if (LSD_Sys_strcmp(clicktype_text,"HCS_Click_toggle"))
+                {
+                    clicktype = HCS_Click_toggle;
+                }
+
+                if (LSD_Sys_strcmp(trigtype_text,"HCS_Trig_released"))
+                {
+                    trigtype = HCS_Trig_released;
+                } 
+                else if (LSD_Sys_strcmp(trigtype_text,"HCS_Trig_down"))
+                {
+                    trigtype = HCS_Trig_down;
+                } 
+
+                #ifdef LOAD_GEN_DEBUG
+                LSD_Log(LSD_ltMESSAGE,"%s: Clickable: %s, %s, %s, %d",current_entity_name,clicktype_text,trigtype_text,callback_name,token);
+                #endif
+                HCS_Clickable_add(current_entity,clicktype,trigtype,callback_name,func_data);
+
+            }
+            advance();
+
+        }
+        else
+            advance();
+    }
+    LSD_File_close(file);
+}
+
 
 //Main-Loop mit Game-Loop:
 int main(int argc, char* argv[])
@@ -583,10 +844,10 @@ int main(int argc, char* argv[])
     #else
     LSD_Log_level_set(LSD_llNONE);
     #endif
-    HCS_Collider_callback_list(HCS_Collider_STD_callback,"HCS_Collider_STD_callback");
+
     runData->HCS_running = HCS_Main(argc,argv);
-    // LSD_Thread_add("Miscellaneous",Misc_Wrapper);
-    // LSD_Thread_add("Movement",Move_Wrapper);
+    LSD_Thread_add("Movement",Move_Wrapper);
+    LSD_Thread_add("Collider",Collider_thread);
     #ifndef HCS_DEBUG
     LSD_Thread_add("Controller",Controller_Server);
     #endif
@@ -598,6 +859,7 @@ int main(int argc, char* argv[])
         {
             HCS_Sprite_system(LSD_Delta_none);
             HCS_Clickable_system(LSD_Delta_none);
+            HCS_Input_system(LSD_Delta_none);
             HCS_Event_run();
         }
         HCS_Update(LSD_Delta_none);

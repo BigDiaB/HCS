@@ -130,6 +130,8 @@ void HCS_Collider_STD_callback(HCS_Entity this, HCS_Entity other)
             }
         }
     }
+    if (HCS_Entity_has_component(HCS_Entity_get_entity_id(i,HCS_cCollider),HCS_cState))
+        HCS_State_get(HCS_Entity_get_entity_id(i,HCS_cCollider))->on_ground = runData->HCS_Colliders[i].on_ground;
 }
 
 
