@@ -8,6 +8,16 @@
 
 struct HCS_runData* runData;
 
+void HCS_Error(char* title, char* desc)
+{
+    #ifdef HCS_DEBUG
+    LSD_Log(LSD_ltCUSTOM,"HCS_ERROR: %s\n%s\n",title,desc);
+    #endif
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, desc, runData->window);
+}
+
+#define HCS_Error(X,Y)  HCS_Error(X,Y); exit(3)
+
 void HCS_Update(double delta)
 {
     while(SDL_PollEvent(&runData->event))
@@ -200,10 +210,7 @@ HCS_Entity HCS_Entity_get_entity_id(int comp_id, HCS_Component comp)
         if (runData->HCS_Entities[i].comp_ids[comp] == comp_id)
             return i;
     }
-    #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltERROR,"Entity konnte nicht nach Komponenten gefunden werden!");
-    #endif
-    return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
+    HCS_Error("Entity-Suche","Entity konnte nicht nach Komponenten gefunden werden!");
 }
 
 HCS_Entity HCS_Entity_get_by_name(char* n)
@@ -215,10 +222,10 @@ HCS_Entity HCS_Entity_get_by_name(char* n)
         if (0 == strcmp(HCS_Entity_tag_get(i),n))
             return i;
     }
-    #ifdef HCS_DEBUG
-    LSD_Log(LSD_ltERROR,"Konnte Entity nicht nach Namen finden!: %s", n);
-    #endif
-    return 0; //Das hier wird niemals vorkommen, weil LSD bei Errors automatisch exitet!
+
+    char desc[2056];
+    sprintf(desc,"Konnte Entity nicht nach Namen finden!:\n \"%s\"", n);
+    HCS_Error("Entity-Suche",desc);
 }
 
 void HCS_Entity_kill(HCS_Entity e)
@@ -655,57 +662,15 @@ void HCS_Script_load(char* filename)
             else if (LSD_Sys_strcmp(current_component_name,"Sprite"))
             {
                 char path[100];
-                HCS_Drawtype type;
+                int type;
                 char type_text[100];
                 bool use_text;
                 char* token = strtok(current_component_args,ARG_DELIMITER);
                 strcpy(path,token);
                 token = strtok(NULL,ARG_DELIMITER);
-                strcpy(type_text,token);
-                if (LSD_Sys_strcmp(type_text,"HCS_Draw_Background0"))
-                {
-                    type = HCS_Draw_Background0;
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Background1"))
-                {
-                    type = HCS_Draw_Background1;   
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Background2"))
-                {
-                    type = HCS_Draw_Background2;   
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Sprite"))
-                {
-                    type = HCS_Draw_Sprite;
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Decal"))
-                {
-                    type = HCS_Draw_Decal;   
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Effect"))
-                {
-                    type = HCS_Draw_Effect;
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Debug"))
-                {
-                    type = HCS_Draw_Debug;
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Menu0"))
-                {
-                    type = HCS_Draw_Menu0;
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Menu1"))
-                {
-                    type = HCS_Draw_Menu1;
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_Menu2"))
-                {
-                    type = HCS_Draw_Menu2;
-                }
-                else if (LSD_Sys_strcmp(type_text,"HCS_Draw_DebugUI"))
-                {
-                    type = HCS_Draw_DebugUI;
-                }
+                
+                sscanf(token,"%d",&type);
+                
                 token = strtok(NULL,ARG_DELIMITER);
                 if (LSD_Sys_strcmp(token,"false"))
                 {
@@ -852,11 +817,19 @@ int main(int argc, char* argv[])
     LSD_Thread_add("Controller",Controller_Server);
     #endif
     //Game-Loop
+    LSD_Delta_add("Movement_Wrapper");
+    double delta;
     while(runData->HCS_running || LSD_Thread_used > 0)
     {
         LSD_Thread_system();
         if (runData->HCS_running)
         {
+            LSD_Delta_tick("Movement_Wrapper");
+            delta = LSD_Delta_get("Movement_Wrapper")->delta;
+            HCS_Jump_system(delta);
+            HCS_Gravity_system(delta);
+            HCS_Movement_system(delta);
+            HCS_Collider_system(LSD_Delta_none);
             HCS_Sprite_system(LSD_Delta_none);
             HCS_Clickable_system(LSD_Delta_none);
             HCS_Input_system(LSD_Delta_none);
@@ -864,6 +837,7 @@ int main(int argc, char* argv[])
         }
         HCS_Update(LSD_Delta_none);
     }
+    LSD_Delta_remove("Movement_Wrapper");
     HCS_Entity_clear();
     //Library-Deinitialisierung
     HCS_Deinit();

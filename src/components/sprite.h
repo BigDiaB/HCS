@@ -1,6 +1,7 @@
 #pragma once 
 
-#define HCS_Drawable_Drawtype_UI 8
+#define HCS_Drawable_Drawtype_UI 9
+#define HCS_NUM_DRAWTYPES 10
 
 void sprite_new(HCS_Sprite* spr, char* filename)
 {
@@ -13,12 +14,12 @@ void sprite_new(HCS_Sprite* spr, char* filename)
     
 }
 
-int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t, bool use_text)
+int HCS_Sprite_add(HCS_Entity e, char* n, int t, bool use_text)
 {
     int index = LSD_Math_get_id_from_array(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
     runData->HCS_Entities[e].comp_ids[HCS_cSprite] = index;
     
-    runData->HCS_Sprites[index].type = t;
+    runData->HCS_Sprites[index].layer = t;
 
     if (!use_text)
         runData->HCS_Sprites[index] = *HCS_Asset(n);
@@ -101,11 +102,27 @@ void HCS_Sprite_system(double delta)
     for (t = 0; t < runData->HCS_Sprite_used; t++)
     {
         int i = runData->HCS_Sprite_list[t];
-        depth_buffer[runData->HCS_Sprites[i].type][used_buffer[runData->HCS_Sprites[i].type]] = i;
-        used_buffer[runData->HCS_Sprites[i].type]++;
+        depth_buffer[runData->HCS_Sprites[i].layer][used_buffer[runData->HCS_Sprites[i].layer]] = i;
+        used_buffer[runData->HCS_Sprites[i].layer]++;
     }
 
-    for (t = 0; t < HCS_Drawable_Drawtype_UI; t++)
+    for (t = 0; t < 3; t++)
+    {
+        for (i = 0; i < used_buffer[t]; i++)
+        {
+             SDL_Rect r;
+             HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[t][i],HCS_cSprite));
+             r.x = b->pos.x;
+             r.y = b->pos.y;
+             r.w = b->size.x;
+             r.h = b->size.y;
+             HCS_Drawable_translate_rect(&r);
+             if (LSD_Math_AABB(LSD_Vec_new_float(r.x,r.y),LSD_Vec_new_float(0,0),LSD_Vec_new_int(r.w,r.h),LSD_Vec_new_int(runData->WIN_SIZE.w,runData->WIN_SIZE.h)))
+                SDL_RenderCopy(runData->renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
+        }
+    }
+
+    for (t = 3; t < HCS_Drawable_Drawtype_UI - 1; t++)
     {
         for (i = 0; i < used_buffer[t]; i++)
         {
@@ -116,11 +133,27 @@ void HCS_Sprite_system(double delta)
              r.w = b->size.x;
              r.h = b->size.y;
              HCS_Drawable_translate_rect(&r);
+             r.x += (runData->WIN_SIZE.w - runData->WIN_SIZE.h / 9 * 16) / 2;
              if (LSD_Math_AABB(LSD_Vec_new_float(r.x,r.y),LSD_Vec_new_float(0,0),LSD_Vec_new_int(r.w,r.h),LSD_Vec_new_int(runData->WIN_SIZE.w,runData->WIN_SIZE.h)))
                 SDL_RenderCopy(runData->renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
         }
     }
-    for (t = HCS_Drawable_Drawtype_UI; t < HCS_NUM_DRAWTYPES; t++)
+
+    for (i = 0; i < used_buffer[HCS_Drawable_Drawtype_UI]; i++)
+    {
+        SDL_Rect r;
+        HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(depth_buffer[HCS_Drawable_Drawtype_UI][i],HCS_cSprite));
+        r.x = b->pos.x - runData->HCS_Gfx_Camera.x;
+        r.y = b->pos.y - runData->HCS_Gfx_Camera.y;
+        r.w = b->size.x;
+        r.h = b->size.y;
+        HCS_Drawable_translate_rect(&r);
+        if (LSD_Math_AABB(LSD_Vec_new_float(r.x,r.y),LSD_Vec_new_float(0,0),LSD_Vec_new_int(r.w,r.h),LSD_Vec_new_int(runData->WIN_SIZE.w,runData->WIN_SIZE.h)))
+            SDL_RenderCopy(runData->renderer,runData->HCS_Sprites[depth_buffer[t][i]].tex,NULL,&r);
+    }
+
+
+    for (t = HCS_Drawable_Drawtype_UI + 1; t < HCS_NUM_DRAWTYPES; t++)
     {
         for (i = 0; i < used_buffer[t]; i++)
         {

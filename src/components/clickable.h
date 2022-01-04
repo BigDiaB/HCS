@@ -80,7 +80,7 @@ void HCS_Clickable_system(double delta)
             LSD_Vec2i temp_size = {0,0};
             LSD_Vec2i temp_bod_size = { HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.x,HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.y};
             LSD_Vec2f temp_pos;
-            if (HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type > HCS_Drawable_Drawtype_UI)
+            if (HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->layer >= HCS_Drawable_Drawtype_UI)
             {
                temp_pos.x = bod.pos.x * runData->STRETCH_WIDTH ;
                temp_pos.y = bod.pos.y ;

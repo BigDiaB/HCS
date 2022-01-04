@@ -55,10 +55,16 @@
  -Alle Helper-Funcs müssen in einem Array sein! (Colliders,Clickables)          FERTIG!           -> HCS_Collider(bzw. Clickable)_callbacks in runData
  -Names zu Tags umbenennen und sie mit dem HCS_Entity_data-Struct mergen!       FERTIG!           -> Entity-Data-Struct
  -Entities aus Dateien laden (evtl mit eigener Script-Sprache (.hcscript))!     FERTIG!           -> HCS_Script_load()
-
-
- -Animationen für Drawables (Timer + Quad und States oder sowas kp...)
- -Cycle-Speed-Cap für Threads
+ -Kamera: 16/9 Viewport immer zentriert in der Mitte (Non-UI)                   FERTIG!           -> In sprite.h werden jetzt alle Nicht-UI-sprites entsprechend verschoben!
+ 
+ -Draw-Primitives (Rechtecke mit Farbe!) als Komponent (HCS_Drawable ?)!
+ -Datenaustausch über Sockets (Kein WebServer!) in LSD einbauen!
+ -Clipping für Bodys (HCS_Body_align_left oder sowas)!
+ -Horst-Script in LSD einbauen (LSD_Script ?)!
+ -Collider- und Clickable-Callbacks mit Horst-Script-Funktionen ersetzen!
+ -Entities in Scripts Dumpen!
+ -Animationen für Drawables (Timer + Quad und States oder sowas kp...)!
+ -Cycle-Speed-Cap für Threads!
  -Irgendwie Sound hinkriegen (Möglichst ohne SDL_Mixer (Siehe GitHub Star!)!)!
  
  Very Nice To Haves™:
@@ -106,11 +112,6 @@ typedef enum {
 } HCS_Component;
 
 typedef enum {
-    HCS_Draw_Background0, HCS_Draw_Background1, HCS_Draw_Background2, HCS_Draw_Sprite, HCS_Draw_Decal, HCS_Draw_Effect, HCS_Draw_Debug, HCS_Draw_Menu0, 
-    HCS_Draw_Menu1, HCS_Draw_Menu2, HCS_Draw_DebugUI, HCS_NUM_DRAWTYPES
-} HCS_Drawtype;
-
-typedef enum {
     HCS_Click_on, HCS_Click_off, HCS_Click_toggle
 } HCS_Clicktype;
 
@@ -139,7 +140,7 @@ typedef struct
 
 typedef struct
 {
-    HCS_Drawtype type;
+    int layer;
     SDL_Rect body;
     SDL_Texture* tex;
     HCS_Sprite_raw raw;
@@ -248,6 +249,7 @@ void HCS_Update(double delta);
 void HCS_Gfx_Fullscreen_toggle();
 int HCS_Main(int argc, char* argv[]);
 void HCS_Script_load(char* filename);
+void HCS_Error(char* title, char* desc);
 
 LSD_Vec2f* HCS_Camera_get();
 LSD_Vec2i* HCS_Cursor_position_get();
@@ -311,7 +313,7 @@ void HCS_Movement_remove(HCS_Entity e);
 void HCS_Movement_system();
 
 void HCS_Drawable_translate_rect(SDL_Rect* r);
-int HCS_Sprite_add(HCS_Entity e, char* n, HCS_Drawtype t, bool use_text);
+int HCS_Sprite_add(HCS_Entity e, char* n, int t, bool use_text);
 HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
 void HCS_Sprite_remove(HCS_Entity e);
 void HCS_Sprite_system();

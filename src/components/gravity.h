@@ -42,7 +42,7 @@ void HCS_Gravity_system(double delta)
         int i = runData->HCS_Gravity_list[j];
         if (runData->HCS_Gravities[i].active)
         {
-            if (!HCS_Collider_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->on_ground)
+            if (!HCS_State_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->on_ground)
             {
                 if (HCS_Movement_get(HCS_Entity_get_entity_id(i,HCS_cGravity))->vel.y > 0)
 
