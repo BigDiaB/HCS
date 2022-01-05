@@ -57,11 +57,10 @@
  -Entities aus Dateien laden (evtl mit eigener Script-Sprache (.hcscript))!     FERTIG!           -> HCS_Script_load()
  -Kamera: 16/9 Viewport immer zentriert in der Mitte (Non-UI)                   FERTIG!           -> In sprite.h werden jetzt alle Nicht-UI-sprites entsprechend verschoben!
  
+ -Sprites sind gerade Broken... irgendwas mit dem Layering...
  -Draw-Primitives (Rechtecke mit Farbe!) als Komponent (HCS_Drawable ?)!
  -Datenaustausch über Sockets (Kein WebServer!) in LSD einbauen!
  -Clipping für Bodys (HCS_Body_align_left oder sowas)!
- -Horst-Script in LSD einbauen (LSD_Script ?)!
- -Collider- und Clickable-Callbacks mit Horst-Script-Funktionen ersetzen!
  -Entities in Scripts Dumpen!
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)!
  -Cycle-Speed-Cap für Threads!

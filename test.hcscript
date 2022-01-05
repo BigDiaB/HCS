@@ -6,8 +6,8 @@
 [Gravity]:		0|2700|;
 [Collider]:     Vec(0,0)|Vec(0,0)|HCS_Collider_STD_callback|;
 [Jump]:			3000|true|0|;
-[Sprite]:       assets/default.hgx|HCS_Draw_Background0|false|;
+[Sprite]:       assets/default.hgx|8|false|;
 {Ground}
 [Body]:         300|600|1000|300|;
-[Sprite]:       assets/default.hgx|HCS_Draw_Background0|false|;
+[Sprite]:       assets/default.hgx|8|false|;
 [Collider]:     Vec(0,0)|Vec(0,0)|HCS_Collider_STD_callback|;

@@ -396,21 +396,9 @@ int main(int argc, char* argv[])
     SPREDITeditorData->save_for_real = false;
     SPREDITclear_canvas(0);
 
-    HCS_Entity_clear();
+    // HCS_Entity_clear();
 
-    // HCS_Entity e = HCS_Entity_create("Ground");
-    // HCS_Body_add(e,0,600,1000,400);
-    // HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Sprite);
-    // HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0),HCS_Collider_STD_callback);
-    // e = HCS_Entity_create("Player");
-    // HCS_State_add(e);
-    // HCS_Body_add(e,0,0,400,400);
-    // HCS_Sprite_add(e,"assets/default.hgx",HCS_Draw_Sprite);
-    // HCS_Input_add(e);
-    // HCS_Movement_add(e,4000,4000);
-    // HCS_Collider_add(e,LSD_Vec_new_float(0,0),LSD_Vec_new_int(0,0),HCS_Collider_STD_callback);
-
-    HCS_Script_load("test.hcscript");
+    // HCS_Script_load("test.hcscript");
 
     HCS_CONTINUE();
 }

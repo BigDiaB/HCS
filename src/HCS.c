@@ -559,7 +559,7 @@ LSD_Thread_function(Move_Wrapper)
 
 void HCS_Script_load(char* filename)
 {
-    // #define LOAD_GEN_DEBUG
+    #define LOAD_GEN_DEBUG
 
     #define ENT_BEGIN       '{'
     #define ENT_END         '}'    
@@ -663,10 +663,10 @@ void HCS_Script_load(char* filename)
             {
                 char path[100];
                 int type;
-                char type_text[100];
                 bool use_text;
                 char* token = strtok(current_component_args,ARG_DELIMITER);
                 strcpy(path,token);
+
                 token = strtok(NULL,ARG_DELIMITER);
                 
                 sscanf(token,"%d",&type);
@@ -682,7 +682,7 @@ void HCS_Script_load(char* filename)
                 }
 
                 #ifdef LOAD_GEN_DEBUG
-                LSD_Log(LSD_ltMESSAGE,"%s: Sprite: %s, %s, %d",current_entity_name, path, type_text, use_text);
+                LSD_Log(LSD_ltMESSAGE,"%s: Sprite: %s, %d, %d",current_entity_name, path, type, use_text);
                 #endif
                 HCS_Sprite_add(current_entity,path,type,use_text);
             }
