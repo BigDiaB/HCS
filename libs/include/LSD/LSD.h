@@ -11,6 +11,8 @@
     Und Path-Funktionen
     Und Delta-Timer-Funktionen
     Und Socket basiertem Webserver
+    Und Memory-Debugging
+    Und dynamischen Arrays
 */
 
 #define LSD_THREADS_MAX 100
@@ -19,11 +21,8 @@
 #define LSD_WEBSERVER_PORT 1234
 #define LSD_WEBSERVER_MAX_READBUFFER_SIZE 1024
 
-#ifdef LSD_Debugmem
-    #define malloc(X) LSD_Debugmem_malloc(X,__FILE__,__LINE__)
-    #define realloc(X,Y) LSD_Debugmem_realloc(X,Y,__FILE__,__LINE__)
-    #define free(X) LSD_Debugmem_free(X,__FILE__,__LINE__)
-#endif
+#define LSD_EXIT_ERROR 2
+#define LSD_EXIT_SUCCESS 0
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,7 +37,16 @@
 #include <arpa/inet.h> 
 #include <netdb.h>   
 
+#ifdef LSD_Debugmem
+    #define malloc(X) LSD_Debugmem_malloc(X,__FILE__,__LINE__)
+    #define realloc(X,Y) LSD_Debugmem_realloc(X,Y,__FILE__,__LINE__)
+    #define free(X) LSD_Debugmem_free(X,__FILE__,__LINE__)
+#endif
+
 typedef int bool;
+
+#define true 1
+#define false 0
 
 #define LSD_Delta_none          0.0f
 #define LSD_Thread_function(X)  void* X(void* i)
@@ -50,13 +58,21 @@ typedef int bool;
 #define LSD_Vec_mul(Z,X,Y) Z.x = X.x * Y.x; Z.y = X.y * Y.y;
 #define LSD_Vec_div(Z,X,Y) Z.x = X.x / Y.x; Z.y = X.y / Y.y;
 
+#define LSD_Table_at(X,Y,Z)             (*((Z*)X.data+X.list[Y]*X.size))
+#define LSD_Table_actually_at(X,Y,Z)    (*((Z*)X.data+Y*X.size))
+#define LSD_Table_remove(X,Y)           {int temp = Y; LSD_Math_remove_object_from_array(X.list,&X.used,&temp);} LSD_Sys_NOP()
+#define LSD_Table_create(X,Y,Z)         struct LSD_Table X; X.used = 0; X.max = Y; X.size = sizeof(Z); X.data = malloc(X.max * X.size); X.list = malloc(X.max * sizeof(int)); memset(X.list,0,X.max * sizeof(int)); memset(X.data,0,X.max * sizeof(Z))
+#define LSD_Table_destroy(X)            free(X.data); free(X.list)
+#define LSD_Table_push(X,Y,Z)           LSD_Assert(X.used < X.max); X.list[X.used] = LSD_Math_get_id_from_array(X.list, &X.used, X.max); LSD_Table_at(X,X.used,Z) = Y
+#define LSD_Table_pop(X)                LSD_Table_remove(X,X.used)
+#define LSD_Table_resize(X,Y)           X.max = Y; X.data = realloc(X.data,X.size * X.max); X.list = realloc(X.list,X.max * sizeof(int))
+
 #define LSD_Sys_varname_get(var) (#var)
 #define LSD_Sys_strcmp(X,Y) (0 == strcmp(X,Y))
 
-#define LSD_Math_AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
+#define LSD_Assert(X) LSD_Assert_i(X,__LINE__,__FILE__)
 
-#define true 1
-#define false 0
+#define LSD_Math_AABB(pos1,pos2,size1,size2) (pos1.x < pos2.x+size2.x && pos2.x < pos1.x+size1.x && pos1.y < pos2.y+size2.y && pos2.y < pos1.y+size1.y)
 
 struct LSD_Vec2i
 {
@@ -122,6 +138,15 @@ struct LSD_WebServer
     const char* directory_prefix;
     const char* response_template;
     char* response_message;
+};
+
+struct LSD_Table
+{
+    int max;
+    int used;
+    int size;
+    int* list;
+    void* data;
 };
 
 typedef struct LSD_Vec2i LSD_Vec2i;
@@ -219,6 +244,12 @@ void  LSD_Debugmem_free(void* ptr, char* FILE, int LINE);
 /* Init- und Deinit- Funktionen für LSD_Debugmem- Funktionen */
 void  LSD_Debugmem_init(int backlog);
 void  LSD_Debugmem_deinit();
+
+/* Wirklich einfach eine NOP-Funktion, die nichts macht */
+void LSD_Sys_NOP();
+
+/* Interne Assertion-Funktion */
+void LSD_Assert_i(bool assertion,int l, char* f);
 
 
 #endif
