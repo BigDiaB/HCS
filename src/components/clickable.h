@@ -80,17 +80,70 @@ void HCS_Clickable_system(double delta)
             LSD_Vec2i temp_size = {0,0};
             LSD_Vec2i temp_bod_size = { HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.x,HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->size.y};
             LSD_Vec2f temp_pos;
-            if (HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->layer >= HCS_Drawable_Drawtype_UI)
+            // {
+            //     temp_pos.x = (bod.pos.x - runData->HCS_Gfx_Camera.x) ;
+            //     temp_pos.y = (bod.pos.y - runData->HCS_Gfx_Camera.y) ;
+            // }
+            switch(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->layer)
             {
-               temp_pos.x = bod.pos.x * runData->STRETCH_WIDTH ;
-               temp_pos.y = bod.pos.y ;
-               temp_bod_size.x *= runData->STRETCH_WIDTH;
+                case 18:
+                case 19:
+                case 20:
+                case 0:
+                case 1:
+                case 2:
+                    temp_pos.x = bod.pos.x;
+                    temp_pos.y = bod.pos.y;
+                    temp_bod_size.x = bod.size.x;
+                    temp_bod_size.y = bod.size.y;
+                    break;
+                case 3:
+                case 4:
+                case 5:
+                    temp_pos.x = bod.pos.x - runData->HCS_Gfx_Camera.x;
+                    temp_pos.y = bod.pos.y - runData->HCS_Gfx_Camera.y;
+                    temp_bod_size.x = bod.size.x;
+                    temp_bod_size.y = bod.size.y;
+                break;
+                case 6:
+                case 7:
+                case 8:
+                    temp_pos.x = bod.pos.x;
+                    temp_pos.y = bod.pos.y;
+                    temp_bod_size.x = bod.size.x;
+                    temp_bod_size.y = bod.size.y;
+                    temp_pos.x += (HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x);
+                    break;
+                case 9:
+                case 10:
+                case 11:
+                    temp_pos.x = bod.pos.x;
+                    temp_pos.y = bod.pos.y;
+                    temp_bod_size.x = bod.size.x;
+                    temp_bod_size.y = bod.size.y;
+                    temp_pos.x += (HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2;
+                    break;
+                case 12:
+                case 13:
+                case 14:
+                    temp_pos.x = bod.pos.x;
+                    temp_pos.y = bod.pos.y;
+                    temp_bod_size.x = bod.size.x;
+                    temp_bod_size.y = bod.size.y;
+                    temp_pos.y += (HCS_Screen_size_get().y * HCS_Gfx_stretch_get().y);
+                    break;
+                case 15:
+                case 16:
+                case 17:
+                    temp_pos.x = bod.pos.x * runData->STRETCH_WIDTH;
+                    temp_pos.y = bod.pos.y;
+                    temp_bod_size.x = bod.size.x  * runData->STRETCH_WIDTH;
+                    temp_bod_size.y = bod.size.y;
+                    break;
+                default:
+                    break;
             }
-            else
-            {
-                temp_pos.x = (bod.pos.x - runData->HCS_Gfx_Camera.x) ;
-                temp_pos.y = (bod.pos.y - runData->HCS_Gfx_Camera.y) ;
-            }
+
             temp_pos.y = LSD_Math_map(temp_pos.y,0,runData->WORLD_TO_SCREEN_Y,0,runData->WIN_SIZE.h);
             temp_bod_size.y = LSD_Math_map(temp_bod_size.y,0,runData->WORLD_TO_SCREEN_Y,0,runData->WIN_SIZE.h);
             temp_pos.x = LSD_Math_map(temp_pos.x,0,runData->WORLD_TO_SCREEN_X * runData->STRETCH_WIDTH,0,runData->WIN_SIZE.w);

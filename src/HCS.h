@@ -55,16 +55,16 @@
  -Alle Helper-Funcs müssen in einem Array sein! (Colliders,Clickables)          FERTIG!           -> HCS_Collider(bzw. Clickable)_callbacks in runData
  -Names zu Tags umbenennen und sie mit dem HCS_Entity_data-Struct mergen!       FERTIG!           -> Entity-Data-Struct
  -Entities aus Dateien laden (evtl mit eigener Script-Sprache (.hcscript))!     FERTIG!           -> HCS_Script_load()
- -Kamera: 16/9 Viewport immer zentriert in der Mitte (Non-UI)                   FERTIG!           -> In sprite.h werden jetzt alle Nicht-UI-sprites entsprechend verschoben!
- 
- -Sprites sind gerade Broken... irgendwas mit dem Layering...
- -Draw-Primitives (Rechtecke mit Farbe!) als Komponent (HCS_Drawable ?)!
- -Datenaustausch über Sockets (Kein WebServer!) in LSD einbauen!
- -Clipping für Bodys (HCS_Body_align_left oder sowas)!
+ -Sprites sind gerade Broken... irgendwas mit dem Layering...                   FERTIG!           -> Komisches if() mit switch() ersetzt!
+ -Clipping für Bodys (HCS_Body_align_left oder sowas)!                          FERTIG!           -> Layer mit entsprechenden STRETCH_WIDTH und STRETCH_HEIGHT
+
+
  -Entities in Scripts Dumpen!
+ -Kamera: 16/9 Viewport immer zentriert in der Mitte (Non-UI)!
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)!
- -Cycle-Speed-Cap für Threads!
  -Irgendwie Sound hinkriegen (Möglichst ohne SDL_Mixer (Siehe GitHub Star!)!)!
+
+ -Datenaustausch über Sockets (Kein WebServer!) in LSD einbauen!
  
  Very Nice To Haves™:
  
@@ -248,6 +248,7 @@ void HCS_Update(double delta);
 void HCS_Gfx_Fullscreen_toggle();
 int HCS_Main(int argc, char* argv[]);
 void HCS_Script_load(char* filename);
+void HCS_Script_dump(char* filename);
 void HCS_Error(char* title, char* desc);
 
 LSD_Vec2f* HCS_Camera_get();
@@ -329,95 +330,5 @@ int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod, char* 
 HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();
-
-
-struct HCS_runData {
-
-    int HCS_Entity_ids_used;
-    int HCS_Entity_ids[HCS_MAX_ENTITIES];
-
-    SDL_Color color;
-    SDL_Color std;
-
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    SDL_Event event;
-    SDL_Rect WIN_SIZE;
-
-    double WORLD_TO_SCREEN_X;
-    double WORLD_TO_SCREEN_Y;
-
-    double DRAW_OFFSET;
-    double STRETCH_WIDTH;
-    double STRETCH_HEIGHT;
-
-    bool fullscreen;
-
-    bool HCS_running;
-    bool HCS_Input_disabled;
-
-    char HCS_Text_input[HCS_MAX_TEXTINPUT];
-    int HCS_Text_input_size;
-
-    HCS_Button HCS_Input_A;
-    HCS_Button HCS_Input_B;
-    LSD_Vec2i HCS_Input_Pad;
-
-    HCS_Button HCS_Input_Cursor_button;
-    LSD_Vec2i HCS_Input_Cursor_position;
-
-    LSD_Vec2f HCS_Gfx_Camera;
-
-    HCS_Entity_data HCS_Entities[HCS_MAX_ENTITIES];
-    int HCS_Entity_list[HCS_MAX_ENTITIES];
-    int HCS_Entity_used;
-
-    HCS_Managed_Asset HCS_Managed_Assets[HCS_MAX_ASSETS];
-    int HCS_Managed_Asset_used;
-    
-    HCS_Event HCS_Events[HCS_MAX_EVENTS];
-    int HCS_Event_list[HCS_MAX_EVENTS];
-    int HCS_Event_used;
-    
-    HCS_Body HCS_Bodies[HCS_MAX_BODIES];
-    int HCS_Body_list[HCS_MAX_BODIES];
-    int HCS_Body_used;
-    
-    HCS_Sprite HCS_Sprites[HCS_MAX_SPRITES];
-    int HCS_Sprite_list[HCS_MAX_SPRITES];
-    int HCS_Sprite_used;
-    
-    HCS_Clickable HCS_Clickables[HCS_MAX_CLICKABLES];
-    int HCS_Clickable_list[HCS_MAX_CLICKABLES];
-    int HCS_Clickable_used;
-    HCS_Clickable_helper_func HCS_Clickable_callbacks[HCS_MAX_CLICKABLES];
-    int HCS_Clickable_callback_used;
-    
-    HCS_Collider HCS_Colliders[HCS_MAX_COLLIDERS];
-    int HCS_Collider_list[HCS_MAX_COLLIDERS];
-    int HCS_Collider_used;
-    HCS_Collider_helper_func HCS_Collider_callbacks[HCS_MAX_COLLIDERS];
-    int HCS_Collider_callback_used;
-    
-    HCS_Gravity HCS_Gravities[HCS_MAX_GRAVITIES];
-    int HCS_Gravity_list[HCS_MAX_GRAVITIES];
-    int HCS_Gravity_used;
-    
-    HCS_Movement HCS_Movements[HCS_MAX_MOVEMENTS];
-    int HCS_Movement_list[HCS_MAX_MOVEMENTS];
-    int HCS_Movement_used;
-    
-    HCS_State HCS_States[HCS_MAX_STATES];
-    int HCS_State_list[HCS_MAX_STATES];
-    int HCS_State_used;
-    
-    HCS_Jump HCS_Jumps[HCS_MAX_JUMPS];
-    int HCS_Jump_list[HCS_MAX_JUMPS];
-    int HCS_Jump_used;
-    
-    HCS_Input HCS_Inputs[HCS_MAX_INPUTS];
-    int HCS_Input_list[HCS_MAX_INPUTS];
-    int HCS_Input_used;
-};
 
 #endif

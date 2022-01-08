@@ -6,6 +6,96 @@
 #undef main
 #endif
 
+struct HCS_runData {
+
+    int HCS_Entity_ids_used;
+    int HCS_Entity_ids[HCS_MAX_ENTITIES];
+
+    SDL_Color color;
+    SDL_Color std;
+
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    SDL_Event event;
+    SDL_Rect WIN_SIZE;
+
+    double WORLD_TO_SCREEN_X;
+    double WORLD_TO_SCREEN_Y;
+
+    double DRAW_OFFSET;
+    double STRETCH_WIDTH;
+    double STRETCH_HEIGHT;
+
+    bool fullscreen;
+
+    bool HCS_running;
+    bool HCS_Input_disabled;
+
+    char HCS_Text_input[HCS_MAX_TEXTINPUT];
+    int HCS_Text_input_size;
+
+    HCS_Button HCS_Input_A;
+    HCS_Button HCS_Input_B;
+    LSD_Vec2i HCS_Input_Pad;
+
+    HCS_Button HCS_Input_Cursor_button;
+    LSD_Vec2i HCS_Input_Cursor_position;
+
+    LSD_Vec2f HCS_Gfx_Camera;
+
+    HCS_Entity_data HCS_Entities[HCS_MAX_ENTITIES];
+    int HCS_Entity_list[HCS_MAX_ENTITIES];
+    int HCS_Entity_used;
+
+    HCS_Managed_Asset HCS_Managed_Assets[HCS_MAX_ASSETS];
+    int HCS_Managed_Asset_used;
+    
+    HCS_Event HCS_Events[HCS_MAX_EVENTS];
+    int HCS_Event_list[HCS_MAX_EVENTS];
+    int HCS_Event_used;
+    
+    HCS_Body HCS_Bodies[HCS_MAX_BODIES];
+    int HCS_Body_list[HCS_MAX_BODIES];
+    int HCS_Body_used;
+    
+    HCS_Sprite HCS_Sprites[HCS_MAX_SPRITES];
+    int HCS_Sprite_list[HCS_MAX_SPRITES];
+    int HCS_Sprite_used;
+    
+    HCS_Clickable HCS_Clickables[HCS_MAX_CLICKABLES];
+    int HCS_Clickable_list[HCS_MAX_CLICKABLES];
+    int HCS_Clickable_used;
+    HCS_Clickable_helper_func HCS_Clickable_callbacks[HCS_MAX_CLICKABLES];
+    int HCS_Clickable_callback_used;
+    
+    HCS_Collider HCS_Colliders[HCS_MAX_COLLIDERS];
+    int HCS_Collider_list[HCS_MAX_COLLIDERS];
+    int HCS_Collider_used;
+    HCS_Collider_helper_func HCS_Collider_callbacks[HCS_MAX_COLLIDERS];
+    int HCS_Collider_callback_used;
+    
+    HCS_Gravity HCS_Gravities[HCS_MAX_GRAVITIES];
+    int HCS_Gravity_list[HCS_MAX_GRAVITIES];
+    int HCS_Gravity_used;
+    
+    HCS_Movement HCS_Movements[HCS_MAX_MOVEMENTS];
+    int HCS_Movement_list[HCS_MAX_MOVEMENTS];
+    int HCS_Movement_used;
+    
+    HCS_State HCS_States[HCS_MAX_STATES];
+    int HCS_State_list[HCS_MAX_STATES];
+    int HCS_State_used;
+    
+    HCS_Jump HCS_Jumps[HCS_MAX_JUMPS];
+    int HCS_Jump_list[HCS_MAX_JUMPS];
+    int HCS_Jump_used;
+    
+    HCS_Input HCS_Inputs[HCS_MAX_INPUTS];
+    int HCS_Input_list[HCS_MAX_INPUTS];
+    int HCS_Input_used;
+};
+
+
 struct HCS_runData* runData;
 
 void HCS_Error(char* title, char* desc)
@@ -160,7 +250,12 @@ void HCS_Init(char* argv[])
     runData->WIN_SIZE.h *= 0.75;
     runData->WIN_SIZE.w = runData->WIN_SIZE.h  / 9 * 16;
     
-    runData->window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,runData->WIN_SIZE.w ,runData->WIN_SIZE.h ,SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    runData->window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,runData->WIN_SIZE.w ,runData->WIN_SIZE.h,
+        SDL_WINDOW_METAL 
+        #ifdef HCS_DEBUG
+        | SDL_WINDOW_RESIZABLE 
+        #endif
+        );
     runData->renderer = SDL_CreateRenderer(runData->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     SDL_SetRenderDrawColor(runData->renderer,runData->std.r,runData->std.g,runData->std.b,runData->std.a);
     SDL_RenderClear(runData->renderer);
@@ -170,8 +265,6 @@ void HCS_Init(char* argv[])
     runData->STRETCH_HEIGHT = (double)runData->WIN_SIZE.h / (double)runData->WIN_SIZE.w;
     SDL_SetWindowSize(runData->window, runData->WIN_SIZE.w,runData->WIN_SIZE.h);
     SDL_SetWindowPosition(runData->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-
-
 }
 
 
@@ -557,9 +650,88 @@ LSD_Thread_function(Move_Wrapper)
     LSD_Thread_finish();
 }
 
+void HCS_Script_dump(char* filename)
+{
+    char current_add[1024];
+    int num_components = 1;
+    char* file_to_be_written = malloc(num_components * 1024);
+    int i,j;
+    for (j = 0; j < runData->HCS_Entity_used; j++)
+    {
+        i = runData->HCS_Entity_list[j];
+
+        sprintf(current_add,"{%s}\n",HCS_Entity_tag_get(i));
+
+        strcat(file_to_be_written,current_add);
+
+        if (HCS_Entity_has_component(i,HCS_cState))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);
+            strcat(file_to_be_written,current_add);
+        }
+        if (HCS_Entity_has_component(i,HCS_cInput))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);   
+            strcat(file_to_be_written,current_add);
+        }
+        if (HCS_Entity_has_component(i,HCS_cBody))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);
+            strcat(file_to_be_written,current_add);
+        }
+        if (HCS_Entity_has_component(i,HCS_cBody))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);
+            strcat(file_to_be_written,current_add);
+        }
+        if (HCS_Entity_has_component(i,HCS_cMovement))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);
+            strcat(file_to_be_written,current_add);
+        }
+        if (HCS_Entity_has_component(i,HCS_cClickable))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);
+            strcat(file_to_be_written,current_add);
+        }
+        if (HCS_Entity_has_component(i,HCS_cSprite))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);
+            strcat(file_to_be_written,current_add);
+        }
+        if (HCS_Entity_has_component(i,HCS_cCollider))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);
+            strcat(file_to_be_written,current_add);
+        }
+        if (HCS_Entity_has_component(i,HCS_cGravity))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);
+            strcat(file_to_be_written,current_add);
+        }
+        if (HCS_Entity_has_component(i,HCS_cJump))
+        {
+            num_components++;
+            file_to_be_written = realloc(file_to_be_written,num_components * 1024);
+            strcat(file_to_be_written,current_add);
+        }
+    }
+
+    free(file_to_be_written);
+}
+
 void HCS_Script_load(char* filename)
 {
-    #define LOAD_GEN_DEBUG
+    // #define LOAD_GEN_DEBUG
 
     #define ENT_BEGIN       '{'
     #define ENT_END         '}'    
