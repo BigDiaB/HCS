@@ -57,10 +57,9 @@
  -Entities aus Dateien laden (evtl mit eigener Script-Sprache (.hcscript))!     FERTIG!           -> HCS_Script_load()
  -Sprites sind gerade Broken... irgendwas mit dem Layering...                   FERTIG!           -> Komisches if() mit switch() ersetzt!
  -Clipping für Bodys (HCS_Body_align_left oder sowas)!                          FERTIG!           -> Layer mit entsprechenden STRETCH_WIDTH und STRETCH_HEIGHT
-
-
+ -Sprite-"Drawtypes" und Layers trennen                                         FERTIG!           -> Layer und Type sind jetzt getrennte werte!
+ -Kamera: 16/9 Viewport immer zentriert in der Mitte (Non-UI)!                  FERTIG!           -> DRAW_OFFSET-Variable
  -Entities in Scripts Dumpen!
- -Kamera: 16/9 Viewport immer zentriert in der Mitte (Non-UI)!
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)!
  -Irgendwie Sound hinkriegen (Möglichst ohne SDL_Mixer (Siehe GitHub Star!)!)!
 
@@ -124,58 +123,66 @@ typedef enum {
 
 typedef int HCS_Entity;
 
-typedef struct
+struct HCS_Entity_data
 {
     char* tag;
     int comp_ids[HCS_NUM_COMPONENTS];
-} HCS_Entity_data;
+};
 
-typedef struct
+struct HCS_Sprite_raw
 {
     unsigned char RED[16][16];
     unsigned char GRN[16][16];
     unsigned char BLU[16][16];
-} HCS_Sprite_raw;
+};
 
-typedef struct
+struct HCS_Sprite
 {
     int layer;
+    int type;
     SDL_Rect body;
     SDL_Texture* tex;
-    HCS_Sprite_raw raw;
+    struct HCS_Sprite_raw raw;
     bool use_text;
     char* path;
-} HCS_Sprite;
+};
 
-typedef struct {
+struct HCS_Name
+{
     char* name;
-} HCS_Name;
+};
 
-typedef struct {
+struct HCS_Body
+{
     LSD_Vec2f pos;
     LSD_Vec2i size;
-} HCS_Body;
+};
 
-typedef struct{
+struct HCS_Gravity
+{
     bool active;
     LSD_Vec2d force;
-} HCS_Gravity;
+};
 
-typedef struct{
+struct HCS_Input
+{
     bool active;
-} HCS_Input;
+};
 
-typedef struct {
-    HCS_Sprite spr;
+struct HCS_Managed_Asset
+{
+    struct HCS_Sprite spr;
     char* path;
-} HCS_Managed_Asset;
+};
 
-typedef struct {
+struct HCS_Clickable_helper_func
+{
     char* name;
     void (*func)(int);
-} HCS_Clickable_helper_func;
+};
 
-typedef struct{
+struct HCS_Clickable
+{
     HCS_Clicktype type;
     HCS_Triggertype trigger;
     bool active;
@@ -183,10 +190,11 @@ typedef struct{
     bool old_down;
     int func_data;
     void (*func)(int);
-} HCS_Clickable;
+};
 
 
-typedef struct{
+struct HCS_Jump
+{
     double jump_ground_timer;
     double jump_time;
     double jump_timer;
@@ -194,29 +202,33 @@ typedef struct{
     bool can_jump;
     bool active;
     bool needs_ground;
-} HCS_Jump;
+};
 
-typedef struct {
+struct HCS_Movement
+{
     LSD_Vec2f vel;
     LSD_Vec2f speed;
-} HCS_Movement;
+};
 
-typedef struct {
+struct HCS_Collider_helper_func
+{
     char* name;
     void (*func)(HCS_Entity, HCS_Entity);
-} HCS_Collider_helper_func;
+};
 
-typedef struct{
+struct HCS_Collider
+{
     HCS_Collisiontype type;
-    HCS_Body collider;
-    HCS_Body offset;
+    struct HCS_Body collider;
+    struct HCS_Body offset;
     bool on_ground;
     bool last_on_ground;
     bool active;
     void (*func)(HCS_Entity,HCS_Entity);
-} HCS_Collider;
+};
 
-typedef struct {
+struct HCS_State
+{
     bool on_ground;
     bool up;
     bool down;
@@ -224,19 +236,40 @@ typedef struct {
     bool right;
     bool A;
     bool B;
-} HCS_State;
+};
 
-typedef struct {
+struct HCS_Event
+{
     char* name;
     void (*event)(void);
-} HCS_Event;
+};
 
-typedef struct {
+struct HCS_Button
+{
     bool down;
     bool last_down;
     bool pressed;
     bool released;
-} HCS_Button;
+};
+
+
+typedef struct HCS_Entity_data HCS_Entity_data;
+typedef struct HCS_Sprite_raw HCS_Sprite_raw;
+typedef struct HCS_Sprite HCS_Sprite;
+typedef struct HCS_Name HCS_Name;
+typedef struct HCS_Body HCS_Body;
+typedef struct HCS_Gravity HCS_Gravity;
+typedef struct HCS_Input HCS_Input;
+typedef struct HCS_Managed_Asset HCS_Managed_Asset;
+typedef struct HCS_Clickable_helper_func HCS_Clickable_helper_func;
+typedef struct HCS_Clickable HCS_Clickable;
+typedef struct HCS_Jump HCS_Jump;
+typedef struct HCS_Movement HCS_Movement;
+typedef struct HCS_Collider_helper_func HCS_Collider_helper_func;
+typedef struct HCS_Collider HCS_Collider;
+typedef struct HCS_State HCS_State;
+typedef struct HCS_Event HCS_Event;
+typedef struct HCS_Button HCS_Button;
 
 LSD_Vec2i HCS_Screen_size_get();
 HCS_Sprite* HCS_Asset(char* path);
@@ -253,9 +286,9 @@ void HCS_Error(char* title, char* desc);
 
 LSD_Vec2f* HCS_Camera_get();
 LSD_Vec2i* HCS_Cursor_position_get();
-HCS_Button* HCS_Cursor_button_get();
-HCS_Button* HCS_Button_A_get();
-HCS_Button* HCS_Button_B_get();
+struct HCS_Button* HCS_Cursor_button_get();
+struct HCS_Button* HCS_Button_A_get();
+struct HCS_Button* HCS_Button_B_get();
 bool HCS_running_get();
 
 SDL_Renderer* HCS_Gfx_renderer_get();
@@ -271,7 +304,7 @@ HCS_Entity HCS_Entity_create(char* n);
 void HCS_Entity_remove(HCS_Entity ent);
 void HCS_Entity_kill(HCS_Entity e);
 void HCS_Entity_clear();
-HCS_Entity_data* HCS_Entity_data_get(HCS_Entity e);
+struct HCS_Entity_data* HCS_Entity_data_get(HCS_Entity e);
 #define HCS_Entity_tag_get(e) HCS_Entity_data_get(e)->tag
 
 bool HCS_Entity_has_component(HCS_Entity ent, HCS_Component comp);
@@ -285,49 +318,49 @@ void HCS_Event_remove(char* n);
 void HCS_Event_run();
 
 int HCS_State_add(HCS_Entity e);
-HCS_State* HCS_State_get(HCS_Entity e);
+struct HCS_State* HCS_State_get(HCS_Entity e);
 void HCS_State_remove(HCS_Entity e);
 
 int HCS_Input_add(HCS_Entity e);
-HCS_Input* HCS_Input_get(HCS_Entity e);
+struct HCS_Input* HCS_Input_get(HCS_Entity e);
 void HCS_Input_remove(HCS_Entity e);
 void HCS_Input_system();
 
 int HCS_Jump_add(HCS_Entity e, double n, bool m, double l);
-HCS_Jump* HCS_Jump_get(HCS_Entity e);
+struct HCS_Jump* HCS_Jump_get(HCS_Entity e);
 void HCS_Jump_remove(HCS_Entity e);
 void HCS_Jump_system();
 
 int HCS_Gravity_add(HCS_Entity e, double n, double m);
-HCS_Gravity* HCS_Gravity_get(HCS_Entity e);
+struct HCS_Gravity* HCS_Gravity_get(HCS_Entity e);
 void HCS_Gravity_remove(HCS_Entity e);
 void HCS_Gravity_system();
 
 int HCS_Body_add(HCS_Entity e, float x, float y, int w, int h);
-HCS_Body* HCS_Body_get(HCS_Entity e);
+struct HCS_Body* HCS_Body_get(HCS_Entity e);
 void HCS_Body_remove(HCS_Entity e);
 
 int HCS_Movement_add(HCS_Entity e, float sx, float sy);
-HCS_Movement* HCS_Movement_get(HCS_Entity e);
+struct HCS_Movement* HCS_Movement_get(HCS_Entity e);
 void HCS_Movement_remove(HCS_Entity e);
 void HCS_Movement_system();
 
 void HCS_Drawable_translate_rect(SDL_Rect* r);
-int HCS_Sprite_add(HCS_Entity e, char* n, int t, bool use_text);
-HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
+int HCS_Sprite_add(HCS_Entity e, char* n, int l,int t, bool use_text);
+struct HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
 void HCS_Sprite_remove(HCS_Entity e);
 void HCS_Sprite_system();
 
 void HCS_Clickable_callback_list(void (*func)(int),char* n);
 int HCS_Clickable_add(HCS_Entity e, HCS_Clicktype type, HCS_Triggertype t,char* n,int func_data);
-HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
+struct HCS_Clickable* HCS_Clickable_get(HCS_Entity e);
 void HCS_Clickable_remove(HCS_Entity e);
 void HCS_Clickable_system();
 
 void HCS_Collider_callback_list(void (*func)(HCS_Entity,HCS_Entity),char* n);
 void HCS_Collider_STD_callback(HCS_Entity this, HCS_Entity other);
 int HCS_Collider_add(HCS_Entity e, LSD_Vec2f pos_mod, LSD_Vec2i size_mod, char* n);
-HCS_Collider* HCS_Collider_get(HCS_Entity e);
+struct HCS_Collider* HCS_Collider_get(HCS_Entity e);
 void HCS_Collider_remove(HCS_Entity e);
 void HCS_Collider_system();
 

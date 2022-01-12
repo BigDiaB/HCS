@@ -122,6 +122,7 @@ void HCS_Update(double delta)
                 SDL_GetWindowSize(runData->window, &runData->WIN_SIZE.w,&runData->WIN_SIZE.h);
                 runData->STRETCH_WIDTH = (double)runData->WIN_SIZE.w / (double)runData->WIN_SIZE.h;
                 runData->STRETCH_HEIGHT = (double)runData->WIN_SIZE.h / (double)runData->WIN_SIZE.w;
+                runData->DRAW_OFFSET = (runData->WIN_SIZE.w - runData->WIN_SIZE.h / 9 * 16) / 2;
                 runData->HCS_running = HCS_Main(0,NULL);
             }
         }
@@ -250,6 +251,8 @@ void HCS_Init(char* argv[])
     runData->WIN_SIZE.h *= 0.75;
     runData->WIN_SIZE.w = runData->WIN_SIZE.h  / 9 * 16;
     
+    runData->DRAW_OFFSET = (runData->WIN_SIZE.w - runData->WIN_SIZE.h / 9 * 16) / 2;
+
     runData->window = SDL_CreateWindow("HCS-Projekt",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,runData->WIN_SIZE.w ,runData->WIN_SIZE.h,
         SDL_WINDOW_METAL 
         #ifdef HCS_DEBUG
@@ -834,10 +837,14 @@ void HCS_Script_load(char* filename)
             else if (LSD_Sys_strcmp(current_component_name,"Sprite"))
             {
                 char path[100];
-                int type;
+                int type,layer;
                 bool use_text;
                 char* token = strtok(current_component_args,ARG_DELIMITER);
                 strcpy(path,token);
+
+                token = strtok(NULL,ARG_DELIMITER);
+                
+                sscanf(token,"%d",&layer);
 
                 token = strtok(NULL,ARG_DELIMITER);
                 
@@ -856,7 +863,7 @@ void HCS_Script_load(char* filename)
                 #ifdef LOAD_GEN_DEBUG
                 LSD_Log(LSD_ltMESSAGE,"%s: Sprite: %s, %d, %d",current_entity_name, path, type, use_text);
                 #endif
-                HCS_Sprite_add(current_entity,path,type,use_text);
+                HCS_Sprite_add(current_entity,path,layer,type,use_text);
             }
             else if (LSD_Sys_strcmp(current_component_name,"Collider"))
             {

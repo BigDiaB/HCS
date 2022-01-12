@@ -1,19 +1,16 @@
 #pragma once 
 
-#define HCS_NUM_DRAWTYPES 21
+#define HCS_NUM_DRAWTYPES 7
+#define HCS_NUM_DRAWLAYERS 10
 
 void sprite_new(HCS_Sprite* spr, char* filename)
 {
     HCS_Sprite* test = HCS_Asset(filename);
     if (test != NULL)
-    {
         *spr = *test;
-        return;
-    }
-    
 }
 
-int HCS_Sprite_add(HCS_Entity e, char* n, int t, bool use_text)
+int HCS_Sprite_add(HCS_Entity e, char* n,int l,int t, bool use_text)
 {
     runData->HCS_Entities[e].comp_ids[HCS_cSprite] = LSD_Math_get_id_from_array(runData->HCS_Sprite_list,&runData->HCS_Sprite_used, HCS_MAX_SPRITES);
 
@@ -66,7 +63,8 @@ int HCS_Sprite_add(HCS_Entity e, char* n, int t, bool use_text)
     SDL_SetRenderTarget(runData->renderer,NULL);
     }
 
-    runData->HCS_Sprites[HCS_Entity_get_component_id(e,HCS_cSprite)].layer = t;
+    runData->HCS_Sprites[HCS_Entity_get_component_id(e,HCS_cSprite)].type = t;
+    runData->HCS_Sprites[HCS_Entity_get_component_id(e,HCS_cSprite)].layer = l;
 
     #ifdef HCS_DEBUG
     LSD_Log(LSD_ltCUSTOM,"HCS: Entity %d mit dem Namen %s wurde erfolgreicht ein Sprite hinzugefügt!",e,HCS_Entity_tag_get(e));
@@ -90,87 +88,70 @@ void HCS_Sprite_remove(HCS_Entity e)
 
 void HCS_Sprite_system(double delta)
 {
-    int i,j,t;
-
-    for (t = 0; t < HCS_NUM_DRAWTYPES; t++)
-    {
-        for (j = 0; j < runData->HCS_Sprite_used; j++)
-        {
-            i = runData->HCS_Sprite_list[j];
-
-            SDL_Rect r;
-            HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cSprite));
-
-            if (t == runData->HCS_Sprites[i].layer)
+    int i,j,t,c;
+    for (c = 0; c < HCS_NUM_DRAWLAYERS; c++)
+        for (t = 1; t < HCS_NUM_DRAWTYPES; t++)
+            for (j = 0; j < runData->HCS_Sprite_used; j++)
             {
-                switch(t)
+                i = runData->HCS_Sprite_list[j];
+                SDL_Rect r;
+                HCS_Body* b = HCS_Body_get(HCS_Entity_get_entity_id(i,HCS_cSprite));
+                if (t == runData->HCS_Sprites[i].type && c == runData->HCS_Sprites[i].layer)
                 {
-                    case 18:
-                    case 19:
-                    case 20:
-                    case 0:
-                    case 1:
-                    case 2:
-                        r.x = b->pos.x;
-                        r.y = b->pos.y;
-                        r.w = b->size.x;
-                        r.h = b->size.y;
-                        HCS_Drawable_translate_rect(&r);
+                    switch(t)
+                    {
+                        case 1:
+                            r.x = b->pos.x;
+                            r.y = b->pos.y;
+                            r.w = b->size.x;
+                            r.h = b->size.y;
+                            HCS_Drawable_translate_rect(&r);
+                            r.x += runData->DRAW_OFFSET;
+                            break;
+                        case 2:
+                            r.x = b->pos.x - runData->HCS_Gfx_Camera.x;
+                            r.y = b->pos.y - runData->HCS_Gfx_Camera.y;
+                            r.w = b->size.x;
+                            r.h = b->size.y;
+                            HCS_Drawable_translate_rect(&r);
+                            r.x += runData->DRAW_OFFSET;
                         break;
-                    case 3:
-                    case 4:
-                    case 5:
-                        r.x = b->pos.x - runData->HCS_Gfx_Camera.x;
-                        r.y = b->pos.y - runData->HCS_Gfx_Camera.y;
-                        r.w = b->size.x;
-                        r.h = b->size.y;
-                        HCS_Drawable_translate_rect(&r);
-                    break;
-                    case 6:
-                    case 7:
-                    case 8:
-                        r.x = b->pos.x;
-                        r.y = b->pos.y;
-                        r.w = b->size.x;
-                        r.h = b->size.y;
-                        r.x += (HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x);
-                        HCS_Drawable_translate_rect(&r);
-                        break;
-                    case 9:
-                    case 10:
-                    case 11:
-                        r.x = b->pos.x;
-                        r.y = b->pos.y;
-                        r.w = b->size.x;
-                        r.h = b->size.y;
-                        r.x += (HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2;
-                        HCS_Drawable_translate_rect(&r);
-                        break;
-                    case 12:
-                    case 13:
-                    case 14:
-                        r.x = b->pos.x;
-                        r.y = b->pos.y;
-                        r.w = b->size.x;
-                        r.h = b->size.y;
-                        r.y += (HCS_Screen_size_get().y * HCS_Gfx_stretch_get().y);
-                        HCS_Drawable_translate_rect(&r);
-                        break;
-                    case 15:
-                    case 16:
-                    case 17:
-                        r.x = b->pos.x * runData->STRETCH_WIDTH;
-                        r.y = b->pos.y;
-                        r.w = b->size.x  * runData->STRETCH_WIDTH;
-                        r.h = b->size.y;
-                        HCS_Drawable_translate_rect(&r);
-                        break;
-                    default:
-                        break;
+                        case 3:
+                            r.x = b->pos.x;
+                            r.y = b->pos.y;
+                            r.w = b->size.x;
+                            r.h = b->size.y;
+                            r.x += (HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x);
+                            HCS_Drawable_translate_rect(&r);
+                            break;
+                        case 4:
+                            r.x = b->pos.x;
+                            r.y = b->pos.y;
+                            r.w = b->size.x;
+                            r.h = b->size.y;
+                            r.x += (HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2;
+                            HCS_Drawable_translate_rect(&r);
+                            break;
+                        case 5:
+                            r.x = b->pos.x;
+                            r.y = b->pos.y;
+                            r.w = b->size.x;
+                            r.h = b->size.y;
+                            r.y += (HCS_Screen_size_get().y * HCS_Gfx_stretch_get().y);
+                            HCS_Drawable_translate_rect(&r);
+                            break;
+                        case 6:
+                            r.x = b->pos.x * runData->STRETCH_WIDTH;
+                            r.y = b->pos.y;
+                            r.w = b->size.x  * runData->STRETCH_WIDTH;
+                            r.h = b->size.y;
+                            HCS_Drawable_translate_rect(&r);
+                            break;
+                        default:
+                            break;
                 }
                 if (LSD_Math_AABB(LSD_Vec_new_float(r.x,r.y),LSD_Vec_new_float(0,0),LSD_Vec_new_int(r.w,r.h),LSD_Vec_new_int(runData->WIN_SIZE.w,runData->WIN_SIZE.h)))
                     SDL_RenderCopy(runData->renderer,runData->HCS_Sprites[i].tex,NULL,&r);
             }
-        }
-    }
+        }   
 }

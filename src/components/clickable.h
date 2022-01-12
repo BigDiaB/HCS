@@ -84,57 +84,42 @@ void HCS_Clickable_system(double delta)
             //     temp_pos.x = (bod.pos.x - runData->HCS_Gfx_Camera.x) ;
             //     temp_pos.y = (bod.pos.y - runData->HCS_Gfx_Camera.y) ;
             // }
-            switch(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->layer)
+            switch(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type)
             {
-                case 18:
-                case 19:
-                case 20:
-                case 0:
                 case 1:
-                case 2:
                     temp_pos.x = bod.pos.x;
                     temp_pos.y = bod.pos.y;
                     temp_bod_size.x = bod.size.x;
                     temp_bod_size.y = bod.size.y;
                     break;
-                case 3:
-                case 4:
-                case 5:
+                case 2:
                     temp_pos.x = bod.pos.x - runData->HCS_Gfx_Camera.x;
                     temp_pos.y = bod.pos.y - runData->HCS_Gfx_Camera.y;
                     temp_bod_size.x = bod.size.x;
                     temp_bod_size.y = bod.size.y;
                 break;
-                case 6:
-                case 7:
-                case 8:
+                case 3:
                     temp_pos.x = bod.pos.x;
                     temp_pos.y = bod.pos.y;
                     temp_bod_size.x = bod.size.x;
                     temp_bod_size.y = bod.size.y;
                     temp_pos.x += (HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x);
                     break;
-                case 9:
-                case 10:
-                case 11:
+                case 4:
                     temp_pos.x = bod.pos.x;
                     temp_pos.y = bod.pos.y;
                     temp_bod_size.x = bod.size.x;
                     temp_bod_size.y = bod.size.y;
                     temp_pos.x += (HCS_Screen_size_get().x * HCS_Gfx_stretch_get().x) / 2;
                     break;
-                case 12:
-                case 13:
-                case 14:
+                case 5:
                     temp_pos.x = bod.pos.x;
                     temp_pos.y = bod.pos.y;
                     temp_bod_size.x = bod.size.x;
                     temp_bod_size.y = bod.size.y;
                     temp_pos.y += (HCS_Screen_size_get().y * HCS_Gfx_stretch_get().y);
                     break;
-                case 15:
-                case 16:
-                case 17:
+                case 6:
                     temp_pos.x = bod.pos.x * runData->STRETCH_WIDTH;
                     temp_pos.y = bod.pos.y;
                     temp_bod_size.x = bod.size.x  * runData->STRETCH_WIDTH;
@@ -149,6 +134,16 @@ void HCS_Clickable_system(double delta)
             temp_pos.x = LSD_Math_map(temp_pos.x,0,runData->WORLD_TO_SCREEN_X * runData->STRETCH_WIDTH,0,runData->WIN_SIZE.w);
             temp_bod_size.x = LSD_Math_map(temp_bod_size.x,0,runData->WORLD_TO_SCREEN_X * runData->STRETCH_WIDTH,0,runData->WIN_SIZE.w);
             hot = false;
+
+            switch(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type)
+            {
+                case 1:
+                case 2:
+                    temp_pos.x += runData->DRAW_OFFSET;
+                default:
+                    break;
+            }
+
             if (LSD_Math_AABB(runData->HCS_Input_Cursor_position,temp_pos,temp_size,temp_bod_size))
             {
                 runData->HCS_Clickables[i].old_down = runData->HCS_Clickables[i].down;
