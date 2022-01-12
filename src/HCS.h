@@ -59,6 +59,7 @@
  -Clipping für Bodys (HCS_Body_align_left oder sowas)!                          FERTIG!           -> Layer mit entsprechenden STRETCH_WIDTH und STRETCH_HEIGHT
  -Sprite-"Drawtypes" und Layers trennen                                         FERTIG!           -> Layer und Type sind jetzt getrennte werte!
  -Kamera: 16/9 Viewport immer zentriert in der Mitte (Non-UI)!                  FERTIG!           -> DRAW_OFFSET-Variable
+ 
  -Entities in Scripts Dumpen!
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)!
  -Irgendwie Sound hinkriegen (Möglichst ohne SDL_Mixer (Siehe GitHub Star!)!)!

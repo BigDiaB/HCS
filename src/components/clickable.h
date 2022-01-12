@@ -138,7 +138,6 @@ void HCS_Clickable_system(double delta)
             switch(HCS_Sprite_get(HCS_Entity_get_entity_id(i,HCS_cClickable))->type)
             {
                 case 1:
-                case 2:
                     temp_pos.x += runData->DRAW_OFFSET;
                 default:
                     break;

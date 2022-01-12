@@ -114,7 +114,6 @@ void HCS_Sprite_system(double delta)
                             r.w = b->size.x;
                             r.h = b->size.y;
                             HCS_Drawable_translate_rect(&r);
-                            r.x += runData->DRAW_OFFSET;
                         break;
                         case 3:
                             r.x = b->pos.x;
