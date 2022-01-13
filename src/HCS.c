@@ -117,13 +117,13 @@ void HCS_Update(double delta)
         else if (runData->event.type == SDL_WINDOWEVENT)
         {
             if (runData->event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                HCS_Entity_clear();
+                // HCS_Entity_clear();
 
                 SDL_GetWindowSize(runData->window, &runData->WIN_SIZE.w,&runData->WIN_SIZE.h);
                 runData->STRETCH_WIDTH = (double)runData->WIN_SIZE.w / (double)runData->WIN_SIZE.h;
                 runData->STRETCH_HEIGHT = (double)runData->WIN_SIZE.h / (double)runData->WIN_SIZE.w;
                 runData->DRAW_OFFSET = (runData->WIN_SIZE.w - runData->WIN_SIZE.h / 9 * 16) / 2;
-                runData->HCS_running = HCS_Main(0,NULL);
+                // runData->HCS_running = HCS_Main(0,NULL);
             }
         }
         #ifdef HCS_DEBUG
@@ -990,25 +990,35 @@ int main(int argc, char* argv[])
     #endif
 
     runData->HCS_running = HCS_Main(argc,argv);
+    #ifdef HCS_MULTI_THREAD
+        #ifdef HCS_SINGLE_THREAD
+            #error HCS_MULTI_THREAD und HCS_SINGLE_THREAD definiert!
+        #endif
+    #endif
+
+    #ifdef HCS_MULTI_THREAD
     LSD_Thread_add("Movement",Move_Wrapper);
     LSD_Thread_add("Collider",Collider_thread);
+    #endif
     #ifndef HCS_DEBUG
     LSD_Thread_add("Controller",Controller_Server);
     #endif
     //Game-Loop
-    LSD_Delta_add("Movement_Wrapper");
+    LSD_Delta_add("Main_delta");
     double delta;
     while(runData->HCS_running || LSD_Thread_used > 0)
     {
         LSD_Thread_system();
         if (runData->HCS_running)
         {
-            LSD_Delta_tick("Movement_Wrapper");
-            delta = LSD_Delta_get("Movement_Wrapper")->delta;
+            LSD_Delta_tick("Main_delta");
+            delta = LSD_Delta_get("Main_delta")->delta;
+            #ifdef HCS_SINGLE_THREAD
             HCS_Jump_system(delta);
             HCS_Gravity_system(delta);
             HCS_Movement_system(delta);
             HCS_Collider_system(LSD_Delta_none);
+            #endif
             HCS_Sprite_system(LSD_Delta_none);
             HCS_Clickable_system(LSD_Delta_none);
             HCS_Input_system(LSD_Delta_none);
@@ -1016,7 +1026,7 @@ int main(int argc, char* argv[])
         }
         HCS_Update(LSD_Delta_none);
     }
-    LSD_Delta_remove("Movement_Wrapper");
+    LSD_Delta_remove("Main_delta");
     HCS_Entity_clear();
     //Library-Deinitialisierung
     HCS_Deinit();

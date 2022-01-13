@@ -12,7 +12,6 @@ void cursor_event()
     HCS_Cursor_button_get()->last_down = HCS_Cursor_button_get()->down;
     HCS_Cursor_button_get()->down = SDL_GetMouseState(&HCS_Cursor_position_get()->x,&HCS_Cursor_position_get()->y) & SDL_BUTTON_LMASK;
 }
-
 struct HCS_SpriteEditorData
 {
     HCS_Sprite* Canvas[16 * 16];
@@ -22,31 +21,30 @@ struct HCS_SpriteEditorData
     unsigned char GRN[16];
     unsigned char BLU[16];
     bool colour_selected[16];
-    bool dummy_bool;
     bool save_for_real;
     char save_file_name[2200];
     
 };
 
-static struct HCS_SpriteEditorData* SPREDITeditorData;
+static struct HCS_SpriteEditorData* editorData;
 
-void SPREDITsprite_editor_deinit(int nothing)
+void sprite_editor_deinit(int nothing)
 {
     HCS_Stop();
 }
 
-void SPREDITclear_canvas(int nothing)
+void clear_canvas(int nothing)
 {
     int i,j;
     SDL_Surface* temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
     HCS_Sprite_raw spr = {0};
     for (i = 0; i < 16 * 16; i++)
-        SPREDITeditorData->Canvas[i]->raw = spr;
+        editorData->Canvas[i]->raw = spr;
     for (j = 0; j < 16 * 16; j++)
     {
         SDL_FillRect(temp,NULL,SDL_MapRGB(temp->format,0,0,0));
         SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
-        SPREDITeditorData->Canvas[j]->tex = SDL_CreateTextureFromSurface(HCS_Gfx_renderer_get(),temp);
+        editorData->Canvas[j]->tex = SDL_CreateTextureFromSurface(HCS_Gfx_renderer_get(),temp);
     }
     SDL_FreeSurface(temp);
     #ifdef HCS_DEBUG
@@ -54,24 +52,31 @@ void SPREDITclear_canvas(int nothing)
     #endif
 }
 
-void SPREDITon_menu_click(int who)
+void on_menu_click(int who)
 {
-    if (SPREDITeditorData->save_for_real)
+    if (editorData->save_for_real)
         return;
     int i;
     for (i = 0; i < 16; i++)
-        SPREDITeditorData->colour_selected[i] = false;
-    SPREDITeditorData->colour_selected[who] = true;
+        editorData->colour_selected[i] = false;
+    editorData->colour_selected[who] = true;
 }
 
-void SPREDITon_canvas_click(int self)
+void on_canvas_click(int name_index)
 {
-    if (SPREDITeditorData->save_for_real)
+    if (editorData->save_for_real)
         return;
-    HCS_Sprite* this = HCS_Sprite_get(self);
+
+    char name[100];
+    char name_num[10];
+    strcpy(name,"canvas");
+    sprintf(name_num, "%d", name_index);
+    strcat(name,name_num);
+
+    HCS_Sprite* this = HCS_Sprite_get(HCS_Entity_get_by_name(name));
     int i,j,index = -1;
     for (i = 0; i < 16; i++)
-        if (SPREDITeditorData->colour_selected[i])
+        if (editorData->colour_selected[i])
             index = i;
     if (index == -1)
     {
@@ -81,25 +86,22 @@ void SPREDITon_canvas_click(int self)
         return;
     }
     
-    for (j = 0; j < 8; j++)
-        for (i = 0; i < 8; i++)
-            this->raw = SPREDITeditorData->colours[index];
-    
+    this->raw = editorData->colours[index];
     SDL_Surface* temp = SDL_CreateRGBSurface(0,16,16,32,0,0,0,0);
-    SDL_FillRect(temp,NULL,SDL_MapRGB(temp->format,this->raw.RED[0][0],this->raw.GRN[0][0],this->raw.BLU[0][0]));
+    SDL_FillRect(temp,NULL,SDL_MapRGB(temp->format,editorData->colours[index].RED[0][0],editorData->colours[index].GRN[0][0],editorData->colours[index].BLU[0][0]));
     SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
     this->tex = SDL_CreateTextureFromSurface(HCS_Gfx_renderer_get(),temp);
     SDL_FreeSurface(temp);
 }
 
-void SPREDITtext_box_event()
+void text_box_event()
 {
     static int last_len = 0;
-    if (!HCS_Entity_exist("SPREDITSafe_Name"))
+    if (!HCS_Entity_exist("Safe_Name"))
     {
         memset(HCS_Text_input_get(),0,*HCS_Text_input_length_get());
         *HCS_Text_input_length_get() = 0;
-        HCS_Entity e = HCS_Entity_create("SPREDITSafe_Name");
+        HCS_Entity e = HCS_Entity_create("Safe_Name");
         HCS_Body_add(e,-595,200,100,100);
         HCS_Sprite_add(e,HCS_Text_input_get(),5,4, true);
     }
@@ -113,49 +115,49 @@ void SPREDITtext_box_event()
         }
         else
         {
-            HCS_Sprite_remove(HCS_Entity_get_by_name("SPREDITSafe_Name"));
-            HCS_Sprite_add(HCS_Entity_get_by_name("SPREDITSafe_Name"),HCS_Text_input_get(),5,4, true);
+            HCS_Sprite_remove(HCS_Entity_get_by_name("Safe_Name"));
+            HCS_Sprite_add(HCS_Entity_get_by_name("Safe_Name"),HCS_Text_input_get(),5,4, true);
         }
     }
 }
 
-void SPREDITcancel_safe(int what);
+void cancel_safe(int what);
 
-void SPREDITon_safe_click(int nothing)
+void on_safe_click(int nothing)
 {
-    if (SPREDITeditorData->save_for_real == false)
+    if (editorData->save_for_real == false)
     {
-        HCS_Entity e = HCS_Entity_create("SPREDITSafe_Background");
+        HCS_Entity e = HCS_Entity_create("Safe_Background");
         HCS_Body_add(e,-600,100,1200,700);
         HCS_Sprite_add(e,"assets/default.hgx",4,4,false);
 
 
-        e = HCS_Entity_create("SPREDITDone_Button");
+        e = HCS_Entity_create("Done_Button");
         HCS_Body_add(e,150,650,100,100);
         HCS_Sprite_add(e,"Done",5,4,true);
-        HCS_Clickable_add(e,HCS_Click_off,HCS_Trig_released,"SPREDITon_safe_click",0);
+        HCS_Clickable_add(e,HCS_Click_off,HCS_Trig_released,"on_safe_click",0);
 
-        HCS_Event_add("SPREDITSafe_Name",SPREDITtext_box_event);
+        HCS_Event_add("Safe_Name",text_box_event);
         
-        e = HCS_Entity_create("SPREDITCancel_Button");
+        e = HCS_Entity_create("Cancel_Button");
         HCS_Body_add(e,-550,650,100,100);
         HCS_Sprite_add(e,"Cancel",5,4,true);
-        HCS_Clickable_add(e,HCS_Click_off,HCS_Trig_released,"SPREDITcancel_safe",69420);
+        HCS_Clickable_add(e,HCS_Click_off,HCS_Trig_released,"cancel_safe",69420);
         
-        SPREDITeditorData->save_for_real = true;
+        editorData->save_for_real = true;
         
         return;
     }
-    SPREDITeditorData->save_for_real = false;
-    if (HCS_Entity_exist("SPREDITCancel_Button"))
-        HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITCancel_Button"));
-    if (HCS_Entity_exist("SPREDITSafe_Name"))
-        HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITSafe_Name"));
-    if (HCS_Entity_exist("SPREDITSafe_Background"))
-        HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITSafe_Background"));
-    if (HCS_Entity_exist("SPREDITDone_Button"))
-        HCS_Entity_kill(HCS_Entity_get_by_name("SPREDITDone_Button"));
-    HCS_Event_remove("SPREDITSafe_Name");
+    editorData->save_for_real = false;
+    if (HCS_Entity_exist("Cancel_Button"))
+        HCS_Entity_kill(HCS_Entity_get_by_name("Cancel_Button"));
+    if (HCS_Entity_exist("Safe_Name"))
+        HCS_Entity_kill(HCS_Entity_get_by_name("Safe_Name"));
+    if (HCS_Entity_exist("Safe_Background"))
+        HCS_Entity_kill(HCS_Entity_get_by_name("Safe_Background"));
+    if (HCS_Entity_exist("Done_Button"))
+        HCS_Entity_kill(HCS_Entity_get_by_name("Done_Button"));
+    HCS_Event_remove("Safe_Name");
     
     if (nothing != 69420)
     {
@@ -163,7 +165,7 @@ void SPREDITon_safe_click(int nothing)
         char* img_data;
 
         img_data = malloc(strlen(imng_data_format_string) * 3 * 16);
-#define CANVAS SPREDITeditorData->Canvas
+#define CANVAS editorData->Canvas
         int i;
         int img_data_offset = 0;
         for (i = 0; i < 256; i+=16)
@@ -197,15 +199,15 @@ void SPREDITon_safe_click(int nothing)
             strcat(img_data,temp);
         }
         
-        strcpy(SPREDITeditorData->save_file_name,"touch assets/");
-        strcat(SPREDITeditorData->save_file_name,HCS_Text_input_get());
-        strcat(SPREDITeditorData->save_file_name,".hgx");
-        system(SPREDITeditorData->save_file_name);
+        strcpy(editorData->save_file_name,"touch assets/");
+        strcat(editorData->save_file_name,HCS_Text_input_get());
+        strcat(editorData->save_file_name,".hgx");
+        system(editorData->save_file_name);
         
-        strcpy(SPREDITeditorData->save_file_name,"assets/");
-        strcat(SPREDITeditorData->save_file_name,HCS_Text_input_get());
-        strcat(SPREDITeditorData->save_file_name,".hgx");
-        LSD_File* save_file = LSD_File_open(SPREDITeditorData->save_file_name);
+        strcpy(editorData->save_file_name,"assets/");
+        strcat(editorData->save_file_name,HCS_Text_input_get());
+        strcat(editorData->save_file_name,".hgx");
+        LSD_File* save_file = LSD_File_open(editorData->save_file_name);
         
         LSD_File_write(save_file,img_data);
         
@@ -218,88 +220,88 @@ void SPREDITon_safe_click(int nothing)
     }
 }
 
-void SPREDITcancel_safe(int what)
+void cancel_safe(int what)
 {
-    SPREDITeditorData->save_for_real = true;
-    SPREDITon_safe_click(what);
+    editorData->save_for_real = true;
+    on_safe_click(what);
 }
 
 struct HCS_SpriteEditorData HCS_SpriteEditorData = {0};
-static struct HCS_SpriteEditorData* SPREDITeditorData = &HCS_SpriteEditorData;
+static struct HCS_SpriteEditorData* editorData = &HCS_SpriteEditorData;
 int main(int argc, char* argv[])
 {
     HCS_Collider_callback_list(HCS_Collider_STD_callback,"HCS_Collider_STD_callback");
-    HCS_Clickable_callback_list(SPREDITsprite_editor_deinit,"SPREDITsprite_editor_deinit");
-    HCS_Clickable_callback_list(SPREDITclear_canvas,"SPREDITclear_canvas");
-    HCS_Clickable_callback_list(SPREDITon_menu_click,"SPREDITon_menu_click");
-    HCS_Clickable_callback_list(SPREDITon_canvas_click,"SPREDITon_canvas_click");
-    HCS_Clickable_callback_list(SPREDITcancel_safe,"SPREDITcancel_safe");
-    HCS_Clickable_callback_list(SPREDITon_safe_click,"SPREDITon_safe_click");
+    HCS_Clickable_callback_list(sprite_editor_deinit,"sprite_editor_deinit");
+    HCS_Clickable_callback_list(clear_canvas,"clear_canvas");
+    HCS_Clickable_callback_list(on_menu_click,"on_menu_click");
+    HCS_Clickable_callback_list(on_canvas_click,"on_canvas_click");
+    HCS_Clickable_callback_list(cancel_safe,"cancel_safe");
+    HCS_Clickable_callback_list(on_safe_click,"on_safe_click");
 
 
-    SPREDITeditorData->RED[0] = 0;
-    SPREDITeditorData->GRN[0] = 0;
-    SPREDITeditorData->BLU[0] = 0;
+    editorData->RED[0] = 0;
+    editorData->GRN[0] = 0;
+    editorData->BLU[0] = 0;
     
-    SPREDITeditorData->RED[1] = 255;
-    SPREDITeditorData->GRN[1] = 255;
-    SPREDITeditorData->BLU[1] = 255;
+    editorData->RED[1] = 255;
+    editorData->GRN[1] = 255;
+    editorData->BLU[1] = 255;
     
-    SPREDITeditorData->RED[2] = 255;
-    SPREDITeditorData->GRN[2] = 0;
-    SPREDITeditorData->BLU[2] = 0;
+    editorData->RED[2] = 255;
+    editorData->GRN[2] = 0;
+    editorData->BLU[2] = 0;
     
-    SPREDITeditorData->RED[3] = 255;
-    SPREDITeditorData->GRN[3] = 255;
-    SPREDITeditorData->BLU[3] = 0;
+    editorData->RED[3] = 255;
+    editorData->GRN[3] = 255;
+    editorData->BLU[3] = 0;
     
-    SPREDITeditorData->RED[4] = 255;
-    SPREDITeditorData->GRN[4] = 0;
-    SPREDITeditorData->BLU[4] = 255;
+    editorData->RED[4] = 255;
+    editorData->GRN[4] = 0;
+    editorData->BLU[4] = 255;
     
-    SPREDITeditorData->RED[5] = 0;
-    SPREDITeditorData->GRN[5] = 255;
-    SPREDITeditorData->BLU[5] = 0;
+    editorData->RED[5] = 0;
+    editorData->GRN[5] = 255;
+    editorData->BLU[5] = 0;
     
-    SPREDITeditorData->RED[6] = 0;
-    SPREDITeditorData->GRN[6] = 255;
-    SPREDITeditorData->BLU[6] = 255;
+    editorData->RED[6] = 0;
+    editorData->GRN[6] = 255;
+    editorData->BLU[6] = 255;
     
-    SPREDITeditorData->RED[7] = 0;
-    SPREDITeditorData->GRN[7] = 0;
-    SPREDITeditorData->BLU[7] = 255;
+    editorData->RED[7] = 0;
+    editorData->GRN[7] = 0;
+    editorData->BLU[7] = 255;
     
-    SPREDITeditorData->RED[8] = 20;
-    SPREDITeditorData->GRN[8] = 20;
-    SPREDITeditorData->BLU[8] = 20;
+    editorData->RED[8] = 20;
+    editorData->GRN[8] = 20;
+    editorData->BLU[8] = 20;
     
-    SPREDITeditorData->RED[9] = 100;
-    SPREDITeditorData->GRN[9] = 20;
-    SPREDITeditorData->BLU[9] = 20;
+    editorData->RED[9] = 100;
+    editorData->GRN[9] = 20;
+    editorData->BLU[9] = 20;
     
-    SPREDITeditorData->RED[10] = 20;
-    SPREDITeditorData->GRN[10] = 100;
-    SPREDITeditorData->BLU[10] = 20;
+    editorData->RED[10] = 20;
+    editorData->GRN[10] = 100;
+    editorData->BLU[10] = 20;
     
-    SPREDITeditorData->RED[11] = 20;
-    SPREDITeditorData->GRN[11] = 20;
-    SPREDITeditorData->BLU[11] = 100;
+    editorData->RED[11] = 20;
+    editorData->GRN[11] = 20;
+    editorData->BLU[11] = 100;
     
-    SPREDITeditorData->RED[12] = 100;
-    SPREDITeditorData->GRN[12] = 100;
-    SPREDITeditorData->BLU[12] = 20;
+    editorData->RED[12] = 100;
+    editorData->GRN[12] = 100;
+    editorData->BLU[12] = 20;
     
-    SPREDITeditorData->RED[13] = 100;
-    SPREDITeditorData->GRN[13] = 20;
-    SPREDITeditorData->BLU[13] = 100;
+    editorData->RED[13] = 100;
+    editorData->GRN[13] = 20;
+    editorData->BLU[13] = 100;
     
-    SPREDITeditorData->RED[14] = 20;
-    SPREDITeditorData->GRN[14] = 100;
-    SPREDITeditorData->BLU[14] = 100;
+    editorData->RED[14] = 20;
+    editorData->GRN[14] = 100;
+    editorData->BLU[14] = 100;
     
-    SPREDITeditorData->RED[15] = 254;
-    SPREDITeditorData->GRN[15] = 0;
-    SPREDITeditorData->BLU[15] = 0;
+    editorData->RED[15] = 254;
+    editorData->GRN[15] = 0;
+    editorData->BLU[15] = 0;
     int i,j,k;
     
     for (k = 0; k < 16; k++)
@@ -307,34 +309,13 @@ int main(int argc, char* argv[])
         for (j = 0; j < 8; j++)
             for (i = 0; i < 8; i++)
             {
-                SPREDITeditorData->colours[k].RED[j][i] = SPREDITeditorData->RED[k];
-                SPREDITeditorData->colours[k].GRN[j][i] = SPREDITeditorData->GRN[k];
-                SPREDITeditorData->colours[k].BLU[j][i] = SPREDITeditorData->BLU[k];
+                editorData->colours[k].RED[j][i] = editorData->RED[k];
+                editorData->colours[k].GRN[j][i] = editorData->GRN[k];
+                editorData->colours[k].BLU[j][i] = editorData->BLU[k];
             }
     }
-    
-    SDL_Rect r;
-    SDL_Surface* temp = SDL_CreateRGBSurface(0,8,8,32,0,0,0,0);
-    r.w = 1;
-    r.h = 1;
-    for (k = 0; k < 16; k++)
-    {
-        for (i = 0; i < 8; i++)
-            for (j = 0; j < 8; j++)
-            {
-                r.x = j;
-                r.y = i;
-                SDL_FillRect(temp,&r,SDL_MapRGB(temp->format,SPREDITeditorData->colours[k].RED[j][i],SPREDITeditorData->colours[k].GRN[j][i],SPREDITeditorData->colours[k].BLU[j][i]));
-            }
-        
-        SDL_SetColorKey(temp,SDL_TRUE,SDL_MapRGB(temp->format,254,0,0));
-        
-        SPREDITeditorData->colour_tex[k] = SDL_CreateTextureFromSurface(HCS_Gfx_renderer_get(),temp);
-    }
-    
-    SDL_FreeSurface(temp);
 
-    HCS_Entity e = HCS_Entity_create("SPREDITDraw_Background");
+    HCS_Entity e = HCS_Entity_create("Draw_Background");
     HCS_Body_add(e,-50 * 8 + 80, 80, 100 * 8 + 40, 100 * 8 + 40);
     HCS_Sprite_add(e,"assets/default.hgx",3,4,false);
 
@@ -346,14 +327,14 @@ int main(int argc, char* argv[])
     for (collum = 0; collum < 16; collum++)
         for (row = 0; row < 16; row++)
         {
-            strcpy(name,"SPREDITcanvas");
+            strcpy(name,"canvas");
             sprintf(name_num, "%d", index);
             strcat(name,name_num);
             HCS_Entity e = HCS_Entity_create(name);
             HCS_Body_add(e,- 50 * (-9 + row), 100 + (collum) * 50, 45, 45);
             HCS_Sprite_add(e,"assets/default.hgx",4,4,false);
-            HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_down,"SPREDITon_canvas_click",e);
-            SPREDITeditorData->Canvas[index] = HCS_Sprite_get(e);
+            HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_down,"on_canvas_click",index);
+            editorData->Canvas[index] = HCS_Sprite_get(e);
             index++;
         }
 
@@ -363,41 +344,40 @@ int main(int argc, char* argv[])
     for (collum = 0; collum < 4; collum++)
         for (row = 0; row < 4; row++)
         {
-            strcpy(name,"SPREDITcolour");
+            strcpy(name,"colour");
             sprintf(name_num, "%d", index);
             strcat(name,name_num);
             HCS_Entity e = HCS_Entity_create(name);
             HCS_Body_add(e,(-60 - 60 * row), 100 + (collum) * 60, 50, 50);
-            HCS_Sprite_add(e,"assets/default.hgx",4,3,false);
-            HCS_Sprite_get(e)->tex = SPREDITeditorData->colour_tex[index];
-            HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"SPREDITon_menu_click",index);
+            HCS_Sprite_primitive_add(e, 4, 3, editorData->colours[collum * 4 + row].RED[0][0],editorData->colours[collum * 4 + row].GRN[0][0],editorData->colours[collum * 4 + row].BLU[0][0]);
+            HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"on_menu_click",index);
             index++;
         }
     
     
     
-    e = HCS_Entity_create("SPREDITSave_Button");
+    e = HCS_Entity_create("Save_Button");
     HCS_Body_add(e,0,100,100,75);
     HCS_Sprite_add(e,"Safe",3,2,true);
-    HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"SPREDITon_safe_click",index);
+    HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"on_safe_click",index);
     
-    e = HCS_Entity_create("SPREDITClear_Button");
+    e = HCS_Entity_create("Clear_Button");
     HCS_Body_add(e,0,200,100,75);
     HCS_Sprite_add(e,"Clear",3,2,true);
-    HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"SPREDITclear_canvas",index);
+    HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"clear_canvas",index);
     
-    e = HCS_Entity_create("SPREDITQuit_Button");
+    e = HCS_Entity_create("Quit_Button");
     HCS_Body_add(e,0,300,100,75);
     HCS_Sprite_add(e,"Quit",3,2,true);
-    HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"SPREDITsprite_editor_deinit",index);
+    HCS_Clickable_add(e,HCS_Click_toggle,HCS_Trig_released,"sprite_editor_deinit",index);
     
     HCS_Event_add("cursor_event",cursor_event);
     
-    SPREDITclear_canvas(0);
+    clear_canvas(0);
     
-    HCS_Entity_clear();
+    // HCS_Entity_clear();
 
-    HCS_Script_load("test.hcscript");
+    // HCS_Script_load("test.hcscript");
 
     HCS_CONTINUE();
 }

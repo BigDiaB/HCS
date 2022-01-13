@@ -74,6 +74,8 @@
 #define HCS_H
 
 #define HCS_DEBUG  
+// #define HCS_MULTI_THREAD
+#define HCS_SINGLE_THREAD
 
 #include <SDL2/SDL.h>
 
@@ -348,6 +350,7 @@ void HCS_Movement_system();
 
 void HCS_Drawable_translate_rect(SDL_Rect* r);
 int HCS_Sprite_add(HCS_Entity e, char* n, int l,int t, bool use_text);
+int HCS_Sprite_primitive_add(HCS_Entity e, int l, int t, char r, char g, char b);
 struct HCS_Sprite* HCS_Sprite_get(HCS_Entity e);
 void HCS_Sprite_remove(HCS_Entity e);
 void HCS_Sprite_system();
