@@ -6,7 +6,7 @@ libraries:  -lLSD -lSDL2 -lm -liconv  -Wl,-framework,CoreAudio -Wl,-framework,Au
 source:  ../src/HCS.c ../src/test.c
 
 gxx: clang
-gxxflags: -Wall -O0
-cxxflags: -std=c89 -g
+gxxflags: -O0
+cxxflags: -std=c89 -g -W -Wall -Wextra
 
-out: game
+out: game.app

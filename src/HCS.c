@@ -117,13 +117,11 @@ void HCS_Update(double delta)
         else if (runData->event.type == SDL_WINDOWEVENT)
         {
             if (runData->event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                // HCS_Entity_clear();
 
                 SDL_GetWindowSize(runData->window, &runData->WIN_SIZE.w,&runData->WIN_SIZE.h);
                 runData->STRETCH_WIDTH = (double)runData->WIN_SIZE.w / (double)runData->WIN_SIZE.h;
                 runData->STRETCH_HEIGHT = (double)runData->WIN_SIZE.h / (double)runData->WIN_SIZE.w;
                 runData->DRAW_OFFSET = (runData->WIN_SIZE.w - runData->WIN_SIZE.h / 9 * 16) / 2;
-                // runData->HCS_running = HCS_Main(0,NULL);
             }
         }
         #ifdef HCS_DEBUG
@@ -177,6 +175,12 @@ void HCS_Update(double delta)
                     break;
                 case HCS_INPUT_B:
                     runData->HCS_Input_B.down = true;
+                    break;
+                case SDLK_r:
+                    if (SDL_GetModState() & KMOD_CTRL)
+                    {
+                        HCS_Reload();
+                    }
                     break;
 
                 default:
@@ -1031,4 +1035,10 @@ int main(int argc, char* argv[])
     //Library-Deinitialisierung
     HCS_Deinit();
     exit(0);
+}
+
+void HCS_Reload()
+{
+    HCS_Entity_clear();
+    runData->HCS_running = HCS_Main(0,NULL);
 }

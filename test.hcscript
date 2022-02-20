@@ -1,7 +1,7 @@
 {Player}
 [State];
 [Input];
-[Body]:         -300|100|400|400|;
+[Body]:         -300|-100|400|400|;
 [Movement]:     4000|4000|;
 [Gravity]:		0|2700|;
 [Collider]:     Vec(0,0)|Vec(0,0)|HCS_Collider_STD_callback|;

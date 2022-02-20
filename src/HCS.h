@@ -63,8 +63,6 @@
  -Entities in Scripts Dumpen!
  -Animationen für Drawables (Timer + Quad und States oder sowas kp...)!
  -Irgendwie Sound hinkriegen (Möglichst ohne SDL_Mixer (Siehe GitHub Star!)!)!
-
- -Datenaustausch über Sockets (Kein WebServer!) in LSD einbauen!
  
  Very Nice To Haves™:
  
@@ -74,8 +72,8 @@
 #define HCS_H
 
 #define HCS_DEBUG  
-// #define HCS_MULTI_THREAD
-#define HCS_SINGLE_THREAD
+#define HCS_MULTI_THREAD
+// #define HCS_SINGLE_THREAD
 
 #include <SDL2/SDL.h>
 
@@ -276,6 +274,7 @@ typedef struct HCS_Button HCS_Button;
 
 LSD_Vec2i HCS_Screen_size_get();
 HCS_Sprite* HCS_Asset(char* path);
+void HCS_Reload();
 void HCS_Void_func();
 void HCS_Init(char* argv[]);
 void HCS_Deinit();
