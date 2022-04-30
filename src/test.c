@@ -1,7 +1,6 @@
 
-//Meine Tools:
-#include <LSD/LSD.h>//<- "Logging" System
-#include "HCS.h"    //<- Entity Component System
+#include <LSD/LSD.h>
+#include "HCS.h"
 
 void cursor_event()
 {
@@ -9,13 +8,13 @@ void cursor_event()
     HCS_Cursor_button_get()->down = SDL_GetMouseState(&HCS_Cursor_position_get()->x,&HCS_Cursor_position_get()->y) & SDL_BUTTON_LMASK;
 }
 
-void init_event(int nothing)
+void init_event(__attribute__((unused))int nothing)
 {
-    HCS_Entity_clear();
+    HCS_Entity_kill(HCS_Entity_get_by_name("Init_Button"));
     HCS_Script_load("test.hcscript");
 }
 
-int main(int argc, char* argv[])
+int main(__attribute__((unused))int argc, __attribute__((unused))char* argv[])
 {
     HCS_Event_add("cursor",cursor_event);
     HCS_Collider_callback_list(HCS_Collider_STD_callback,"HCS_Collider_STD_callback");

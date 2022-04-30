@@ -73,7 +73,7 @@
 
 #define HCS_DEBUG  
 #define HCS_MULTI_THREAD
-// #define HCS_SINGLE_THREAD
+/*#define HCS_SINGLE_THREAD*/
 
 #include <SDL2/SDL.h>
 
